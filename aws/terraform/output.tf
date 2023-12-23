@@ -1,4 +1,4 @@
 /** shared variables for all modules **/
-output "project" {
+output "debug" {
   value = local.project
 }

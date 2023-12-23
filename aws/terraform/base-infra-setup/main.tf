@@ -2,4 +2,7 @@ module "COMMON" {
   source = "../../terraform"
 }
 
-/** REGION: N. Virginia */
+/**************************/
+/** Region: US_NVirginia **/
+/**************************/
+

@@ -1,6 +1,6 @@
-output "debug-us_nvirginia" {
+output "debug" {
   value = [
-    module.COMMON.project.mime_types
+    local.vpc.vpc-region_nvirginia
   ]
 
 }
