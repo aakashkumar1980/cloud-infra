@@ -1,0 +1,34 @@
+{
+    ".txt": "text/plain",
+    ".htm": "text/html",
+    ".html": "text/html",
+    ".xhtml": "application/xhtml+xml",
+    ".css": "text/css",
+    ".js": "application/javascript",
+    ".ttf": "font/ttf",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".bmp": "image/bmp",
+    ".gif": "image/gif",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+
+    ".csv": "text/csv",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".epub": "application/epub+zip",
+    ".json": "application/json",
+    ".pdf": "application/pdf",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".xml": "application/xml",
+    
+    ".gz": "application/gzip",
+    ".7z": "application/x-7z-compressed"
+
+}
