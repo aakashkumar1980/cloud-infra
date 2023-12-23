@@ -1,20 +1,22 @@
 /**
   Defining the network configuration for the region. e.g.:
-    region_nvirginia (map)
-    └─ vpc (map)
-      └─ vpc_a (object)
-          ├─ cidr_block (string): "10.0.0.0/24"
-          └─ subnets (map)
-            ├─ subnet1 (object)
-            │  ├─ type (string): "generic"
-            │  ├─ cidr_block (string): "10.0.0.0/28"
-            │  └─ availability_zone_index (string): "a"
-            └─ subnet2 (object)
-                ├─ type (string): "public"
-                ├─ cidr_block (string): "10.0.0.16/28"
-                └─ availability_zone_index (string): "a"
-      └─ vpc_b (object)  
-         ...              
+  region_nvirginia (map)
+  └─ vpc (map)
+  | └─ vpc_a (object)
+  | |   ├─ cidr_block (string): "10.0.0.0/24"
+  | |   └─ subnets (map)
+  | |     ├─ subnet1 (object)
+  | |     │  ├─ type (string): "generic"
+  | |     │  ├─ cidr_block (string): "10.0.0.0/28"
+  | |     │  └─ availability_zone_index (string): "a"
+  | |     └─ subnet2 (object)
+  | |         ├─ type (string): "public"
+  | |         ├─ cidr_block (string): "10.0.0.16/28"
+  | |         └─ availability_zone_index (string): "a"
+  | └─ vpc_b (object)  
+  |    ...            
+  |  
+  region_london (map)     
 **/
 
 variable "region_configurations" {

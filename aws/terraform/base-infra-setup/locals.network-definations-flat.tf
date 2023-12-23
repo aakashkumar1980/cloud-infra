@@ -1,3 +1,26 @@
+/**
+  Reducing the network configurations (taken from variables.network-definations.tf file) in a flat structure. e.g.:
+  locals (map)
+  └─ vpc (map)
+    ├─ vpc-region_nvirginia (list of objects)
+    │  ├─ region-name (string): "region_nvirginia"
+    │  ├─ vpc-name (string): "vpc_a"
+    │  ├─ vpc-cidr_block (string): "10.0.0.0/24"
+    |  ...
+    └─ subnets-region_nvirginia (list of objects)
+    |  ├─ region-name (string): "region_nvirginia"
+    |  ├─ vpc-name (string): "vpc_a"
+    |  ├─ vpc-cidr_block (string): "10.0.0.0/24"
+    |  ├─ subnet-index (string): "1"
+    |  ├─ subnet-type (string): "generic"
+    |  ├─ subnet-cidr_block (string): "10.0.0.0/28"
+    |  ├─ subnet-availability_zone_index (string): "a"
+    |   ...
+    | 
+    ├─ vpc-region_london (list of objects)
+        ...
+**/
+
 locals {
   vpc = {
     vpc-region_nvirginia = flatten([
