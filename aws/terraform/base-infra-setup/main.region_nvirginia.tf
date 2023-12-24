@@ -1,0 +1,4 @@
+module "COMMON" {
+  source = "../../terraform"
+}
+

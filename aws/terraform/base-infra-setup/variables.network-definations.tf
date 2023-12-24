@@ -45,7 +45,6 @@ variable "region_configurations" {
             "6" = { type = "private", cidr_block = "10.0.0.192/26", availability_zone_index = "c" }
           }
         }
-
         vpc_b = {
           cidr_block = "172.16.0.0/26"
           subnets = {
@@ -67,7 +66,6 @@ variable "region_configurations" {
             "3" = { type = "private", cidr_block = "192.168.0.32/27", availability_zone_index = "c" }
           }
         },
-
         "vpc_a-copy" = {
           cidr_block = "10.0.0.0/24"
           subnets = {
