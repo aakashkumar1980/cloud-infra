@@ -20,7 +20,7 @@ variable "tag_path" {
 variable "subnet-type" {
   default = null
 }
-variable "subnet-availability_zone-index" {
+variable "subnet-availability_zone_index" {
   default = null
 }
 

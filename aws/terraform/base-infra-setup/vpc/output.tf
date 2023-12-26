@@ -1,4 +1,4 @@
-output "outputmap-vpc" {
+output "output-vpc" {
   value = {for k,v in module.VPC: k=>v.output-vpc}
 }
 
