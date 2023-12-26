@@ -1,0 +1,12 @@
+/** update the tag & attach Internet-Gateway to the default created RouteTable by the vpc **/
+resource "aws_default_route_table" "igw-attach-rt_default" {
+  default_route_table_id = var.default_route_table_id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "${var.tag_path}.rt_default"
+  }
+}
