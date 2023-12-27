@@ -1,5 +1,5 @@
 module "SUBNETS" {
-  source = "../../_templates/networking/subnets"
+  source = "../../../_templates/networking/subnets"
   for_each = {
     // update the key for grouping
     for k in var.subnets_flatmap : "${k.region-name}.${k.vpc-name}.${k.subnet-index}" => k

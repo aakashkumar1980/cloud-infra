@@ -4,7 +4,7 @@ module "COMMON-REGION_NVIRGINIA" {
 
 /** NETWORKING */
 module "VPC-REGION_NVIRGINIA" {
-  source = "./vpc"
+  source = "./networking/vpc"
   providers = {
     aws = aws.region_nvirginia
   }
@@ -14,12 +14,24 @@ module "VPC-REGION_NVIRGINIA" {
 }
 
 module "SUBNETS-REGION_NVIRGINIA" {
-  source = "./subnets"
+  source     = "./networking/subnets"
   depends_on = [module.VPC-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
-  
+
   vpc             = module.VPC-REGION_NVIRGINIA.output-vpc
   subnets_flatmap = local.vpc.subnets-region_nvirginia
+}
+
+module "ROUTETABLE-REGION_NVIRGINIA" {
+  source     = "./networking/routetable"
+  depends_on = [module.SUBNETS-REGION_NVIRGINIA]
+  providers = {
+    aws = aws.region_nvirginia
+  }
+
+  vpc     = module.VPC-REGION_NVIRGINIA.output-vpc
+  igw     = module.VPC-REGION_NVIRGINIA.output-igw
+  subnets = module.SUBNETS-REGION_NVIRGINIA.output-subnets
 }

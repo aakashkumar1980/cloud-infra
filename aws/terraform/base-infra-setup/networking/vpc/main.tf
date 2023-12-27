@@ -1,5 +1,5 @@
 module "VPC" {
-  source = "../../_templates/networking/vpc"
+  source = "../../../_templates/networking/vpc"
   for_each = {
     for k in var.vpc_flatmap : "${k.region-name}.${k.vpc-name}" => k
   }
@@ -10,7 +10,7 @@ module "VPC" {
 }
 
 module "INTERNET_GATEWAY" {
-  source = "../../_templates/networking/vpc/igw"
+  source = "../../../_templates/networking/vpc/igw"
   for_each = {
     for k, v in values(module.VPC)[*].output-vpc : k => v
   }
