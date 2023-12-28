@@ -44,10 +44,21 @@ module "NACL-REGION_NVIRGINIA" {
     aws = aws.region_nvirginia
   }
 
-  # using created aws components from other modules
-  vpc     = module.VPC-REGION_NVIRGINIA.output-vpc
-  subnets = module.SUBNETS-REGION_NVIRGINIA.output-subnets
-
+  vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
+  subnets           = module.SUBNETS-REGION_NVIRGINIA.output-subnets
   ingress-rules_map = local.firewall.ingress_rules
   egress-rules_map  = local.firewall.egress_rules
+}
+
+
+/** EC2 */
+module "SECURITYGROUP-REGION_NVIRGINIA" {
+  source     = "./security/securitygroup"
+  depends_on = [module.VPC-REGION_NVIRGINIA]
+  providers = {
+    aws = aws.region_nvirginia
+  }
+
+  vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
+  ingress-rules_map = local.firewall.ingress_rules
 }

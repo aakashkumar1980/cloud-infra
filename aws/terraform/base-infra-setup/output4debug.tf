@@ -13,6 +13,10 @@ output "debug" {
     module.NACL-REGION_NVIRGINIA.output-nacl_generic,
     module.NACL-REGION_NVIRGINIA.output-nacl_public,
     module.NACL-REGION_NVIRGINIA.output-nacl_private,
+
+    /** EC2 */
+    module.SECURITYGROUP-REGION_NVIRGINIA.output-sg_public,
+    
     
   ]
 
