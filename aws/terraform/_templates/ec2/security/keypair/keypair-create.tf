@@ -3,7 +3,7 @@ data "http" "keypair_pubickey" {
 }
 
 resource "aws_key_pair" "keypair" {
-  public_key = data.http.keypair_pubickey.body
+  public_key = data.http.keypair_pubickey.response_body
 
   key_name = "${var.ns}.keypair"
   tags = {

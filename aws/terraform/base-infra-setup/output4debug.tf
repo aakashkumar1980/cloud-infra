@@ -18,6 +18,8 @@ output "debug" {
     module.SECURITYGROUP-REGION_NVIRGINIA.output-sg_public,
     module.KEYPAIR-REGION_NVIRGINIA.output-keypair,
     
+    module.EC2-REGION_NVIRGINIA.output-sg_nat,
+    module.EC2-REGION_NVIRGINIA.output-ec2_nat,
   ]
 
 }

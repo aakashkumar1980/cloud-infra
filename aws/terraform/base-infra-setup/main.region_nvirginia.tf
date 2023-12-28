@@ -72,3 +72,19 @@ module "KEYPAIR-REGION_NVIRGINIA" {
   ns          = module.COMMON-REGION_NVIRGINIA.project.namespace
   vpc_flatmap = local.vpc.vpc-region_nvirginia
 }
+
+module "EC2-REGION_NVIRGINIA" {
+  source     = "./ec2"
+  depends_on = [module.ROUTETABLE-REGION_NVIRGINIA, module.KEYPAIR-REGION_NVIRGINIA]
+  providers = {
+    aws = aws.region_nvirginia
+  }
+
+  vpc           = module.VPC-REGION_NVIRGINIA.output-vpc
+  subnets       = module.SUBNETS-REGION_NVIRGINIA.output-subnets
+  rt_private    = module.ROUTETABLE-REGION_NVIRGINIA.output-rt_private
+  keypair       = module.KEYPAIR-REGION_NVIRGINIA.output-keypair
+  ami           = "ami-00a36856283d67c39"
+  instance_type = "t3a.nano"
+
+}
