@@ -2,6 +2,6 @@ variable "ns" {
   default = null
 }
 
-variable "region_flatmap" {
+variable "vpc_flatmap" {
   default = null
 }

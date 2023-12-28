@@ -16,7 +16,7 @@ output "debug" {
 
     /** EC2 */
     module.SECURITYGROUP-REGION_NVIRGINIA.output-sg_public,
-    
+    module.KEYPAIR-REGION_NVIRGINIA.output-keypair,
     
   ]
 

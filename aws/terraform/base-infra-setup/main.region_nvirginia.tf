@@ -62,3 +62,13 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
   ingress-rules_map = local.firewall.ingress_rules
 }
+
+module "KEYPAIR-REGION_NVIRGINIA" {
+  source = "../_templates/ec2/security/keypair"
+  providers = {
+    aws = aws.region_nvirginia
+  }
+
+  ns          = module.COMMON-REGION_NVIRGINIA.project.namespace
+  vpc_flatmap = local.vpc.vpc-region_nvirginia
+}
