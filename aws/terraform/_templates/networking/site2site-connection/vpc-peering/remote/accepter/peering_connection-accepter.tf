@@ -1,4 +1,4 @@
-resource "aws_vpc_peering_connection_accepter" "peering_connection-accept" {
+resource "aws_vpc_peering_connection_accepter" "peering_connection-accepter" {
   vpc_peering_connection_id = var.peering_id
   auto_accept               = true
 

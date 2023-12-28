@@ -1,4 +1,4 @@
-resource "aws_ec2_transit_gateway_peering_attachment" "transit_gateway_peering_attachment_requester" {
+resource "aws_ec2_transit_gateway_peering_attachment" "peering_attachment_requester" {
   peer_account_id         = var.peer_account_id
   peer_region             = var.peer_region
   peer_transit_gateway_id = var.peer_transit_gateway_id
