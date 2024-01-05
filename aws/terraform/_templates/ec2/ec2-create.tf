@@ -18,7 +18,7 @@ resource "aws_instance" "ec2" {
   user_data = var.user_data
   metadata_options {
     instance_metadata_tags = "enabled"
-    http_endpoint = "enabled"
+    http_endpoint          = "enabled"
   }
   tags = tomap({
     "Name" = "${var.tag_path}.ec2_${var.entity_name}"

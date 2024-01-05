@@ -24,7 +24,7 @@
 locals {
   vpc = {
     vpc-region_nvirginia = flatten([
-      for region_name, region in var.region_configurations : 
+      for region_name, region in var.region_configurations :
       region_name == "region_nvirginia" ? [
         for vpc_name, vpc in region.vpc : {
           region-name    = region_name
@@ -34,7 +34,7 @@ locals {
       ] : []
     ])
     subnets-region_nvirginia = flatten([
-      for region_name, region in var.region_configurations : 
+      for region_name, region in var.region_configurations :
       region_name == "region_nvirginia" ? [
         for vpc_name, vpc in region.vpc : [
           for subnet_index, subnet in vpc.subnets : {
@@ -52,7 +52,7 @@ locals {
     ])
 
     vpc-region_london = flatten([
-      for region_name, region in var.region_configurations : 
+      for region_name, region in var.region_configurations :
       region_name == "region_london" ? [
         for vpc_name, vpc in region.vpc : {
           region-name    = region_name
@@ -62,7 +62,7 @@ locals {
       ] : []
     ])
     subnets-region_london = flatten([
-      for region_name, region in var.region_configurations : 
+      for region_name, region in var.region_configurations :
       region_name == "region_london" ? [
         for vpc_name, vpc in region.vpc : [
           for subnet_index, subnet in vpc.subnets : {

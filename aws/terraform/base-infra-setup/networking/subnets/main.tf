@@ -5,7 +5,6 @@ module "SUBNETS" {
     for k in var.subnets_flatmap : "${k.region-name}.${k.vpc-name}.${k.subnet-index}" => k
   }
 
-  # using created aws components from other modules
   vpc_id                  = join("", lookup(var.vpc, "${each.value.region-name}.${each.value.vpc-name}")[*].id)
   availability_zone       = each.value.subnet-availability_zone_index
   cidr_block              = each.value.subnet-cidr_block
