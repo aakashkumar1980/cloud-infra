@@ -8,7 +8,7 @@ module "ROUTETABLE" {
 }
 
 module "INTERNET-GATEWAY" {
-  source = "./internet-gateway"
+  source = "./igw"
 
   rt_public = values(module.ROUTETABLE)[*].output-rt
   igw       = var.igw

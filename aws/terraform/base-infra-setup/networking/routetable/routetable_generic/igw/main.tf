@@ -1,5 +1,5 @@
 module "INTERNET-GATEWAY" {
-  source = "../../../../../_templates/networking/routetable/routes/internet-gateway"
+  source = "../../../../../_templates/networking/routetable/routes/igw"
   count  = length(var.rt_generic)
 
   rt_id                  = element(var.rt_generic, count.index).id
