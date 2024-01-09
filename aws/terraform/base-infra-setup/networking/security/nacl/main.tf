@@ -12,7 +12,7 @@ module "NACL_GENERIC" {
       {
         # epidermal port
         protocol   = "tcp"
-        from_port  = "32768"
+        from_port  = "1024"
         to_port    = "65535"
         cidr_block = "0.0.0.0/0"
       }
@@ -35,7 +35,7 @@ module "NACL_PUBLIC" {
       {
         # epidermal port
         protocol   = "tcp"
-        from_port  = "32768"
+        from_port  = "1024"
         to_port    = "65535"
         cidr_block = "0.0.0.0/0"
       }
@@ -59,7 +59,7 @@ module "NACL_PRIVATE" {
       {
         # epidermal port
         protocol   = "tcp"
-        from_port  = "32768"
+        from_port  = "1024"
         to_port    = "65535"
         cidr_block = "0.0.0.0/0"
       }
