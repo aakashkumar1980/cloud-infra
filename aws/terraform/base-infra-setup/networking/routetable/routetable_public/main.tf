@@ -7,11 +7,19 @@ module "ROUTETABLE" {
   entity_name = "public"
 }
 
+
 module "INTERNET-GATEWAY" {
   source = "./igw"
 
   rt_public = values(module.ROUTETABLE)[*].output-rt
   igw       = var.igw
+}
+
+module "SUBNET_GENERIC" {
+  source = "./subnet_generic"
+
+  rt_public = values(module.ROUTETABLE)[*].output-rt
+  subnets   = var.subnets
 }
 module "SUBNET_PUBLIC" {
   source = "./subnet_public"

@@ -2,6 +2,6 @@ variable "subnets" {
   default = null
 }
 
-variable "rt_generic" {
+variable "rt_public" {
   default = null
 }

@@ -4,8 +4,10 @@ module "NACL" {
   vpc_id = var.vpc_id
   subnet_ids = flatten([
     for v in var.subnets : v.id if(
-      length(regexall("(.subnet_public-)", v.tags["Name"])) != 0
-      && v.vpc_id == var.vpc_id
+      (
+        length(regexall("(.subnet_public-)", v.tags["Name"])) != 0 ||
+        length(regexall("(.subnet_generic-)", v.tags["Name"])) != 0
+      ) && v.vpc_id == var.vpc_id
     )
   ])
 

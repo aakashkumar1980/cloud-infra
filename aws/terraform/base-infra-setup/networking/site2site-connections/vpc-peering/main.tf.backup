@@ -1,0 +1,55 @@
+module "PEERING" {
+  source     = "./peering"
+  depends_on = [time_sleep.wait_2minutess-for-server_initialization]
+
+  providers = {
+    aws.rnvg = aws.region_nvirginia
+    aws.rldn = aws.region_london
+    aws.rmum = aws.region_mumbai
+  }
+
+  ingress-rules_map = local.firewall.ingress_rules
+
+  vpc_id-vpc_privatelearningv2        = module.SERVERS.output-vpc_id-vpc_privatelearningv2
+  cidr_block-vpc_privatelearningv2    = module.SERVERS.output-cidr_block-vpc_privatelearningv2
+  routetable_id-vpc_privatelearningv2 = module.SERVERS.output-routetable_id-vpc_privatelearningv2
+  nacl_id-vpc_privatelearningv2       = module.SERVERS.output-nacl_id-vpc_privatelearningv2
+
+  vpc_id-vpc_left        = module.SERVERS.output-vpc_left.id
+  cidr_block-vpc_left    = module.SERVERS.output-vpc_left.cidr_block
+  eni_id-vpc_left        = module.SERVERS.output-eni-vpc_left.id
+  nacl_id-vpc_left       = join("", module.SERVERS.output-nacl-vpc_left.ids)
+  routetable_id-vpc_left = module.SERVERS.output-routetable-vpc_left.id
+
+  vpc_id-vpc_center                       = module.SERVERS.output-vpc_center.id
+  cidr_block-vpc_center                   = module.SERVERS.output-vpc_center.cidr_block
+  eni_id-vpc_center-private_server        = module.SERVERS.output-eni-vpc_center-private_server.id
+  nacl_id-vpc_center-private_server       = join("", module.SERVERS.output-nacl-vpc_center-private_server.ids)
+  routetable_id-vpc_center-public_server  = module.SERVERS.output-routetable-vpc_center-public_server.id
+  eni_id-vpc_center-public_server         = module.SERVERS.output-eni-vpc_center-public_server.id
+  routetable_id-vpc_center-private_server = module.SERVERS.output-routetable-vpc_center-private_server.id
+
+  vpc_id-vpc_right        = module.SERVERS.output-vpc_right.id
+  cidr_block-vpc_right    = module.SERVERS.output-vpc_right.cidr_block
+  eni_id-vpc_right        = module.SERVERS.output-eni-vpc_right.id
+  nacl_id-vpc_right       = join("", module.SERVERS.output-nacl-vpc_right.ids)
+  routetable_id-vpc_right = module.SERVERS.output-routetable-vpc_right.id
+
+
+  tag_path       = "${module.COMMON_ROOT.project.namespace}.usecase-${local.usecase.name}"
+  locals_usecase = local.usecase
+}
+
+module "DATA" {
+  source = "../../../../usecases/_data"
+  depends_on = [
+    module.PEERING.PEERING-LOCAL,
+    module.PEERING.PEERING-REMOTE
+  ]
+
+  providers = {
+    aws.rnvg = aws.region_nvirginia
+    aws.rldn = aws.region_london
+  }
+
+}

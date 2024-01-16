@@ -5,7 +5,7 @@ module "SUBNETS" {
   }
 
   route_table_id = join(",", [
-    for v in var.rt_generic : v.id
+    for v in var.rt_public : v.id
     if(v.vpc_id == each.value.vpc_id
     )
   ])

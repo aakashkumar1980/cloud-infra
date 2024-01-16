@@ -1,0 +1,69 @@
+/*******************/
+/** PEERING LOCAL **/
+/*******************/
+module "PEERING-LOCAL" {
+  source = "./peering-local"
+  providers = {
+    aws = aws.rnvg
+  }
+
+  peering_id-remote_request-vpc_right2left              = module.PEERING-REMOTE.output-peering_remote_request-vpc_right2left.id
+  peering_id-remote_request-vpc_right2center            = module.PEERING-REMOTE.output-peering_remote_request-vpc_right2center.id
+  peering_id-remote_request-vpc_privatelearningv2center = module.PEERING-REMOTE.output-peering_remote_request-vpc_privatelearningv2center.id
+
+  ingress-rules_map = var.ingress-rules_map
+
+  cidr_block-vpc_privatelearningv2 = var.cidr_block-vpc_privatelearningv2
+
+  vpc_id-vpc_left        = var.vpc_id-vpc_left
+  cidr_block-vpc_left    = var.cidr_block-vpc_left
+  eni_id-vpc_left        = var.eni_id-vpc_left
+  nacl_id-vpc_left       = var.nacl_id-vpc_left
+  routetable_id-vpc_left = var.routetable_id-vpc_left
+
+  vpc_id-vpc_center                       = var.vpc_id-vpc_center
+  cidr_block-vpc_center                   = var.cidr_block-vpc_center
+  eni_id-vpc_center-private_server        = var.eni_id-vpc_center-private_server
+  nacl_id-vpc_center-private_server       = var.nacl_id-vpc_center-private_server
+  routetable_id-vpc_center-private_server = var.routetable_id-vpc_center-private_server
+  eni_id-vpc_center-public_server         = var.eni_id-vpc_center-public_server
+  routetable_id-vpc_center-public_server  = var.routetable_id-vpc_center-public_server
+
+  cidr_block-vpc_right = var.cidr_block-vpc_right
+
+  tag_path = var.tag_path
+}
+
+
+
+/********************/
+/** PEERING REMOTE **/
+/********************/
+module "PEERING-REMOTE" {
+  source = "./peering-remote"
+  providers = {
+    aws.ldn = aws.rldn
+    aws.mum = aws.rmum
+  }
+
+  ingress-rules_map = var.ingress-rules_map
+
+  vpc_id-vpc_privatelearningv2        = var.vpc_id-vpc_privatelearningv2
+  routetable_id-vpc_privatelearningv2 = var.routetable_id-vpc_privatelearningv2
+
+  vpc_id-vpc_left     = var.vpc_id-vpc_left
+  cidr_block-vpc_left = var.cidr_block-vpc_left
+
+  vpc_id-vpc_center     = var.vpc_id-vpc_center
+  cidr_block-vpc_center = var.cidr_block-vpc_center
+
+  vpc_id-vpc_right        = var.vpc_id-vpc_right
+  eni_id-vpc_right        = var.eni_id-vpc_right
+  nacl_id-vpc_right       = var.nacl_id-vpc_right
+  routetable_id-vpc_right = var.routetable_id-vpc_right
+
+  peer_region = module.PEERING-LOCAL.output-aws_region_current.name
+
+  tag_path       = var.tag_path
+  locals_usecase = var.locals_usecase
+}
