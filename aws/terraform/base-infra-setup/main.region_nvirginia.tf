@@ -59,6 +59,15 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
   ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
+module "VPC_PEERING" {
+  source = "./networking/site2site-connections/vpc-peering"
+  providers = {
+    aws.reg_nvg = aws.region_nvirginia
+    aws.reg_ldn = aws.region_london
+  }
+
+  ns = module.COMMON-REGION_NVIRGINIA.project.namespace
+}
 /** EC2 */
 module "KEYPAIR-REGION_NVIRGINIA" {
   source = "../_templates/ec2/security/keypair"
