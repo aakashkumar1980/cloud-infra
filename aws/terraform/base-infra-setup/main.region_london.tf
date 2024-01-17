@@ -59,7 +59,7 @@ module "SECURITYGROUP-REGION_LONDON" {
   }
 
   vpc               = module.VPC-REGION_LONDON.output-vpc
-  ingress-rules_map = local.firewall.ingress.standard_rules
+  ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
 
 module "KEYPAIR-REGION_LONDON" {

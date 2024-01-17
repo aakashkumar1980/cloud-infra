@@ -58,7 +58,7 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   }
 
   vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
-  ingress-rules_map = local.firewall.ingress.standard_rules
+  ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
 
 module "KEYPAIR-REGION_NVIRGINIA" {

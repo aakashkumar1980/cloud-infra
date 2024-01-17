@@ -17,6 +17,7 @@ output "debug" {
 
     /** EC2 */
     module.SECURITYGROUP-REGION_NVIRGINIA.output-sg_public,
+    module.SECURITYGROUP-REGION_NVIRGINIA.output-sg_private,
     module.KEYPAIR-REGION_NVIRGINIA.output-keypair,
 
     module.EC2-REGION_NVIRGINIA.output-sg_nat,
@@ -40,6 +41,7 @@ output "debug" {
 
     /** EC2 */
     module.SECURITYGROUP-REGION_LONDON.output-sg_public,
+    module.SECURITYGROUP-REGION_LONDON.output-sg_private,
     module.KEYPAIR-REGION_LONDON.output-keypair,
 
     module.EC2-REGION_LONDON.output-sg_nat,
