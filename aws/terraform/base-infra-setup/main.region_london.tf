@@ -46,8 +46,8 @@ module "NACL-REGION_LONDON" {
 
   vpc               = module.VPC-REGION_LONDON.output-vpc
   subnets           = module.SUBNETS-REGION_LONDON.output-subnets
-  ingress-rules_map = local.firewall.ingress_rules
-  egress-rules_map  = local.firewall.egress_rules
+  ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
+  egress-rules_map  = local.firewall.egress
 }
 
 /** EC2 **/
@@ -59,7 +59,7 @@ module "SECURITYGROUP-REGION_LONDON" {
   }
 
   vpc               = module.VPC-REGION_LONDON.output-vpc
-  ingress-rules_map = local.firewall.ingress_rules
+  ingress-rules_map = local.firewall.ingress.standard_rules
 }
 
 module "KEYPAIR-REGION_LONDON" {

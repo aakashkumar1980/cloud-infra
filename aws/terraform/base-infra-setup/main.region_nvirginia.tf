@@ -70,7 +70,7 @@ module "KEYPAIR-REGION_NVIRGINIA" {
   ns          = module.COMMON-REGION_NVIRGINIA.project.namespace
   vpc_flatmap = local.vpc.vpc-region_nvirginia
 }
-/** 
+
 module "EC2-REGION_NVIRGINIA" {
   source     = "./ec2"
   depends_on = [module.ROUTETABLE-REGION_NVIRGINIA, module.KEYPAIR-REGION_NVIRGINIA]
@@ -86,4 +86,3 @@ module "EC2-REGION_NVIRGINIA" {
   instance_type = "t3a.nano"
 
 }
-**/
