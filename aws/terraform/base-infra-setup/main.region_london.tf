@@ -50,7 +50,7 @@ module "NACL-REGION_LONDON" {
   egress-rules_map  = local.firewall.egress
 }
 
-/** EC2 **/
+
 module "SECURITYGROUP-REGION_LONDON" {
   source     = "./security/securitygroup"
   depends_on = [module.VPC-REGION_LONDON]
@@ -61,7 +61,7 @@ module "SECURITYGROUP-REGION_LONDON" {
   vpc               = module.VPC-REGION_LONDON.output-vpc
   ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
-
+/** EC2 **/
 module "KEYPAIR-REGION_LONDON" {
   source = "../_templates/ec2/security/keypair"
   providers = {

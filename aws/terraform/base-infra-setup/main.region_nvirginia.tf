@@ -49,7 +49,6 @@ module "NACL-REGION_NVIRGINIA" {
 }
 
 
-/** EC2 */
 module "SECURITYGROUP-REGION_NVIRGINIA" {
   source     = "./security/securitygroup"
   depends_on = [module.VPC-REGION_NVIRGINIA]
@@ -60,7 +59,7 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
   ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
-
+/** EC2 */
 module "KEYPAIR-REGION_NVIRGINIA" {
   source = "../_templates/ec2/security/keypair"
   providers = {
