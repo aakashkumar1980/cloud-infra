@@ -9,6 +9,6 @@ resource "aws_vpc_peering_connection" "peering_connection-request" {
     delete = "20m"
   }
   tags = {
-    Name = "${var.tag_path}.peering_${var.entity_name}-requester"
+    Name = "${var.tag_path}.vpc_peering_remote.${var.entity_name}-requester"
   }
 }

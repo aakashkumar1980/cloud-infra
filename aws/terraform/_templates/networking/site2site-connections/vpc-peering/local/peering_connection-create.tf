@@ -11,6 +11,6 @@ resource "aws_vpc_peering_connection" "peering_connection" {
   }
 
   tags = {
-    Name = "${var.tag_path}.peering_${var.entity_name}"
+    Name = "${var.tag_path}.vpc_peering_local.${var.entity_name}"
   }
 }

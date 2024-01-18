@@ -14,8 +14,8 @@ module "VPC-REGION_NVIRGINIA" {
   vpc_flatmap = local.vpc.vpc-region_nvirginia
 }
 module "SUBNETS-REGION_NVIRGINIA" {
-  source     = "./networking/subnets"
-  depends_on = [module.VPC-REGION_NVIRGINIA]
+  source = "./networking/subnets"
+  #depends_on = [module.VPC-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -25,8 +25,8 @@ module "SUBNETS-REGION_NVIRGINIA" {
 }
 
 module "ROUTETABLE-REGION_NVIRGINIA" {
-  source     = "./networking/routetable"
-  depends_on = [module.SUBNETS-REGION_NVIRGINIA]
+  source = "./networking/routetable"
+  #depends_on = [module.SUBNETS-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -36,8 +36,8 @@ module "ROUTETABLE-REGION_NVIRGINIA" {
   subnets = module.SUBNETS-REGION_NVIRGINIA.output-subnets
 }
 module "NACL-REGION_NVIRGINIA" {
-  source     = "./networking/security/nacl"
-  depends_on = [module.SUBNETS-REGION_NVIRGINIA]
+  source = "./networking/security/nacl"
+  #depends_on = [module.SUBNETS-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -50,8 +50,8 @@ module "NACL-REGION_NVIRGINIA" {
 
 
 module "SECURITYGROUP-REGION_NVIRGINIA" {
-  source     = "./security/securitygroup"
-  depends_on = [module.VPC-REGION_NVIRGINIA]
+  source = "./security/securitygroup"
+  #depends_on = [module.VPC-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -59,11 +59,13 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   vpc               = module.VPC-REGION_NVIRGINIA.output-vpc
   ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
+
 module "VPC_PEERING" {
-  source = "./networking/site2site-connections/vpc-peering"
+  source     = "./networking/site2site-connections/vpc-peering"
+  depends_on = [module.ROUTETABLE-REGION_NVIRGINIA]
   providers = {
-    aws.reg_nvg = aws.region_nvirginia
-    aws.reg_ldn = aws.region_london
+    aws.rgn_nvg = aws.region_nvirginia
+    aws.rgn_ldn = aws.region_london
   }
 
   ns = module.COMMON-REGION_NVIRGINIA.project.namespace
@@ -81,7 +83,7 @@ module "KEYPAIR-REGION_NVIRGINIA" {
 
 module "EC2-REGION_NVIRGINIA" {
   source     = "./ec2"
-  depends_on = [module.ROUTETABLE-REGION_NVIRGINIA, module.KEYPAIR-REGION_NVIRGINIA]
+  depends_on = [module.ROUTETABLE-REGION_NVIRGINIA]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -92,5 +94,4 @@ module "EC2-REGION_NVIRGINIA" {
   keypair       = module.KEYPAIR-REGION_NVIRGINIA.output-keypair
   ami           = "ami-00a36856283d67c39"
   instance_type = "t3a.nano"
-
 }

@@ -3,6 +3,6 @@ resource "aws_vpc_peering_connection_accepter" "peering_connection-accept" {
   auto_accept               = true
 
   tags = {
-    Name = "${var.tag_path}.peering_${var.entity_name}-accepter"
+    Name = "${var.tag_path}.vpc_peering_remote.${var.entity_name}-accepter"
   }
 }
