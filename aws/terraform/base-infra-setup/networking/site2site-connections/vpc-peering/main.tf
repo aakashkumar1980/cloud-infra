@@ -16,3 +16,4 @@ module "REMOTE" {
 
   ns = var.ns
 }
+

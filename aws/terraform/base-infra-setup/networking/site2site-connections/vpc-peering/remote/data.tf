@@ -7,6 +7,15 @@ data "aws_vpc" "vpc_a" {
   }
 }
 
+data "aws_vpc" "vpc_b" {
+  provider = aws.rnvg
+
+  filter {
+    name   = "tag:Name"
+    values = ["${var.ns}.vpc_b"]
+  }
+}
+
 data "aws_vpc" "vpc_c" {
   provider = aws.rldn
 
