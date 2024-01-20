@@ -68,7 +68,8 @@ module "VPC_PEERING" {
     aws.rgn_ldn = aws.region_london
   }
 
-  ns = module.COMMON-REGION_NVIRGINIA.project.namespace
+  ns                = module.COMMON-REGION_NVIRGINIA.project.namespace
+  ingress-rules_map = local.firewall.ingress.standard_rules
 }
 /** EC2 */
 module "KEYPAIR-REGION_NVIRGINIA" {

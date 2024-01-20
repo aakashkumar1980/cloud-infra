@@ -6,7 +6,7 @@
 echo "[START] installing 'base-infra-setup'..."
 cd `pwd`/base-infra-setup
 
-terraform init
+terraform init -upgrade
 terraform apply -auto-approve=true
 
 
