@@ -13,7 +13,11 @@ module "SG-INGRESS_RULES" {
   from_port   = element(var.ingress-rules_map, count.index).from_port
   to_port     = element(var.ingress-rules_map, count.index).to_port
   protocol    = element(var.ingress-rules_map, count.index).protocol
-  cidr_blocks = [var.vpc_cidr_block]
+  description = element(var.ingress-rules_map, count.index).description
+  cidr_blocks = (
+    # ping/epidermal port set to open cidr since the private nacl is network is via. nat instance 
+    (element(var.ingress-rules_map, count.index).description == "epidermal port")
+  ) ? ["0.0.0.0/0"] : [var.vpc_cidr_block]
 
   securitygroup_id = module.SG.output-sg.id
 }

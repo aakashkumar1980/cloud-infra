@@ -10,6 +10,9 @@ variable "protocol" {
 variable "cidr_blocks" {
   default = null
 }
+variable "description" {
+  default = null
+}
 
 variable "securitygroup_id" {
   default = null

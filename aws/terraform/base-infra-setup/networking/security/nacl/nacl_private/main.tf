@@ -24,8 +24,7 @@ module "NACL-INGRESS_RULES" {
   to_port     = element(var.ingress-rules_map, count.index).to_port
   cidr_block = (
     # ping/epidermal port set to open cidr since the private nacl is network is via. nat instance 
-    (element(var.ingress-rules_map, count.index).protocol == "icmp")
-    || (element(var.ingress-rules_map, count.index).to_port == "65535")
+    (element(var.ingress-rules_map, count.index).description == "epidermal port")
   ) ? "0.0.0.0/0" : var.vpc_cidr_block
 
   nacl_id = module.NACL.output-nacl.id
