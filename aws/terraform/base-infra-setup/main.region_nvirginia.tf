@@ -48,7 +48,6 @@ module "NACL-REGION_NVIRGINIA" {
   egress-rules_map  = local.firewall.egress
 }
 
-
 module "SECURITYGROUP-REGION_NVIRGINIA" {
   source = "./security/securitygroup"
   #depends_on = [module.VPC-REGION_NVIRGINIA]
@@ -60,17 +59,7 @@ module "SECURITYGROUP-REGION_NVIRGINIA" {
   ingress-rules_map = concat(local.firewall.ingress.standard_rules, local.firewall.ingress.epidermal_port_rules)
 }
 
-module "VPC_PEERING" {
-  source     = "./networking/site2site-connections/vpc-peering"
-  depends_on = [module.ROUTETABLE-REGION_NVIRGINIA]
-  providers = {
-    aws.rgn_nvg = aws.region_nvirginia
-    aws.rgn_ldn = aws.region_london
-  }
 
-  ns                = module.COMMON-REGION_NVIRGINIA.project.namespace
-  ingress-rules_map = local.firewall.ingress.standard_rules
-}
 /** EC2 */
 module "KEYPAIR-REGION_NVIRGINIA" {
   source = "../_templates/ec2/security/keypair"

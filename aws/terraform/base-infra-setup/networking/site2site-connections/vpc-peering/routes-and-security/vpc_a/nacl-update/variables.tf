@@ -6,6 +6,6 @@ variable "destination_cidr_block-vpc_b" {
   default = null
 }
 
-variable "vpc_a-sg_private_id" {
+variable "vpc_a-nacl_private_id" {
   default = null
 }

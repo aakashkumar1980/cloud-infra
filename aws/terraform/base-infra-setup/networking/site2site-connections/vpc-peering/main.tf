@@ -15,6 +15,8 @@ module "ROUTES_AND_SECURITY" {
     aws.rldn = aws.rgn_ldn
   }
 
+  peering_local-vpc_a2b = module.PEERING_CONNECTIONS.output_peering_local-vpc_a2b
+
   ns                = var.ns
   ingress-rules_map = var.ingress-rules_map
 }
