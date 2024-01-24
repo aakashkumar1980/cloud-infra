@@ -1,4 +1,4 @@
-module "SECURITYGROUP-INGRESS-VPC_B" {
+module "SECURITYGROUP-INGRESS-VPC_A" {
   source = "../../../../../../../_templates/security/securitygroup/ingress"
 
   count = length(var.ingress-rules_map)

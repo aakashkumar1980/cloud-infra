@@ -25,3 +25,18 @@ module "VPC_B" {
   ns                = var.ns
   ingress-rules_map = var.ingress-rules_map
 }
+
+module "VPC_C" {
+  source = "./vpc_c"
+  providers = {
+    aws.rn = aws.rnvg
+    aws.rl = aws.rldn
+  }
+
+  peering_remote_accepter-vpc_c2a = var.peering_remote_accepter-vpc_c2a
+  peering_remote_accepter-vpc_c2b = var.peering_remote_accepter-vpc_c2b
+
+  ns                = var.ns
+  ingress-rules_map = var.ingress-rules_map
+}
+

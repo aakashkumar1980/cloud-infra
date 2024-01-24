@@ -1,27 +1,27 @@
-module "NACL-INGRESS-VPC_A" {
-  source = "../../../../../../../_templates/networking/security/nacl/ingress"
+module "SECURITYGROUP-INGRESS-VPC_A" {
+  source = "../../../../../../../_templates/security/securitygroup/ingress"
 
   count = length(var.ingress-rules_map)
   # using created aws components from other modules  
-  rule_number = 350 + count.index
   protocol    = element(var.ingress-rules_map, count.index).protocol
   from_port   = element(var.ingress-rules_map, count.index).from_port
   to_port     = element(var.ingress-rules_map, count.index).to_port
-  cidr_block  = var.destination_cidr_block-vpc_a
+  description = element(var.ingress-rules_map, count.index).description
+  cidr_blocks = [var.destination_cidr_block-vpc_a]
 
-  nacl_id = var.vpc_b-nacl_private_id
+  securitygroup_id = var.vpc_c-sg_private_id
 }
 
-module "NACL-INGRESS-VPC_C" {
-  source = "../../../../../../../_templates/networking/security/nacl/ingress"
+module "SECURITYGROUP-INGRESS-VPC_B" {
+  source = "../../../../../../../_templates/security/securitygroup/ingress"
 
   count = length(var.ingress-rules_map)
   # using created aws components from other modules  
-  rule_number = 360 + count.index
   protocol    = element(var.ingress-rules_map, count.index).protocol
   from_port   = element(var.ingress-rules_map, count.index).from_port
   to_port     = element(var.ingress-rules_map, count.index).to_port
-  cidr_block  = var.destination_cidr_block-vpc_c
+  description = element(var.ingress-rules_map, count.index).description
+  cidr_blocks = [var.destination_cidr_block-vpc_b]
 
-  nacl_id = var.vpc_b-nacl_private_id
+  securitygroup_id = var.vpc_c-sg_private_id
 }
