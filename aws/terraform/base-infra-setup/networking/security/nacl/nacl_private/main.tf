@@ -18,7 +18,7 @@ module "NACL-INGRESS_RULES" {
   count  = length(var.ingress-rules_map)
 
   # using created aws components from other modules  
-  rule_number = 120 + count.index
+  rule_number = 100 + count.index
   protocol    = element(var.ingress-rules_map, count.index).protocol
   from_port   = element(var.ingress-rules_map, count.index).from_port
   to_port     = element(var.ingress-rules_map, count.index).to_port
@@ -34,7 +34,7 @@ module "NACL-EGRESS_RULES" {
   count  = length(var.egress-rules_map)
 
   # using created aws components from other modules  
-  rule_number = 130 + count.index
+  rule_number = 125 + count.index
   protocol    = element(var.egress-rules_map, count.index).protocol
   from_port   = element(var.egress-rules_map, count.index).from_port
   to_port     = element(var.egress-rules_map, count.index).to_port
