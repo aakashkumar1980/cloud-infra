@@ -1,0 +1,6 @@
+locals {
+  project = {
+    namespace = "kubernetes",
+
+  }
+}

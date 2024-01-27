@@ -33,3 +33,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 aws/terraform/base-infra-setup/.terraform.lock.hcl
+kubernetes/terraform/servers/.terraform.lock.hcl

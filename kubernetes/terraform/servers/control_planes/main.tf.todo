@@ -1,0 +1,28 @@
+module "EC2" {
+  source = "../../../../aws/terraform/_templates/ec2"
+  providers = {
+    aws = aws.aws.rgn_ldn
+  }
+
+  subnet_id = [
+    for v in var.subnets : v.id if(
+      (v.vpc_id == var.vpc_id)
+      && (length(regexall("(.subnet_generic-)", v.tags["Name"])) != 0)
+    )
+  ][0]
+  security_groups = [module.SECURITYGROUP.output-sg_nat.id]
+
+  ami           = var.ami
+  instance_type = var.instance_type
+  keypair       = var.keypair.key_name
+
+  tag_path = ([
+    for v in var.subnets : "${v.tags["Name"]}" if(
+      (v.vpc_id == var.vpc_id)
+      && (length(regexall("(.subnet_generic-)", v.tags["Name"])) != 0)
+    )
+  ][0])
+  entity_name = "natgateway-server"
+
+}
+
