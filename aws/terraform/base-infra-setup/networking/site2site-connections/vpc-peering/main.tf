@@ -9,7 +9,8 @@ module "PEERING_CONNECTIONS" {
 }
 
 module "ROUTES_AND_SECURITY" {
-  source = "./routes-and-security"
+  source     = "./routes-and-security"
+  depends_on = [module.PEERING_CONNECTIONS]
   providers = {
     aws.rnvg = aws.rgn_nvg
     aws.rldn = aws.rgn_ldn
