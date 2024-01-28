@@ -16,6 +16,9 @@ variable "vpc_cidr_block" {
 variable "ingress-rules_map" {
   default = null
 }
+variable "epidermal_ingress-rules_map" {
+  default = null
+}
 variable "egress-rules_map" {
   default = null
 }

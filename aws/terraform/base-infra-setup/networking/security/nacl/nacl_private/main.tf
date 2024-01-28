@@ -15,20 +15,30 @@ module "NACL" {
 
 module "NACL-INGRESS_RULES" {
   source = "../../../../../_templates/networking/security/nacl/ingress"
-  count  = length(var.ingress-rules_map)
 
   # using created aws components from other modules  
-  rule_number = 100 + count.index
-  protocol    = element(var.ingress-rules_map, count.index).protocol
-  from_port   = element(var.ingress-rules_map, count.index).from_port
-  to_port     = element(var.ingress-rules_map, count.index).to_port
-  cidr_block = (
-    # ping/epidermal port set to open cidr since the private nacl is network is via. nat instance 
-    (element(var.ingress-rules_map, count.index).description == "epidermal port")
-  ) ? "0.0.0.0/0" : var.vpc_cidr_block
+  rule_number = 100
+  protocol    = -1
+  from_port   = 0
+  to_port     = 65535
+  cidr_block  = var.vpc_cidr_block
 
   nacl_id = module.NACL.output-nacl.id
 }
+module "NACL-INGRESS_RULES-EPIDERMAL" {
+  source = "../../../../../_templates/networking/security/nacl/ingress"
+
+  count = length(var.epidermal_ingress-rules_map)
+  # using created aws components from other modules  
+  rule_number = 101 + count.index
+  protocol    = element(var.epidermal_ingress-rules_map, count.index).protocol
+  from_port   = element(var.epidermal_ingress-rules_map, count.index).from_port
+  to_port     = element(var.epidermal_ingress-rules_map, count.index).to_port
+  cidr_block  = element(var.epidermal_ingress-rules_map, count.index).cidr_block
+
+  nacl_id = module.NACL.output-nacl.id
+}
+
 module "NACL-EGRESS_RULES" {
   source = "../../../../../_templates/networking/security/nacl/egress"
   count  = length(var.egress-rules_map)

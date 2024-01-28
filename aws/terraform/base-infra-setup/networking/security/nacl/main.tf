@@ -19,7 +19,8 @@ module "NACL_PRIVATE" {
   tag_path       = each.value.tags["Name"]
   vpc_cidr_block = each.value.cidr_block
 
-  ingress-rules_map = var.ingress-rules_map
-  egress-rules_map  = var.egress-rules_map
+  ingress-rules_map           = var.ingress-rules_map
+  epidermal_ingress-rules_map = [for rule in var.ingress-rules_map : rule if rule.description == "epidermal port"]
+  egress-rules_map            = var.egress-rules_map
 }
 
