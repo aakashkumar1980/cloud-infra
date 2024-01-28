@@ -13,14 +13,21 @@ locals {
         }
       }
       ports = {
-        # public access
+        ### CONTROL_PLANES ACCESS ###
+        # etcd server client API
+        etcd = "2379-2380"
+        # kube-controller-manager
+        controller_manager = "10252"
+        # kube-scheduler
+        scheduler = "10251"
+
+        ### CONTROL_PLANES + NODES ACCESS ###
+        # kubernetes server API
         api_server = "6443"
 
-        # private
-        etcd               = "2379-2380"
-        scheduler          = "10251"
-        controller_manager = "10252"
-        kubelet            = "10250"
+        ### CONTROL_PLANES + NODES + AUTHORIZED IPS ACCESS ###
+        # kubelet API
+        kubelet = "10250"
       }
     }
 
@@ -41,10 +48,11 @@ locals {
       }
 
       ports = {
-        # control_plane access
+        ### CONTROL_PLANES ACCESS ###
+        # kubelet API 
         kubelet = "10250"
 
-        # private
+        ### AUTHORIZED IPS ACCESS ###
         nodeport = {
           from_port = "30000"
           to_port   = "32767"

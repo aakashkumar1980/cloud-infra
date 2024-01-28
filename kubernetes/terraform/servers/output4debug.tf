@@ -1,6 +1,5 @@
 output "debug" {
   value = [
-
   ]
 
 }
