@@ -3,13 +3,9 @@ locals {
   servers = {
     control_planes = {
       cluster = {
-        primary = {
-          vpc      = "vpc_c",
-          hostname = "cplane_active"
-        }
-        secondary = {
-          vpc      = "vpc_b",
-          hostname = "cplane_standby"
+        vpc_c = {
+          primary_hostname   = "cplane_active"
+          secondary_hostname = "cplane_standby"
         }
       }
       ports = {
@@ -33,18 +29,14 @@ locals {
 
     nodes = {
       cluster = {
-        "node1" = {
+        vpc_ab = [{
           vpc      = "vpc_a",
-          hostname = "node1a"
-        }
-        "node2" = {
+          hostname = "node1"
+          }, {
           vpc      = "vpc_b",
-          hostname = "node1b"
-        }
-        "node3" = {
-          vpc      = "vpc_c",
-          hostname = "node1c"
-        }
+          hostname = "node2"
+          }
+        ]
       }
 
       ports = {
