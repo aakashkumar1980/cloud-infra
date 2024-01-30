@@ -83,7 +83,7 @@ module "EC2-REGION_LONDON" {
   subnets       = module.SUBNETS-REGION_LONDON.output-subnets
   rt_private    = module.ROUTETABLE-REGION_LONDON.output-rt_private
   keypair       = module.KEYPAIR-REGION_LONDON.output-keypair
-  ami           = "ami-00400a198e1509988"
-  instance_type = "t3a.nano"
+  ami           = module.COMMON-REGION_LONDON.project.ec2.nat_instance.region_london.ami
+  instance_type = module.COMMON-REGION_LONDON.project.ec2.nat_instance.instance_type
 
 }

@@ -82,6 +82,6 @@ module "EC2-REGION_NVIRGINIA" {
   subnets       = module.SUBNETS-REGION_NVIRGINIA.output-subnets
   rt_private    = module.ROUTETABLE-REGION_NVIRGINIA.output-rt_private
   keypair       = module.KEYPAIR-REGION_NVIRGINIA.output-keypair
-  ami           = "ami-00a36856283d67c39"
-  instance_type = "t3a.nano"
+  ami           = module.COMMON-REGION_NVIRGINIA.project.ec2.nat_instance.region_nvirginia.ami
+  instance_type = module.COMMON-REGION_NVIRGINIA.project.ec2.nat_instance.instance_type
 }
