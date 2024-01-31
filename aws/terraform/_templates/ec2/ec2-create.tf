@@ -1,7 +1,8 @@
 resource "aws_instance" "ec2" {
-  ami           = var.ami
-  instance_type = (var.instance_type != null) ? var.instance_type : "t3a.nano"
-  key_name      = var.keypair
+  ami                  = var.ami
+  instance_type        = (var.instance_type != null) ? var.instance_type : "t3a.nano"
+  key_name             = var.keypair
+  iam_instance_profile = var.iam_instance_profile
 
   root_block_device {
     volume_size = 10

@@ -1,0 +1,3 @@
+variable "ns" {
+  default = null
+}

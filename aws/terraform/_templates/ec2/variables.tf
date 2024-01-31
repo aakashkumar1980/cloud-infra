@@ -28,3 +28,7 @@ variable "tag_path" {
 variable "entity_name" {
   default = null
 }
+
+variable "iam_instance_profile" {
+  default = null
+}

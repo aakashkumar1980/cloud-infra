@@ -70,6 +70,14 @@ module "KEYPAIR-REGION_NVIRGINIA" {
   ns          = module.COMMON-REGION_NVIRGINIA.project.namespace
   vpc_flatmap = local.vpc.vpc-region_nvirginia
 }
+module "EC2_ROLE-PRIVATE_ACCESS" {
+  source = "../_templates/ec2/security/role/private-access"
+  providers = {
+    aws = aws.region_nvirginia
+  }
+
+  ns = module.COMMON-REGION_NVIRGINIA.project.namespace
+}
 
 module "EC2-REGION_NVIRGINIA" {
   source     = "./ec2"
