@@ -1,11 +1,8 @@
-variable "ns" {
+variable "tag_path" {
   default = null
 }
 
 variable "vpc_id" {
-  default = null
-}
-variable "vpc_name" {
   default = null
 }
 

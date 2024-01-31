@@ -13,9 +13,17 @@ module "CONTROL_PLANES" {
     aws = aws.region_london
   }
 
-  ns    = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
-  cp    = local.servers.control_planes
-  vpc_c = data.aws_vpc.vpc_c
+  ns                   = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
+  vpc_c                = data.aws_vpc.vpc_c
+  vpc_c-subnet_private = data.aws_subnet.vpc_c-subnet_private
+  vpc_c-sg_private     = data.aws_security_group.vpc_c-sg_private
+
+  ami                   = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_london.ami
+  instance_type         = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.instance_type
+  keypair               = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
+  iam_instance_profile  = "instance_profile-ec2_private_access"
+  entity_name-primary   = local.servers.control_planes.cluster.vpc_c.primary_hostname
+  entity_name-secondary = local.servers.control_planes.cluster.vpc_c.secondary_hostname
 
   ingress-rules_map = [{
     description = "etcd"
@@ -56,7 +64,6 @@ module "CONTROL_PLANES" {
     ]
     }
   ]
-
 }
 
 /** NODES **/

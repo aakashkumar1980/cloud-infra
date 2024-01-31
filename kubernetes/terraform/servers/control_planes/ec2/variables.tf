@@ -1,20 +1,10 @@
-variable "ns" {
-  default = null
-}
-
-variable "vpc_c" {
-  default = null
-}
-variable "ingress-rules_map" {
-  default = null
-}
-
 variable "vpc_c-subnet_private" {
   default = null
 }
-variable "vpc_c-sg_private" {
+variable "security_group_ids" {
   default = null
 }
+
 variable "ami" {
   default = null
 }
@@ -28,6 +18,9 @@ variable "iam_instance_profile" {
   default = null
 }
 
+variable "tag_path" {
+  default = null
+}
 variable "entity_name-primary" {
   default = null
 }

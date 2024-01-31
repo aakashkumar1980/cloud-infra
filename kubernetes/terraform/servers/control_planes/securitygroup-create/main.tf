@@ -2,7 +2,7 @@ module "SG-PRIMARY_CONTROL_PLANE" {
   source = "../../../../../aws/terraform/_templates/security/securitygroup"
 
   vpc_id      = var.vpc_id
-  tag_path    = "${var.ns}.${var.vpc_name}"
+  tag_path    = var.tag_path
   entity_name = "control_plane"
 }
 module "SG-PRIMARY_CONTROL_PLANE-INGRESS_RULES" {
