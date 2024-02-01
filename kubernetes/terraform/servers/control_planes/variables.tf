@@ -27,6 +27,9 @@ variable "keypair" {
 variable "iam_instance_profile" {
   default = null
 }
+variable "user_data" {
+  default = null
+}
 
 variable "entity_name-primary" {
   default = null

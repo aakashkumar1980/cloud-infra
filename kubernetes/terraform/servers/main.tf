@@ -24,6 +24,7 @@ module "CONTROL_PLANES" {
   iam_instance_profile  = "instance_profile-ec2_private_access"
   entity_name-primary   = local.servers.control_planes.cluster.vpc_c.primary_hostname
   entity_name-secondary = local.servers.control_planes.cluster.vpc_c.secondary_hostname
+  user_data             = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
 
   ingress-rules_map = [{
     description = "etcd"
