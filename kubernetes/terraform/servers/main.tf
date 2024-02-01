@@ -22,8 +22,8 @@ module "CONTROL_PLANES" {
   instance_type         = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.instance_type
   keypair               = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
   iam_instance_profile  = "instance_profile-ec2_private_access"
-  entity_name-primary   = local.servers.control_planes.cluster.vpc_c.primary_hostname
-  entity_name-secondary = local.servers.control_planes.cluster.vpc_c.secondary_hostname
+  entity_name-primary   = local.servers.control_planes.cluster.vpc_c.hostname_primary
+  entity_name-secondary = local.servers.control_planes.cluster.vpc_c.hostname_secondary
   user_data             = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
 
   ingress-rules_map = [{
@@ -74,10 +74,20 @@ module "NODES" {
     aws = aws.region_nvirginia
   }
 
-  ns    = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
-  cp    = local.servers.control_planes
-  vpc_a = data.aws_vpc.vpc_a
-  vpc_b = data.aws_vpc.vpc_b
+  ns                   = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
+  vpc_ab               = local.servers.nodes.cluster.vpc_ab
+  vpc_a                = data.aws_vpc.vpc_a
+  vpc_a-subnet_private = data.aws_subnet.vpc_a-subnet_private
+  vpc_a-sg_private     = data.aws_security_group.vpc_a-sg_private
+  vpc_b                = data.aws_vpc.vpc_b
+  vpc_b-subnet_private = data.aws_subnet.vpc_b-subnet_private
+  vpc_b-sg_private     = data.aws_security_group.vpc_b-sg_private
+
+  ami                  = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
+  instance_type        = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.instance_type
+  keypair              = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
+  iam_instance_profile = "instance_profile-ec2_private_access"
+  user_data            = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
 
   ingress-rules_map = [{
     description = "kubelet"

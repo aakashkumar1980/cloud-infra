@@ -18,7 +18,7 @@ module "VPC_C-EC2" {
   iam_instance_profile = var.iam_instance_profile
   user_data            = var.user_data
 
-  tag_path              = var.ns
+  tag_path              = "${var.ns}.vpc_c"
   entity_name-primary   = var.entity_name-primary
   entity_name-secondary = var.entity_name-secondary
 }

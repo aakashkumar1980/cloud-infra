@@ -1,11 +1,11 @@
-module "SG-PRIMARY_CONTROL_PLANE" {
+module "SG-NODES" {
   source = "../../../../../aws/terraform/_templates/security/securitygroup"
 
   vpc_id      = var.vpc_id
-  tag_path    = "${var.ns}.${var.vpc_name}"
+  tag_path    = var.tag_path
   entity_name = "nodes"
 }
-module "SG-PRIMARY_CONTROL_PLANE-INGRESS_RULES" {
+module "SG-NODES-INGRESS_RULES" {
   source = "../../../../../aws/terraform/_templates/security/securitygroup/ingress"
 
   count       = length(var.ingress-rules_map)
@@ -15,5 +15,5 @@ module "SG-PRIMARY_CONTROL_PLANE-INGRESS_RULES" {
   description = element(var.ingress-rules_map, count.index).description
   cidr_blocks = element(var.ingress-rules_map, count.index).cidr_blocks
 
-  securitygroup_id = module.SG-PRIMARY_CONTROL_PLANE.output-sg.id
+  securitygroup_id = module.SG-NODES.output-sg.id
 }

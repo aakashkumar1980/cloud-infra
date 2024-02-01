@@ -4,8 +4,8 @@ locals {
     control_planes = {
       cluster = {
         vpc_c = {
-          primary_hostname   = "cplane_active"
-          secondary_hostname = "cplane_standby"
+          hostname_primary   = "cplane_active"
+          hostname_secondary = "cplane_standby"
         }
       }
       ports = {
