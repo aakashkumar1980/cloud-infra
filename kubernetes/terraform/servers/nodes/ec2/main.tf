@@ -1,7 +1,7 @@
 module "EC2" {
   source = "../../../../../aws/terraform/_templates/ec2"
 
-  subnet_id       = var.vpc_ab-subnet_private.id
+  subnet_id       = var.vpc_b-subnet_private.id
   security_groups = var.security_group_ids
   user_data       = var.user_data
 

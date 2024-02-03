@@ -2,7 +2,7 @@ variable "ns" {
   default = null
 }
 
-variable "vpc_ab" {
+variable "vpc_b-cluster" {
   default = null
 }
 variable "vpc_a" {

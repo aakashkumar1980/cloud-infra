@@ -11,7 +11,7 @@ data "aws_subnet" "vpc_a-subnet_private" {
 
   filter {
     name   = "tag:Name"
-    values = ["${module.COMMON-BASE_INFRA_SETUP.project.namespace}.vpc_a.subnet_private-az_c"]
+    values = ["${module.COMMON-BASE_INFRA_SETUP.project.namespace}.vpc_a.subnet_private-az_a"]
   }
 }
 data "aws_security_group" "vpc_a-sg_private" {

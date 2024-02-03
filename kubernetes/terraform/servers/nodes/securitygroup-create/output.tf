@@ -1,3 +1,3 @@
 output "output-sg" {
-  value = module.SG-NODES.output-sg
+  value = module.SG.output-sg
 }

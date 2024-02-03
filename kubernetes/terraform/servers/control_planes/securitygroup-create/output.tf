@@ -1,3 +1,3 @@
 output "output-sg" {
-  value = module.SG-PRIMARY_CONTROL_PLANE.output-sg
+  value = module.SG.output-sg
 }

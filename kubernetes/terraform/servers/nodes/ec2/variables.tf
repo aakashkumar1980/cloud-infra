@@ -1,4 +1,4 @@
-variable "vpc_ab-subnet_private" {
+variable "vpc_b-subnet_private" {
   default = null
 }
 variable "security_group_ids" {

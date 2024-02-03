@@ -4,16 +4,14 @@ locals {
     control_planes = {
       instance_type = "t3a.micro",
       cluster = {
-        primary = {
-          vpc      = "vpc_a",
+        vpc_a = [{
           hostname = "cplane_active"
           type     = "primary"
-        }
-        secondary = {
-          vpc      = "vpc_b",
+          }, {
           hostname = "cplane_standby"
           type     = "secondary"
-        }
+          }
+        ]
       }
       ports = {
         ### CONTROL_PLANES ACCESS ###
@@ -70,15 +68,10 @@ locals {
     nodes = {
       instance_type = "t3a.small",
       cluster = {
-        vpc_ab = [{
-          vpc      = "vpc_a",
+        vpc_b = [{
           hostname = "node1"
           }, {
-          vpc      = "vpc_b",
           hostname = "node2"
-          }, {
-          vpc      = "vpc_b",
-          hostname = "node3"
           }
         ]
       }

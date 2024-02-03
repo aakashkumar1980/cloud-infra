@@ -1,11 +1,11 @@
-module "SG-NODES" {
+module "SG" {
   source = "../../../../../aws/terraform/_templates/security/securitygroup"
 
   vpc_id      = var.vpc_id
   tag_path    = var.tag_path
   entity_name = "nodes"
 }
-module "SG-NODES-INGRESS_RULES" {
+module "SG-INGRESS_RULES" {
   source = "../../../../../aws/terraform/_templates/security/securitygroup/ingress"
 
   count       = length(var.ingress-rules_map)
@@ -15,5 +15,5 @@ module "SG-NODES-INGRESS_RULES" {
   description = element(var.ingress-rules_map, count.index).description
   cidr_blocks = element(var.ingress-rules_map, count.index).cidr_blocks
 
-  securitygroup_id = module.SG-NODES.output-sg.id
+  securitygroup_id = module.SG.output-sg.id
 }
