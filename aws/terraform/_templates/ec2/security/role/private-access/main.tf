@@ -3,7 +3,6 @@ resource "aws_iam_role_policy_attachment" "ssm_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-
 resource "aws_iam_role" "role-ec2_private_access" {
   name = "${var.ns}.role-ec2_private_access"
 
