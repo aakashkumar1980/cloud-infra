@@ -10,56 +10,81 @@ module "COMMON" {
 module "CONTROL_PLANES" {
   source = "./control_planes"
   providers = {
-    aws = aws.region_london
+    aws = aws.region_nvirginia
   }
 
   ns                   = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
-  vpc_c                = data.aws_vpc.vpc_c
-  vpc_c-subnet_private = data.aws_subnet.vpc_c-subnet_private
-  vpc_c-sg_private     = data.aws_security_group.vpc_c-sg_private
+  cluster              = local.servers.control_planes.cluster
+  vpc_a                = data.aws_vpc.vpc_a
+  vpc_b                = data.aws_vpc.vpc_b
+  vpc_a-subnet_private = data.aws_subnet.vpc_a-subnet_private
+  vpc_b-subnet_private = data.aws_subnet.vpc_b-subnet_private
+  vpc_a-sg_private     = data.aws_security_group.vpc_a-sg_private
+  vpc_b-sg_private     = data.aws_security_group.vpc_b-sg_private
 
-  ami                   = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_london.ami
-  instance_type         = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.instance_type
-  keypair               = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
-  iam_instance_profile  = "instance_profile-ec2_private_access"
-  entity_name-primary   = local.servers.control_planes.cluster.vpc_c.hostname_primary
-  entity_name-secondary = local.servers.control_planes.cluster.vpc_c.hostname_secondary
-  user_data             = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
+  ami                  = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
+  instance_type        = local.servers.control_planes.instance_type
+  keypair              = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
+  iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
+  user_data            = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
 
   ingress-rules_map = [{
     description = "etcd"
-    protocol    = "tcp"
-    from_port   = tonumber(split("-", local.servers.control_planes.ports.etcd)[0])
-    to_port     = tonumber(split("-", local.servers.control_planes.ports.etcd)[1])
+    protocol    = local.servers.control_planes.ports.etcd.protocol
+    from_port   = tonumber(local.servers.control_planes.ports.etcd.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.etcd.to_port)
     cidr_blocks = [
-      "${data.aws_vpc.vpc_c.cidr_block}"
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
     ]
     }, {
     description = "controller_manager & scheduler"
-    protocol    = "tcp"
-    from_port   = tonumber(local.servers.control_planes.ports.scheduler)
-    to_port     = tonumber(local.servers.control_planes.ports.controller_manager)
+    protocol    = local.servers.control_planes.ports.scheduler.protocol
+    from_port   = tonumber(local.servers.control_planes.ports.scheduler.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.controller_manager.to_port)
     cidr_blocks = [
-      "${data.aws_vpc.vpc_c.cidr_block}"
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+
+    description = "calico"
+    protocol    = local.servers.control_planes.ports.calico.protocol
+    from_port   = tonumber(local.servers.control_planes.ports.calico.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.calico.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
     ]
     }, {
 
     description = "api_server"
-    protocol    = "tcp"
-    from_port   = tonumber(local.servers.control_planes.ports.api_server)
-    to_port     = tonumber(local.servers.control_planes.ports.api_server)
+    protocol    = local.servers.control_planes.ports.api_server.protocol
+    from_port   = tonumber(local.servers.control_planes.ports.api_server.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.api_server.to_port)
     cidr_blocks = [
-      "${data.aws_vpc.vpc_c.cidr_block}",
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "dns(${split("|", local.servers.control_planes.ports.dns.protocol)[0]})"
+    protocol    = "${split("|", local.servers.control_planes.ports.dns.protocol)[0]}"
+    from_port   = tonumber(local.servers.control_planes.ports.dns.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.dns.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "dns(${split("|", local.servers.control_planes.ports.dns.protocol)[1]})"
+    protocol    = "${split("|", local.servers.control_planes.ports.dns.protocol)[1]}"
+    from_port   = tonumber(local.servers.control_planes.ports.dns.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.dns.to_port)
+    cidr_blocks = [
       "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
     ]
     }, {
 
     description = "kubelet"
-    protocol    = "tcp"
-    from_port   = tonumber(local.servers.control_planes.ports.kubelet)
-    to_port     = tonumber(local.servers.control_planes.ports.kubelet)
+    protocol    = local.servers.control_planes.ports.kubelet.protocol
+    from_port   = tonumber(local.servers.control_planes.ports.kubelet.from_port)
+    to_port     = tonumber(local.servers.control_planes.ports.kubelet.to_port)
     cidr_blocks = [
-      "${data.aws_vpc.vpc_c.cidr_block}",
       "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}",
       "0.0.0.0/0"
     ]
@@ -77,29 +102,88 @@ module "NODES" {
   ns                   = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${module.COMMON.project.namespace}"
   vpc_ab               = local.servers.nodes.cluster.vpc_ab
   vpc_a                = data.aws_vpc.vpc_a
-  vpc_a-subnet_private = data.aws_subnet.vpc_a-subnet_private
-  vpc_a-sg_private     = data.aws_security_group.vpc_a-sg_private
   vpc_b                = data.aws_vpc.vpc_b
+  vpc_a-subnet_private = data.aws_subnet.vpc_a-subnet_private
   vpc_b-subnet_private = data.aws_subnet.vpc_b-subnet_private
+  vpc_a-sg_private     = data.aws_security_group.vpc_a-sg_private
   vpc_b-sg_private     = data.aws_security_group.vpc_b-sg_private
 
   ami                  = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
-  instance_type        = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.instance_type
+  instance_type        = local.servers.nodes.instance_type
   keypair              = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
-  iam_instance_profile = "instance_profile-ec2_private_access"
+  iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
   user_data            = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
 
   ingress-rules_map = [{
     description = "kubelet"
-    protocol    = "tcp"
-    from_port   = tonumber(local.servers.nodes.ports.kubelet)
-    to_port     = tonumber(local.servers.nodes.ports.kubelet)
+    protocol    = local.servers.nodes.ports.kubelet.protocol
+    from_port   = tonumber(local.servers.nodes.ports.kubelet.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.kubelet.to_port)
     cidr_blocks = [
-      "${data.aws_vpc.vpc_c.cidr_block}"
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
     ]
     }, {
+    description = "calico"
+    protocol    = local.servers.nodes.ports.calico.protocol
+    from_port   = tonumber(local.servers.nodes.ports.calico.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.calico.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+
+    description = "flannel"
+    protocol    = local.servers.nodes.ports.flannel.protocol
+    from_port   = tonumber(local.servers.nodes.ports.flannel.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.flannel.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "weave (${split("|", local.servers.nodes.ports.weave.protocol)[0]})"
+    protocol    = "${split("|", local.servers.nodes.ports.weave.protocol)[0]}"
+    from_port   = tonumber(local.servers.nodes.ports.weave.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.weave.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "weave (${split("|", local.servers.nodes.ports.weave.protocol)[1]})"
+    protocol    = "${split("|", local.servers.nodes.ports.weave.protocol)[1]}"
+    from_port   = tonumber(local.servers.nodes.ports.weave.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.weave.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "calico"
+    protocol    = local.servers.nodes.ports.calico.protocol
+    from_port   = tonumber(local.servers.nodes.ports.calico.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.calico.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+
+    description = "dns (${split("|", local.servers.nodes.ports.dns.protocol)[0]})"
+    protocol    = "${split("|", local.servers.nodes.ports.dns.protocol)[0]}"
+    from_port   = tonumber(local.servers.nodes.ports.dns.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.dns.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+    description = "dns (${split("|", local.servers.nodes.ports.dns.protocol)[1]})"
+    protocol    = "${split("|", local.servers.nodes.ports.dns.protocol)[1]}"
+    from_port   = tonumber(local.servers.nodes.ports.dns.from_port)
+    to_port     = tonumber(local.servers.nodes.ports.dns.to_port)
+    cidr_blocks = [
+      "${data.aws_vpc.vpc_a.cidr_block}", "${data.aws_vpc.vpc_b.cidr_block}"
+    ]
+    }, {
+
     description = "nodeport"
-    protocol    = "tcp"
+    protocol    = local.servers.nodes.ports.nodeport.protocol
     from_port   = tonumber(local.servers.nodes.ports.nodeport.from_port)
     to_port     = tonumber(local.servers.nodes.ports.nodeport.to_port)
     cidr_blocks = [

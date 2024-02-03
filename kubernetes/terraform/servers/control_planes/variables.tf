@@ -1,20 +1,29 @@
 variable "ns" {
   default = null
 }
-
-variable "vpc_c" {
-  default = null
-}
-variable "ingress-rules_map" {
+variable "cluster" {
   default = null
 }
 
-variable "vpc_c-subnet_private" {
+variable "vpc_a" {
   default = null
 }
-variable "vpc_c-sg_private" {
+variable "vpc_b" {
   default = null
 }
+variable "vpc_a-subnet_private" {
+  default = null
+}
+variable "vpc_b-subnet_private" {
+  default = null
+}
+variable "vpc_a-sg_private" {
+  default = null
+}
+variable "vpc_b-sg_private" {
+  default = null
+}
+
 variable "ami" {
   default = null
 }
@@ -31,9 +40,6 @@ variable "user_data" {
   default = null
 }
 
-variable "entity_name-primary" {
-  default = null
-}
-variable "entity_name-secondary" {
+variable "ingress-rules_map" {
   default = null
 }

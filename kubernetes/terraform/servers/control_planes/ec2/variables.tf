@@ -1,7 +1,10 @@
-variable "vpc_c-subnet_private" {
+variable "subnet_id" {
   default = null
 }
-variable "security_group_ids" {
+variable "security_groups" {
+  default = null
+}
+variable "user_data" {
   default = null
 }
 
@@ -17,16 +20,11 @@ variable "keypair" {
 variable "iam_instance_profile" {
   default = null
 }
-variable "user_data" {
-  default = null
-}
 
 variable "tag_path" {
   default = null
 }
-variable "entity_name-primary" {
+variable "entity_name" {
   default = null
 }
-variable "entity_name-secondary" {
-  default = null
-}
+

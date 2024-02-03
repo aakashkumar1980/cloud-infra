@@ -1,16 +1,21 @@
-module "VPC_C-SECURITYGROUP-CREATE" {
+module "SECURITYGROUP-CREATE" {
   source = "./securitygroup-create"
 
-  tag_path          = "${var.ns}.vpc_c"
-  vpc_id            = var.vpc_c.id
+  for_each          = var.cluster
+  tag_path          = "${var.ns}.${each.value.vpc}.${each.value.type}"
+  vpc_id            = "${each.value.vpc}" == "vpc_a" ? var.vpc_a.id : var.vpc_b.id
   ingress-rules_map = var.ingress-rules_map
 }
 
-module "VPC_C-EC2" {
+module "EC2" {
   source = "./ec2"
 
-  vpc_c-subnet_private = var.vpc_c-subnet_private
-  security_group_ids   = [module.VPC_C-SECURITYGROUP-CREATE.output-sg.id, var.vpc_c-sg_private.id]
+  for_each  = var.cluster
+  subnet_id = "${each.value.vpc}" == "vpc_a" ? var.vpc_a-subnet_private.id : var.vpc_b-subnet_private.id
+  security_groups = [
+    "${each.value.vpc}" == "vpc_a" ? var.vpc_a-sg_private.id : var.vpc_b-sg_private.id,
+    module.SECURITYGROUP-CREATE["${each.value.type}"].output-sg.id
+  ]
 
   ami                  = var.ami
   instance_type        = var.instance_type
@@ -18,8 +23,7 @@ module "VPC_C-EC2" {
   iam_instance_profile = var.iam_instance_profile
   user_data            = var.user_data
 
-  tag_path              = "${var.ns}.vpc_c"
-  entity_name-primary   = var.entity_name-primary
-  entity_name-secondary = var.entity_name-secondary
+  tag_path    = "${var.ns}.${each.value.vpc}.${each.value.type}"
+  entity_name = each.value.type
 }
 
