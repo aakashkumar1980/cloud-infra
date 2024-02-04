@@ -1,5 +1,5 @@
 module "EC2" {
-  source = "../../../../../aws/terraform/_templates/ec2"
+  source = "../../../../../../aws/terraform/_templates/ec2"
 
   subnet_id       = var.subnet_id
   security_groups = var.security_groups

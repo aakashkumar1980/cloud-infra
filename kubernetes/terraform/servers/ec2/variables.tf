@@ -1,10 +1,13 @@
 variable "ns" {
   default = null
 }
-variable "cluster" {
+variable "base_ns" {
   default = null
 }
 
+variable "servers" {
+  default = null
+}
 variable "vpc_a" {
   default = null
 }
@@ -27,19 +30,10 @@ variable "vpc_b-sg_private" {
 variable "ami" {
   default = null
 }
-variable "instance_type" {
-  default = null
-}
 variable "keypair" {
-  default = null
-}
-variable "iam_instance_profile" {
   default = null
 }
 variable "user_data" {
   default = null
 }
 
-variable "ingress-rules_map" {
-  default = null
-}

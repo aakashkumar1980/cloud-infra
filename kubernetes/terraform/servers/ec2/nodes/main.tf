@@ -9,7 +9,7 @@ module "SECURITYGROUP_CREATE" {
 module "EC2" {
   source = "./ec2"
 
-  for_each             = { for idx, vpc_info in var.vpc_b-cluster : idx => vpc_info }
+  for_each             = { for idx, vpc_info in var.cluster.vpc_b : idx => vpc_info }
   vpc_b-subnet_private = var.vpc_b-subnet_private
   security_group_ids   = [module.SECURITYGROUP_CREATE.output-sg.id, var.vpc_b-sg_private.id]
 
