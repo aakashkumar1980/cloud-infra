@@ -9,7 +9,7 @@ echo "[START] installing 'kubernetes-infra-setup'..."
 
 # FINALLY INSTALL KUBERNETES INFRASTRUCTURE
 echo "Installing kubernetes-infra-setup in 4 minute/s (waiting for ec2_natgateway_servers to get up)..."
-#../../apps-templates/utils/timer.sh 4
+../../apps-templates/utils/timer.sh 4
 
 cd `pwd`/terraform
 terraform init -upgrade
