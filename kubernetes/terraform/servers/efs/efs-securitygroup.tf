@@ -7,7 +7,7 @@ module "SG" {
 }
 
 module "SG-INGRESS_RULES" {
-  source = "../../../../aws/terraform/security/securitygroup/ingress"
+  source = "../../../../aws/terraform/_templates/security/securitygroup/ingress"
 
   from_port   = 2049
   to_port     = 2049
@@ -16,3 +16,4 @@ module "SG-INGRESS_RULES" {
 
   securitygroup_id = module.SG.output-sg.id
 }
+
