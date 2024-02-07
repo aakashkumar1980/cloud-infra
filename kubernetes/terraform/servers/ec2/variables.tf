@@ -29,6 +29,10 @@ variable "vpc_a-sg_private" {
 variable "vpc_b-sg_private" {
   default = null
 }
+
+variable "efs_file_system" {
+  default = null
+}
 variable "efs-output-sg" {
   default = null
 }
@@ -39,7 +43,7 @@ variable "ami" {
 variable "keypair" {
   default = null
 }
-variable "user_data" {
+variable "user_data_ssm" {
   default = null
 }
 

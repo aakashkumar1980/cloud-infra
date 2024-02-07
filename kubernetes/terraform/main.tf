@@ -19,7 +19,7 @@ module "SERVERS" {
   vpc_a-sg_private     = data.aws_security_group.vpc_a-sg_private
   vpc_b-sg_private     = data.aws_security_group.vpc_b-sg_private
 
-  ami       = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
-  keypair   = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
-  user_data = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data
+  ami           = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
+  keypair       = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
+  user_data_ssm = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data_ssm
 }

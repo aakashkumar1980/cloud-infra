@@ -30,7 +30,7 @@ variable "ami" {
 variable "keypair" {
   default = null
 }
-variable "user_data" {
+variable "user_data_ssm" {
   default = null
 }
 

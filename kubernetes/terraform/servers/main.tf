@@ -25,11 +25,13 @@ module "EC2" {
   vpc_b-subnet_private = var.vpc_b-subnet_private
   vpc_a-sg_private     = var.vpc_a-sg_private
   vpc_b-sg_private     = var.vpc_b-sg_private
-  efs-output-sg        = module.EFS.output-sg
 
-  ami       = var.ami
-  keypair   = var.keypair
-  user_data = var.user_data
+  efs_file_system = module.EFS.output-efs_file_system
+  efs-output-sg   = module.EFS.output-sg
+
+  ami           = var.ami
+  keypair       = var.keypair
+  user_data_ssm = var.user_data_ssm
 
 }
 

@@ -20,7 +20,9 @@ module "EC2" {
   instance_type        = var.instance_type
   keypair              = var.keypair
   iam_instance_profile = var.iam_instance_profile
-  user_data            = var.user_data
+  user_data_ssm        = var.user_data_ssm
+  user_data_efs        = var.user_data_efs
+  efs_file_system      = var.efs_file_system
 
   tag_path    = "${var.ns}.vpc_a.${each.value.type}"
   entity_name = each.value.hostname

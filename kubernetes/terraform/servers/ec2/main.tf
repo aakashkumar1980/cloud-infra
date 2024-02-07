@@ -16,9 +16,11 @@ module "CONTROL_PLANES" {
   instance_type        = var.servers.control_planes.instance_type
   keypair              = var.keypair
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
-  user_data            = var.user_data
+  user_data_ssm        = var.user_data_ssm
+  user_data_efs        = local.user_data_efs
 
-  efs-output-sg = var.efs-output-sg
+  efs_file_system = var.efs_file_system
+  efs-output-sg   = var.efs-output-sg
   efs-ingress-rules_map = [{
     /** EFS ACCESS **/
     description = "efs"
@@ -114,9 +116,11 @@ module "NODES" {
   instance_type        = var.servers.nodes.instance_type
   keypair              = var.keypair
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
-  user_data            = var.user_data
+  user_data_ssm        = var.user_data_ssm
+  user_data_efs        = local.user_data_efs
 
-  efs-output-sg = var.efs-output-sg
+  efs_file_system = var.efs_file_system
+  efs-output-sg   = var.efs-output-sg
   efs-ingress-rules_map = [{
     /** EFS ACCESS **/
     description = "efs"

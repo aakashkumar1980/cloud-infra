@@ -17,7 +17,13 @@ variable "keypair" {
 variable "iam_instance_profile" {
   default = null
 }
-variable "user_data" {
+variable "user_data_ssm" {
+  default = null
+}
+variable "user_data_efs" {
+  default = null
+}
+variable "efs_file_system" {
   default = null
 }
 
