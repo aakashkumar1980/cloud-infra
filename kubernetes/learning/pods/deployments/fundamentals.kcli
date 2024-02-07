@@ -1,0 +1,27 @@
+FILE_NAME=`pwd`/pods/deployments/xtemplates/system_info-deployments.yml
+
+# --------------------- #
+# .YML(File) VALIDATION #
+# --------------------- #
+# test for any errors prior to executing
+kubectl create -f $FILE_NAME --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+
+# ----------- #
+# POD: CREATE #
+# ----------- #
+kubectl apply -f $FILE_NAME --kubeconfig ./.kube/config
+
+DEPLOYMENT_NAME=$(kubectl get deployments -l app=webserver.deployment -o custom-columns=:metadata.name --kubeconfig ./.kube/config) 
+#########################
+### DEPLOYMENT: SCALE ###
+#########################
+kubectl scale deployment $DEPLOYMENT_NAME --replicas=3 --kubeconfig ./.kube/config
+
+
+
+##########################
+### DEPLOYMENT: DELETE ###
+##########################
+kubectl delete deployment $DEPLOYMENT_NAME --kubeconfig ./.kube/config
+# OR
+kubectl delete -f $FILE_NAME --kubeconfig ./.kube/config

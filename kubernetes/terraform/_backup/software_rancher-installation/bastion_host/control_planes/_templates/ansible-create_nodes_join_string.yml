@@ -1,0 +1,13 @@
+- name: # Join String
+  gather_facts: false
+  hosts: control_planes
+  tasks:
+  - name: # 1. creating join string...
+    shell: | 
+      sudo kubeadm token create --print-join-command > /tmp/kubeserver-node_join_string.txt
+      sudo sed -i 's/kubeadm/sudo kubeadm/' /tmp/kubeserver-node_join_string.txt
+
+      cat /tmp/kubeserver-node_join_string.txt
+    register: joinstring
+  - debug: msg="{{joinstring.stdout}}" 
+

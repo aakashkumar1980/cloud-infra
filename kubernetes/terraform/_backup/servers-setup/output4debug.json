@@ -1,0 +1,178 @@
+{
+    "DEBUG": {
+      "value": [
+        [
+          {
+            "ec2": {
+              "vpc-center.cplane1b (i-0b6c14de7a6cbf3f5) @172.16.0.44": [
+                {
+                  "subnet_private-az_c(subnet-04b72c5f87e9e6ede) @172.16.0.32/27": [
+                    [
+                      {
+                        "nacl_private(acl-068e770c29f990b10)": [
+                          [
+                            [
+                              "ingress: 110 ICMP 0-0            <- 0.0.0.0/0",
+                              "ingress: 114 TCP  32768-65535    <- 0.0.0.0/0",
+                              "ingress: 113 TCP  22-22          <- 172.16.0.0/26",
+                              "ingress: 112 TCP  443-443        <- 172.16.0.0/26",
+                              "ingress: 111 TCP  80-80          <- 172.16.0.0/26",
+                              "---",
+                              "egress:  110 All  0-0            -> 0.0.0.0/0 "
+                            ],
+                            "---",
+                            "ingress: 140 TCP  80-80      <- 10.0.0.0/24    vpc_a(vpc-086a1d77d147511bb)",
+                            "ingress: 141 TCP  443-443    <- 10.0.0.0/24    vpc_a(vpc-086a1d77d147511bb)",
+                            "ingress: 142 TCP  22-22      <- 10.0.0.0/24    vpc_a(vpc-086a1d77d147511bb)",
+                            "ingress: 150 TCP  80-80      <- 192.168.0.0/26 vpc_c(vpc-0796a0d422e1fcac2)",
+                            "ingress: 151 TCP  443-443    <- 192.168.0.0/26 vpc_c(vpc-0796a0d422e1fcac2)",
+                            "ingress: 152 TCP  22-22      <- 192.168.0.0/26 vpc_c(vpc-0796a0d422e1fcac2)"
+                          ],
+                          "---",
+                          "ingress: 170 TCP  6443-6443    <- 0.0.0.0/0 "
+                        ]
+                      }
+                    ],
+                    {
+                      "rt_private(rtb-0e2ad37d9764f1ee2)": [
+                        [
+                          "local                                                               <-> 172.16.0.0/26",
+                          "peering_vpc_center2left-access(pcx-0794c40484173797e)               <-> 10.0.0.0/24    vpc_a(vpc-086a1d77d147511bb)",
+                          "peering_vpc_center2right-access-requester(pcx-0de4af9d7184c6208)    <-> 192.168.0.0/26 vpc_c(vpc-0796a0d422e1fcac2)",
+                          "ec2_natgateway-server(i-0a5139263b0f96861)                          <-> 0.0.0.0/0"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "securitygroups": [
+                    "sg_default(sg-0268bd6765fa0c9ba)",
+                    {
+                      "sg_left2center(sg-0b6160a3c2c1a28f7)": [
+                        "icmp(-1--1) | tcp(22-22) | tcp(443-443) | tcp(80-80)    <- 10.0.0.0/24    vpc_a(vpc-086a1d77d147511bb)"
+                      ],
+                      "sg_right2center(sg-0cdc207e8d342c69d)": [
+                        "icmp(-1--1) | tcp(22-22) | tcp(443-443) | tcp(80-80)    <- 192.168.0.0/26 vpc_c(vpc-0796a0d422e1fcac2)"
+                      ]
+                    },
+                    {
+                      "iaas.sg_api_server_port-access(sg-05aa8639e5a7efd53)": [
+                        "tcp(6443-6443)    <- 0.0.0.0/0 "
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "vpc-left.node1a (i-069f1bc527e2d7ec2) @10.0.0.96": [
+                {
+                  "subnet_private-az_a(subnet-004dbeeda35f321a8) @10.0.0.64/26": [
+                    [
+                      {
+                        "nacl_private(acl-08779d37b21813c2c)": [
+                          [
+                            [
+                              "ingress: 110 ICMP 0-0            <- 0.0.0.0/0",
+                              "ingress: 114 TCP  32768-65535    <- 0.0.0.0/0",
+                              "ingress: 113 TCP  22-22          <- 10.0.0.0/24",
+                              "ingress: 112 TCP  443-443        <- 10.0.0.0/24",
+                              "ingress: 111 TCP  80-80          <- 10.0.0.0/24",
+                              "---",
+                              "egress:  110 All  0-0            -> 0.0.0.0/0 "
+                            ],
+                            "---",
+                            "ingress: 130 TCP  80-80      <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                            "ingress: 131 TCP  443-443    <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                            "ingress: 132 TCP  22-22      <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)"
+                          ],
+                          "---",
+                          "ingress: 170 TCP  10250-10250  <- 172.16.0.32/27 vpc_b.subnet_private-az_c(subnet-04b72c5f87e9e6ede)"
+                        ]
+                      }
+                    ],
+                    {
+                      "rt_private(rtb-0274f2482f7d3af94)": [
+                        [
+                          "local                                                    <-> 10.0.0.0/24",
+                          "peering_vpc_center2left-access(pcx-0794c40484173797e)    <-> 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                          "ec2_natgateway-server(i-02f097cec1b995197)               <-> 0.0.0.0/0"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "securitygroups": [
+                    "sg_default(sg-09dcaede8eb119024)",
+                    {
+                      "sg_center2left(sg-02a726a50e40156c7)": [
+                        "icmp(-1--1) | tcp(22-22) | tcp(443-443) | tcp(80-80)    <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)"
+                      ]
+                    },
+                    {
+                      "iaas.sg_kubelet_port_access(sg-0a38574b9b4a5639a)": [
+                        "tcp(10250-10250)    <- 172.16.0.32/27 vpc_b.subnet_private-az_c (subnet-04b72c5f87e9e6ede)"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "vpc-right.node2c (i-0791e26a080a278a4) @192.168.0.51": [
+                {
+                  "subnet_private-az_c(subnet-07f0d3fd9fed8c3d6) @192.168.0.32/27": [
+                    [
+                      {
+                        "nacl_private(acl-0b90f77e6c7ceddb4)": [
+                          [
+                            [
+                              "ingress: 110 ICMP 0-0            <- 0.0.0.0/0",
+                              "ingress: 114 TCP  32768-65535    <- 0.0.0.0/0",
+                              "ingress: 113 TCP  22-22          <- 192.168.0.0/26",
+                              "ingress: 112 TCP  443-443        <- 192.168.0.0/26",
+                              "ingress: 111 TCP  80-80          <- 192.168.0.0/26",
+                              "---",
+                              "egress:  110 All  0-0            -> 0.0.0.0/0 "
+                            ],
+                            "---",
+                            "ingress: 160 TCP  80-80      <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                            "ingress: 161 TCP  443-443    <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                            "ingress: 162 TCP  22-22      <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)"
+                          ],
+                          "---",
+                          "ingress: 170 TCP  10250-10250    <- 172.16.0.32/27 vpc_b.subnet_private-az_c(subnet-04b72c5f87e9e6ede)"
+                        ]
+                      }
+                    ],
+                    {
+                      "rt_private(rtb-0e094bab551a3eb24)": [
+                        [
+                          "local                                                               <-> 192.168.0.0/26",
+                          "peering_vpc_center2right-access-requester(pcx-0de4af9d7184c6208)    <-> 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)",
+                          "ec2_natgateway-server(i-0f4b0d71c3c282da2)                          <-> 0.0.0.0/0"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "securitygroups": [
+                    {
+                      "sg_center2right(sg-05cfc405f89753d9c)": [
+                        "icmp(-1--1) | tcp(22-22) | tcp(443-443) | tcp(80-80)    <- 172.16.0.0/26 vpc_b(vpc-0a7940881a6fd806d)"
+                      ]
+                    },
+                    "sg_default(sg-0d432f016a228506f)",
+                    {
+                      "iaas.sg_kubelet_port_access(sg-0188ec173aeb49ccf)": [
+                        "tcp(10250-10250)    <- 172.16.0.32/27 vpc_b.subnet_private-az_c (subnet-04b72c5f87e9e6ede)"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    }
+  }

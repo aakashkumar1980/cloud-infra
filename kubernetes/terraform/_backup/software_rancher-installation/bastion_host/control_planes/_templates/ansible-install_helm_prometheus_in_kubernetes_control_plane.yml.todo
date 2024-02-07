@@ -1,0 +1,30 @@
+- name: # HELM & Promotheus Installation
+  gather_facts: false
+  hosts: control_planes
+  tasks:
+  - name: # 1. install HELM...
+    shell: | 
+      wget -O helm.tar.gz https://get.helm.sh/helm-v3.11.0-rc.2-linux-amd64.tar.gz
+      tar -zxvf helm.tar.gz
+      sudo mv linux-amd64/helm /usr/local/bin/helm
+      helm version
+    register: mylogs_1
+  - debug: msg="{{mylogs_1.stdout_lines}}"
+  - debug: msg="{{mylogs_1.stderr_lines}}"
+
+  - name: # 2. install Prometheus & Grafana...
+    shell: | 
+      kubectl create ns monitoring
+      helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      helm repo update
+      helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring
+      
+      kubectl get pods -n monitoring
+      kubectl get svc -n monitoring
+    register: mylogs_2
+  - debug: msg="{{mylogs_2.stdout_lines}}"
+  - debug: msg="{{mylogs_2.stderr_lines}}"  
+
+
+
+  

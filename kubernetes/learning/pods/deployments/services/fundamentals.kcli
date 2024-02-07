@@ -1,0 +1,17 @@
+FILE_NAME1=`pwd`/pods/deployments/services/xtemplates/service_cluster_ip.yml
+FILE_NAME2=`pwd`/pods/deployments/services/xtemplates/service_nodeport.yml
+# --------------------- #
+# .YML(File) VALIDATION #
+# --------------------- #
+# test for any errors prior to executing
+kubectl create -f $FILE_NAME1 --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+kubectl create -f $FILE_NAME2 --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+
+###################
+# SERVICE: CREATE #
+###################
+kubectl apply -f $FILE_NAME1 --kubeconfig ./.kube/config
+kubectl apply -f $FILE_NAME2 --kubeconfig ./.kube/config
+
+
+

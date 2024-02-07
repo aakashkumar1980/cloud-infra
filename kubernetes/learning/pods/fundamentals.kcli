@@ -1,0 +1,33 @@
+POD_NAME="sample-pod"
+###################
+### POD: CREATE ###
+###################
+kubectl run $POD_NAME --image=nginx:alpine --kubeconfig ./.kube/config
+
+#########################
+### POD: LIST/DETAILS ###
+#########################
+# list pods
+kubectl get pods --kubeconfig ./.kube/config
+# list pods (full details)
+kubectl get pods -o yaml --kubeconfig ./.kube/config
+kubectl get pod $POD_NAME -o yaml --kubeconfig ./.kube/config
+
+# more details/events on a specific pod
+kubectl describe pod $POD_NAME --kubeconfig ./.kube/config
+
+##################
+### POD: SHELL ###
+##################
+# get inside POD container shell
+kubectl exec $POD_NAME -it sh --kubeconfig ./.kube/config
+
+
+
+###################
+### POD: DELETE ###
+###################
+kubectl delete pod $POD_NAME --kubeconfig ./.kube/config
+
+
+

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "healthcheck"
+  labels:
+    app: healthcheck
+      
+spec:
+  containers:
+  - name: healthcheck
+    image: "nginx:alpine"
+    ports:
+      - containerPort: 80
+
+    # livenessProbe: "POD" Health. Subjective Implementation.   
+    # "Application" Health
+    readinessProbe:
+      httpGet:
+        path: /index.html
+        port: 80
+      initialDelaySeconds: 30
+      timeoutSeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+
+
+
+
+

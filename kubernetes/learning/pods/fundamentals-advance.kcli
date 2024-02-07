@@ -1,0 +1,51 @@
+FILE_NAME=`pwd`/pods/xtemplates/nginx.yml
+
+#############################
+### .YML(File) VALIDATION ###
+#############################
+# test for any errors prior to executing
+kubectl create -f $FILE_NAME --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+
+###################
+### POD: CREATE ###
+###################
+# save the current state, so that later the new changes in yml can be compared for the changes #
+kubectl create -f $FILE_NAME --save-config --kubeconfig ./.kube/config
+# OR
+kubectl apply -f $FILE_NAME --kubeconfig ./.kube/config
+
+#########################
+### POD: PORT-FORWARD ###
+#########################
+CONTROL_PLANE_IP=$( \
+    aws --region us-east-1 \
+    ec2 describe-instances \
+    --filters \
+        "Name=instance-state-name,Values=running" \
+        "Name=tag:Name,Values=_terraform.usecase-site2site-vpc_peering.vpc-center.ec2_private-server" \
+    --query 'Reservations[*].Instances[*].[PrivateIpAddress]' \
+    --output text \
+--profile privatelearningv2 \
+)
+### 1.1. Connect to the master (i.e. ControlPlane) ###
+ssh -i \
+    /home/ubuntu/Desktop/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
+    centos@$CONTROL_PLANE_IP -o StrictHostKeyChecking=no
+### 1.1.1. Access the 'nginx webpage' created above in the POD ###
+curl localhost:8080
+# NOTE: It won't work as the 'nginx webpage' is local to the POD container
+
+### 1.2. Hence, to make it work, port forwading should be done so that the 'nginx webpage' is accessible to the whole cluster. 
+kubectl port-forward $POD_NAME 8080:80
+### 1.2.1. Open a new terminal and connect to the master (i.e. ControlPlane). ###
+###      Then access the 'nginx webpage' created above in the POD again.    ###
+ssh -i \
+    /home/ubuntu/Desktop/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
+    centos@$CONTROL_PLANE_IP -o StrictHostKeyChecking=no
+curl localhost:8080
+
+
+###################
+### POD: DELETE ###
+###################
+kubectl delete -f $FILE_NAME --kubeconfig ./.kube/config

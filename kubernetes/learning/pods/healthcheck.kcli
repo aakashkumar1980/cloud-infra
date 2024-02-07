@@ -1,0 +1,32 @@
+FILE_NAME=`pwd`/pods/xtemplates/nginx_healthcheck.yml
+
+# --------------------- #
+# .YML(File) VALIDATION #
+# --------------------- #
+# test for any errors prior to executing
+kubectl create -f $FILE_NAME --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+# ----------- #
+# POD: CREATE #
+# ----------- #
+kubectl apply -f $FILE_NAME --kubeconfig ./.kube/config
+
+POD_NAME=$(kubectl get pods -l app=webserver -o custom-columns=:metadata.name --kubeconfig ./.kube/config)
+##########################
+### POD: SHELL+TESTING ###
+##########################
+# 1. Get inside POD container shell
+kubectl exec $POD_NAME -it sh --kubeconfig ./.kube/config
+
+# 2.1.1. Simulate "Application" Health (FAIL) > Check POD logs
+mv -f /usr/share/nginx/html/index.html /usr/share/nginx/html/index.html.backup
+# (LOG > Readiness probe failed: HTTP probe failed with statuscode: 404)
+
+# 2.1.2. Simulate "Application" Health (SUCCESS: Just POD online/No Restart) > Check POD logs
+mv -f /usr/share/nginx/html/index.html.backup /usr/share/nginx/html/index.html
+# (LOG > "GET /index.html HTTP/1.1" 200 615 "-" "kube-probe/1.26" "-")
+
+
+# ----------- #
+# POD: DELETE #
+# ----------- #
+kubectl delete -f $FILE_NAME --kubeconfig ./.kube/config

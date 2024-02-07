@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: systeminfo-deployment
+  labels:
+    app: systeminfo
+   
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: systeminfo
+
+  template:
+    metadata:
+      labels:
+        app: systeminfo
+    spec:
+      #nodeName: node2c
+      containers:
+      - name: systeminfo
+        #image: "nginx:alpine"
+        image: "aakashkumar1980/systeminfo:v1"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name          
+        #resources:
+        #  limits:
+        #    memory: "128Mi" #128MB
+        #    cpu: "200m" #(20% cpu) 
+          
+

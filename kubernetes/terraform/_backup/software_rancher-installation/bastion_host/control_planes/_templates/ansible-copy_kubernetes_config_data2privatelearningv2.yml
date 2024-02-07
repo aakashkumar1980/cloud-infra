@@ -1,0 +1,10 @@
+- name: # Copy Config Data
+  gather_facts: false
+  hosts: control_planes
+  tasks:
+  - name: # 1. copying config data...
+    shell: | 
+      cat ~/.kube/config
+    register: configdata
+  - debug: msg="{{configdata.stdout}}" 
+
