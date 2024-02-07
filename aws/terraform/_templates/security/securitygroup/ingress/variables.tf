@@ -17,3 +17,6 @@ variable "description" {
 variable "securitygroup_id" {
   default = null
 }
+variable "source_security_group_id" {
+  default = null
+}

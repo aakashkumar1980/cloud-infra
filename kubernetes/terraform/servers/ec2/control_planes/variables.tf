@@ -43,6 +43,12 @@ variable "user_data" {
   default = null
 }
 
+variable "efs-output-sg" {
+  default = null
+}
+variable "efs-ingress-rules_map" {
+  default = null
+}
 variable "ingress-rules_map" {
   default = null
 }

@@ -1,9 +1,12 @@
 module "SECURITYGROUP_CREATE" {
   source = "./securitygroup-create"
 
-  tag_path          = "${var.ns}.vpc_b"
-  vpc_id            = var.vpc_b.id
-  ingress-rules_map = var.ingress-rules_map
+  tag_path = "${var.ns}.vpc_b"
+  vpc_id   = var.vpc_b.id
+
+  efs-output-sg         = var.efs-output-sg
+  efs-ingress-rules_map = var.efs-ingress-rules_map
+  ingress-rules_map     = var.ingress-rules_map
 }
 
 module "EC2" {

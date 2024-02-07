@@ -17,6 +17,7 @@ module "EC2" {
   ns      = var.ns
   base_ns = var.base_ns
 
+  efs                  = local.efs
   servers              = local.servers
   vpc_a                = var.vpc_a
   vpc_b                = var.vpc_b
@@ -24,6 +25,7 @@ module "EC2" {
   vpc_b-subnet_private = var.vpc_b-subnet_private
   vpc_a-sg_private     = var.vpc_a-sg_private
   vpc_b-sg_private     = var.vpc_b-sg_private
+  efs-output-sg        = module.EFS.output-sg
 
   ami       = var.ami
   keypair   = var.keypair

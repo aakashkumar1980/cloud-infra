@@ -18,6 +18,14 @@ module "CONTROL_PLANES" {
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
   user_data            = var.user_data
 
+  efs-output-sg = var.efs-output-sg
+  efs-ingress-rules_map = [{
+    /** EFS ACCESS **/
+    description = "efs"
+    protocol    = var.efs.vpc_a.security_group.ingress.protocol
+    from_port   = tonumber(var.efs.vpc_a.security_group.ingress.from_port)
+    to_port     = tonumber(var.efs.vpc_a.security_group.ingress.to_port)
+  }]
   ingress-rules_map = [{
     /** CONTROL_PLANES ACCESS **/
     description = "etcd"
@@ -108,6 +116,14 @@ module "NODES" {
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
   user_data            = var.user_data
 
+  efs-output-sg = var.efs-output-sg
+  efs-ingress-rules_map = [{
+    /** EFS ACCESS **/
+    description = "efs"
+    protocol    = var.efs.vpc_a.security_group.ingress.protocol
+    from_port   = tonumber(var.efs.vpc_a.security_group.ingress.from_port)
+    to_port     = tonumber(var.efs.vpc_a.security_group.ingress.to_port)
+  }]
   ingress-rules_map = [{
     /** CONTROL_PLANES ACCESS **/
     description = "kubelet"

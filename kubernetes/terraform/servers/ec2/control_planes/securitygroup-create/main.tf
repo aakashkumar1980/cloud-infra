@@ -5,6 +5,7 @@ module "SG" {
   tag_path    = var.tag_path
   entity_name = "control_plane"
 }
+
 module "SG-INGRESS_RULES" {
   source = "../../../../../../aws/terraform/_templates/security/securitygroup/ingress"
 
@@ -16,4 +17,16 @@ module "SG-INGRESS_RULES" {
   cidr_blocks = element(var.ingress-rules_map, count.index).cidr_blocks
 
   securitygroup_id = module.SG.output-sg.id
+}
+module "SG_EFS-INGRESS_RULES" {
+  source = "../../../../../../aws/terraform/_templates/security/securitygroup/ingress"
+
+  count       = length(var.efs-ingress-rules_map)
+  from_port   = element(var.efs-ingress-rules_map, count.index).from_port
+  to_port     = element(var.efs-ingress-rules_map, count.index).to_port
+  protocol    = element(var.efs-ingress-rules_map, count.index).protocol
+  description = element(var.efs-ingress-rules_map, count.index).description
+
+  securitygroup_id         = module.SG.output-sg.id
+  source_security_group_id = var.efs-output-sg.id
 }
