@@ -3,12 +3,16 @@
 # ####################### #
 # BASE-SETUP INSTALLATION #
 # ####################### #
-echo "[START] installing 'kubernetes-infra-setup'..."
+echo "starting 'base-infra-setup' if not started..."
+../aws/terraform/base_infra_setup-start.sh
+echo "starting 'ec2_natgateway_server'."
 ../aws/terraform/_ec2_natgateway_server-start.sh
 
 
-# FINALLY INSTALL KUBERNETES INFRASTRUCTURE
-echo "Installing kubernetes-infra-setup in 4 minute/s (waiting for ec2_natgateway_servers to get up)..."
+# ####################### #
+# KUBERNETES INSTALLATION #
+# ####################### #
+echo "[START] Installing kubernetes-infra-setup in 4 minute/s (waiting for ec2_natgateway_servers to get up)..."
 ../../apps-templates/utils/timer.sh 4
 
 cd `pwd`/terraform

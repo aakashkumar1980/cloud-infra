@@ -1,9 +1,12 @@
 #!/bin/bash
 
 # ####################### #
-# BASE-SETUP INSTALLATION #
+# BASE-SETUP UNSTALLATION #
 # ####################### #
-echo "[START] un-installing 'base-infra-setup'..."
+echo "stopping 'kubernetes-infra-setup' if not stopped..."
+../../kubernetes/kubernetes_infra_setup-stop.sh
+
+echo "[STOP] un-installing 'base-infra-setup'..."
 cd `pwd`/base-infra-setup
 terraform destroy -auto-approve=true
 
