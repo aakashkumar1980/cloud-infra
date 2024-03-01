@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BASE_PATH=/home/ubuntu/Desktop/cloud-infra/aws/terraform
+TIMER_PATH=/home/ubuntu/Desktop/apps-templates/utils
 # ####################### #
 # BASE-SETUP INSTALLATION #
 # ####################### #
@@ -11,3 +12,6 @@ terraform apply -auto-approve=true
 
 $BASE_PATH/_ec2_natgateway_server-stop.sh
 echo "[END] installing 'base-infra-setup'..."
+
+echo "waiting for base-infra-setup to set up completely..."
+$TIMER_PATH/timer.sh 2
