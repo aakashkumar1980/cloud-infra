@@ -1,16 +1,16 @@
 #!/bin/bash
 
-BASE_PATH=/home/ubuntu/Desktop/cloud-infra/aws/terraform
-KUBERNETES_PATH=/home/ubuntu/Desktop/cloud-infra/kubernetes
+BASE_PATH=$LEARNING_HOME/cloud-infra/aws/terraform
+KUBERNETES_PATH=$LEARNING_HOME/cloud-infra/kubernetes
 # ######################## #
-# OTHER SETUP UNSTALLATION #
+# OTHER SETUP UNINSTALLATION #
 # ######################## #
 echo "stopping 'kubernetes-infra-setup' if not stopped..."
 $KUBERNETES_PATH/kubernetes_infra_setup-stop.sh
 
 
 # ####################### #
-# BASE-SETUP UNSTALLATION #
+# BASE-SETUP UNINSTALLATION #
 # ####################### #
 echo "[STOP] un-installing 'base-infra-setup'..."
 cd $BASE_PATH/base-infra-setup

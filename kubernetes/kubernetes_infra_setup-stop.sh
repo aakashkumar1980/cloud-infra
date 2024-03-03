@@ -1,7 +1,7 @@
 #!/bin/bash
 
-BASE_PATH=/home/ubuntu/Desktop/cloud-infra/aws/terraform
-KUBERNETES_PATH=/home/ubuntu/Desktop/cloud-infra/kubernetes
+BASE_PATH=$LEARNING_HOME/cloud-infra/aws/terraform
+KUBERNETES_PATH=$LEARNING_HOME/cloud-infra/kubernetes
 # ####################### #
 # KUBERNETES UNSTALLATION #
 # ####################### #

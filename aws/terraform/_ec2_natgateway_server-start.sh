@@ -13,7 +13,8 @@ aws ec2 start-instances \
         "Name=instance-state-name,Values=stopped" \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region us-east-1 \
-    --profile default)
+    --profile default \
+    --no-cli-pager)
 
 # Second start-instances command
 aws ec2 start-instances \
@@ -27,4 +28,5 @@ aws ec2 start-instances \
         "Name=instance-state-name,Values=stopped" \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region eu-west-2 \
-    --profile secondary)
+    --profile secondary \
+    --no-cli-pager)

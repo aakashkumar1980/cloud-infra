@@ -13,7 +13,8 @@ aws ec2 stop-instances \
         "Name=instance-state-name,Values=running" \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region us-east-1 \
-    --profile default)
+    --profile default \
+    --no-cli-pager)
 
 # Second stop-instances command
 aws ec2 stop-instances \
@@ -28,4 +29,5 @@ aws ec2 stop-instances \
         "Name=instance-state-name,Values=running" \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region eu-west-2 \
-    --profile secondary)
+    --profile secondary \
+    --no-cli-pager)

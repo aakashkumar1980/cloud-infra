@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BASE_PATH=/home/ubuntu/Desktop/cloud-infra/aws/terraform
-KUBERNETES_PATH=/home/ubuntu/Desktop/cloud-infra/kubernetes
-TIMER_PATH=/home/ubuntu/Desktop/apps-templates/utils
+BASE_PATH=$LEARNING_HOME/cloud-infra/aws/terraform
+KUBERNETES_PATH=$LEARNING_HOME/cloud-infra/kubernetes
+TIMER_PATH=$LEARNING_HOME/apps/apps-templates/utils
 # ####################### #
 # BASE-SETUP INSTALLATION #
 # ####################### #
