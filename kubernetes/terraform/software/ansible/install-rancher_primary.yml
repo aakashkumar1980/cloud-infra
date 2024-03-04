@@ -1,0 +1,57 @@
+---
+- name: Install Kubernetes Cluster and Rancher Community Edition with HA
+  hosts: localhost
+  gather_facts: false
+  vars:
+    primary_instance_id: "{{ primary_instance_id }}"
+    secondary_instance_id: "{{ secondary_instance_id }}"
+    region_name: "{{ region_name }}"
+    load_balancer_dns: "{{ load_balancer_dns }}"
+    load_balancer_port: "{{ load_balancer_port }}"
+    efs_id: "{{ efs_id }}"
+  tasks:
+    - name: Install Kubernetes on Primary Control Plane
+      command: >
+        aws ssm send-command
+        --document-name 'AWS-RunShellScript'
+        --instance-ids '{{ primary_instance_id }}'
+        --parameters 'commands=[
+        "echo '### [START] INSTALLING KUBERNETES ON PRIMARY CONTROL PLANE ###'",
+        "sudo apt-get update && sudo apt-get install -y apt-transport-https curl",
+        "curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
+        "echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/apt/sources.list.d/kubernetes.list",
+        "sudo apt-get update",
+        "sudo apt-get install -y kubelet kubeadm kubectl",
+        "sudo kubeadm init --control-plane-endpoint='{{ load_balancer_dns }}:{{ load_balancer_port }}' --pod-network-cidr=10.244.0.0/16",
+        "mkdir -p $HOME/.kube",
+        "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
+        "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+        "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
+        "echo '### [END] INSTALLING KUBERNETES ON PRIMARY CONTROL PLANE ###'",
+        ]'
+        --region '{{ region_name }}'
+      register: ssm_output_primary
+
+    - name: Join Secondary Control Plane to the Cluster
+      command: >
+        aws ssm send-command
+        --document-name 'AWS-RunShellScript'
+        --instance-ids '{{ secondary_instance_id }}'
+        --parameters 'commands=[
+        "echo 'Joining Secondary Control Plane to the Cluster...'",
+        "sudo apt-get update && sudo apt-get install -y apt-transport-https curl",
+        "curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
+        "echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/apt/sources.list.d/kubernetes.list",
+        "sudo apt-get update",
+        "sudo apt-get install -y kubelet kubeadm kubectl",
+        "sudo kubeadm join --control-plane --token <token> --discovery-token-ca-cert-hash sha256:<hash> {{ load_balancer_dns }}:{{ load_balancer_port }}",
+        "echo 'Secondary Control Plane joined to the Cluster'",
+        ]'
+        --region '{{ region_name }}'
+      register: ssm_output_secondary
+
+    - debug:
+        var: ssm_output_primary
+
+    - debug:
+        var: ssm_output_secondary

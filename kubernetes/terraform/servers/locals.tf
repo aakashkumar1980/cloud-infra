@@ -2,14 +2,11 @@ locals {
 
   servers = {
     control_planes = {
-      instance_type = "t3a.micro",
+      instance_type = "t3a.medium", // cpu: 2, memory: 4
       cluster = {
         vpc_a = [{
           hostname = "cplane_active"
           type     = "primary"
-          }, {
-          hostname = "cplane_standby"
-          type     = "secondary"
           }
         ]
       }
@@ -67,7 +64,7 @@ locals {
     }
 
     nodes = {
-      instance_type = "t3a.small",
+      instance_type = "t3a.medium", // cpu: 2, memory: 4
       cluster = {
         vpc_b = [{
           hostname = "node1"

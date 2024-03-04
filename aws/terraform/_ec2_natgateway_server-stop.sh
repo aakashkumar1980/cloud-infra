@@ -14,7 +14,7 @@ aws ec2 stop-instances \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region us-east-1 \
     --profile default \
-    --no-cli-pager)
+    --no-cli-pager) > /dev/null 2>&1
 
 # Second stop-instances command
 aws ec2 stop-instances \
@@ -30,4 +30,4 @@ aws ec2 stop-instances \
     --output text --query 'Reservations[*].Instances[*].InstanceId' \
     --region eu-west-2 \
     --profile secondary \
-    --no-cli-pager)
+    --no-cli-pager) > /dev/null 2>&1
