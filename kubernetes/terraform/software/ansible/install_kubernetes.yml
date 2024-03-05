@@ -11,10 +11,7 @@
         aws ssm send-command
         --document-name 'AWS-RunShellScript'
         --instance-ids '{{ instance_id }}'
-        --parameters 'commands=[
-        "echo 'Installing Kubernetes Cluster...'",
-        # Add Kubernetes installation commands here
-        ]'
+        --parameters 'commands=["echo \"Installing Kubernetes Cluster...\" >> /tmp/kube_install.log"]'
         --region '{{ region_name }}'
       register: ssm_output_primary
 
