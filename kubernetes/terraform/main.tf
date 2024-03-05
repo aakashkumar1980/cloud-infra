@@ -21,18 +21,18 @@ module "SERVERS" {
   ami           = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
   keypair       = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
   user_data_ssm = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data_ssm
-}
-# add sleep of two minutes to allow the instances to be ready for the next steps
+}/**
 resource "null_resource" "sleep4minutes" {
   provisioner "local-exec" {
     command = "sleep 240"
   }
   depends_on = [module.SERVERS]
-}
+}**/
+
 
 module "SOFTWARE" {
   source     = "./software"
-  depends_on = [null_resource.sleep4minutes]
+  #depends_on = [null_resource.sleep4minutes]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -40,7 +40,12 @@ module "SOFTWARE" {
   ns      = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${local.project.namespace}"
   base_ns = module.COMMON-BASE_INFRA_SETUP.project.namespace
 
-  control_plane_primary_instance_id   = module.SERVERS.output-ec2_cplane_active.id
-  control_plane_secondary_instance_id = module.SERVERS.output-ec2_cplane_standby.id
+  vpc_a-region_name                          = data.aws_region.vpc_a-region.name
+  control_plane_primary_instance_id         = module.SERVERS.output-ec2_cplane_active.id
+  control_plane_primary_instance_private_ip = module.SERVERS.output-ec2_cplane_active.private_ip
+  node1_instance_id                         = module.SERVERS.output-ec2_node1.id
+  node1_instance_private_ip                 = module.SERVERS.output-ec2_node1.private_ip
+  node2_instance_id                         = module.SERVERS.output-ec2_node2.id
+  node2_instance_private_ip                 = module.SERVERS.output-ec2_node2.private_ip
 }
-
+/****/
