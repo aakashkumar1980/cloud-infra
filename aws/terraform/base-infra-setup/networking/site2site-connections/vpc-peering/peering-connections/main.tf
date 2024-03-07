@@ -14,6 +14,7 @@ module "REMOTE" {
   providers = {
     aws.rg = aws.rnvg
     aws.rn = aws.rldn
+    aws.rf = aws.rncf
   }
 
   ns           = var.ns

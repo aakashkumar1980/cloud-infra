@@ -5,10 +5,17 @@ provider "aws" {
 
   profile = "default"
 }
-
 provider "aws" {
   region = "eu-west-2"
   alias  = "region_london"
 
   profile = "secondary"
+}
+
+/** PrivateLearningV2 **/
+provider "aws" {
+  region = "us-west-1"
+  alias  = "region_ncalifornia"
+
+  profile = "teritary"
 }

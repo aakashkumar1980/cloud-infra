@@ -3,6 +3,7 @@ module "PEERING_CONNECTIONS" {
   providers = {
     aws.rnvg = aws.rgn_nvg
     aws.rldn = aws.rgn_ldn
+    aws.rncf = aws.rgn_ncf
   }
 
   ns = var.ns
@@ -14,6 +15,7 @@ module "ROUTES_AND_SECURITY" {
   providers = {
     aws.rnvg = aws.rgn_nvg
     aws.rldn = aws.rgn_ldn
+    aws.rncf = aws.rgn_ncf
   }
 
   peering_local-vpc_a2b            = module.PEERING_CONNECTIONS.output_peering_local-vpc_a2b

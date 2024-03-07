@@ -4,6 +4,7 @@ module "VPC_PEERING" {
   providers = {
     aws.rgn_nvg = aws.region_nvirginia
     aws.rgn_ldn = aws.region_london
+    aws.rgn_ncf = aws.region_ncalifornia
   }
 
   ns                = module.COMMON-REGION_NVIRGINIA.project.namespace
