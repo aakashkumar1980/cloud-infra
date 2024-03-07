@@ -10,7 +10,7 @@ cd $BASE_PATH/base-infra-setup
 terraform init -upgrade
 terraform apply -auto-approve=true
 
-$BASE_PATH/_ec2_natgateway_server-stop.sh
+$BASE_PATH/_stop-ec2_natgateway_server.sh
 echo "[END] installing 'base-infra-setup'..."
 
 echo "waiting for base-infra-setup to set up completely..."

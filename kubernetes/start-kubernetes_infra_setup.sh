@@ -7,9 +7,9 @@ TIMER_PATH=$LEARNING_HOME/apps/apps-templates/utils
 # BASE-SETUP INSTALLATION #
 # ####################### #
 echo "starting 'base-infra-setup' if not started..."
-$BASE_PATH/base_infra_setup-start.sh
+$BASE_PATH/start-base_infra_setup.sh
 echo "starting 'ec2_natgateway_server'."
-$BASE_PATH/_ec2_natgateway_server-start.sh
+$BASE_PATH/_start-ec2_natgateway_server.sh
 
 
 # ####################### #

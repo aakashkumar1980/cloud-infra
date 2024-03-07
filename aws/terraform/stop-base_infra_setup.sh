@@ -6,7 +6,7 @@ KUBERNETES_PATH=$LEARNING_HOME/cloud-infra/kubernetes
 # OTHER SETUP UNINSTALLATION #
 # ######################## #
 echo "stopping 'kubernetes-infra-setup' if not stopped..."
-$KUBERNETES_PATH/kubernetes_infra_setup-stop.sh
+$KUBERNETES_PATH/stop-kubernetes_infra_setup.sh
 
 
 # ####################### #
