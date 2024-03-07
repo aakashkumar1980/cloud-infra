@@ -1,9 +1,9 @@
 module "VPC_A" {
   source = "./vpc_a"
   providers = {
-    aws.rn = aws.rnvg
-    aws.rl = aws.rldn
-    aws.rnf = aws.rncf
+    aws.rg = aws.rnvg
+    aws.rn = aws.rldn
+    aws.rf = aws.rncf
   }
 
   peering_local-vpc_a2b            = var.peering_local-vpc_a2b
@@ -16,8 +16,8 @@ module "VPC_A" {
 module "VPC_B" {
   source = "./vpc_b"
   providers = {
-    aws.rn = aws.rnvg
-    aws.rl = aws.rldn
+    aws.rg = aws.rnvg
+    aws.rn = aws.rldn
   }
 
   peering_local-vpc_a2b            = var.peering_local-vpc_a2b
@@ -30,8 +30,8 @@ module "VPC_B" {
 module "VPC_C" {
   source = "./vpc_c"
   providers = {
-    aws.rn = aws.rnvg
-    aws.rl = aws.rldn
+    aws.rg = aws.rnvg
+    aws.rn = aws.rldn
   }
 
   peering_remote_accepter-vpc_c2a = var.peering_remote_accepter-vpc_c2a
