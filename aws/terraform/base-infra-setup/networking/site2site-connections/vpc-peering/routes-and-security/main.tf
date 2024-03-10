@@ -18,6 +18,7 @@ module "VPC_B" {
   providers = {
     aws.rg = aws.rnvg
     aws.rn = aws.rldn
+    aws.rf = aws.rncf
   }
 
   peering_local-vpc_a2b            = var.peering_local-vpc_a2b

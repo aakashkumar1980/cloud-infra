@@ -13,16 +13,16 @@ data "aws_subnet" "subnet_privatelearningv2" {
 }
 
 
-/** VPC_A */
-data "aws_vpc_peering_connection" "vpc_a-peering_connection" {
+/** VPC_B */
+data "aws_vpc_peering_connection" "vpc_b-peering_connection" {
   provider = aws.rg
   filter {
     name   = "tag:Name"
-    values = ["${var.ns}.vpc_peering_remote.vpc-a2privatelearningv2-accepter"]
+    values = ["${var.ns}.vpc_peering_remote.vpc-b2privatelearningv2-accepter"]
   }
 }
-/** VPC_A :: SecurityGroup */
-module "SECURITYGROUP-INGRESS-VPC_A2PRIVATELEARNINGV2" {
+/** VPC_B :: SecurityGroup */
+module "SECURITYGROUP-INGRESS-VPC_B2PRIVATELEARNINGV2" {
   source = "../../../../../../_templates/security/securitygroup/ingress"
   providers = {
     aws = aws.rg
@@ -36,10 +36,10 @@ module "SECURITYGROUP-INGRESS-VPC_A2PRIVATELEARNINGV2" {
   description = element(var.ingress-rules_map, count.index).description
   cidr_blocks = [data.aws_subnet.subnet_privatelearningv2.cidr_block]
 
-  securitygroup_id = data.aws_security_group.vpc_a-sg_private.id
+  securitygroup_id = data.aws_security_group.vpc_b-sg_private.id
 }
-/** VPC_A : NACL */
-module "NACL-INGRESS-VPC_A2PRIVATELEARNINGV2" {
+/** VPC_B : NACL */
+module "NACL-INGRESS-VPC_B2PRIVATELEARNINGV2" {
   source = "../../../../../../_templates/networking/security/nacl/ingress"
   providers = {
     aws = aws.rg
@@ -52,17 +52,17 @@ module "NACL-INGRESS-VPC_A2PRIVATELEARNINGV2" {
   to_port     = 65535
   cidr_block  = data.aws_subnet.subnet_privatelearningv2.cidr_block
 
-  nacl_id = tolist(data.aws_network_acls.vpc_a-nacl_private.ids)[0]
+  nacl_id = tolist(data.aws_network_acls.vpc_b-nacl_private.ids)[0]
 }
 
-/** VPC_A :: RouteTable */
-module "ROUTES-VPC_A2PRIVATELEARNINGV2" {
+/** VPC_B :: RouteTable */
+module "ROUTES-VPC_B2PRIVATELEARNINGV2" {
   source = "../../../../../../_templates/networking/routetable/routes/site2site-connections/vpc-peering"
   providers = {
     aws = aws.rg
   }
-  peering_id = data.aws_vpc_peering_connection.vpc_a-peering_connection.id
+  peering_id = data.aws_vpc_peering_connection.vpc_b-peering_connection.id
 
   destination_cidr_block = data.aws_subnet.subnet_privatelearningv2.cidr_block
-  routetable_id          = data.aws_route_table.vpc_a-rt_private.id
+  routetable_id          = data.aws_route_table.vpc_b-rt_private.id
 }
