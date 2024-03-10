@@ -21,18 +21,18 @@ module "SERVERS" {
   ami           = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.region_nvirginia.ami
   keypair       = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
   user_data_ssm = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data_ssm
-}/**
+}
 resource "null_resource" "sleep4minutes" {
   provisioner "local-exec" {
     command = "sleep 240"
   }
   depends_on = [module.SERVERS]
-}**/
+}
 
 
 module "SOFTWARE" {
   source     = "./software"
-  #depends_on = [null_resource.sleep4minutes]
+  depends_on = [null_resource.sleep4minutes]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -48,4 +48,3 @@ module "SOFTWARE" {
   node2_instance_id                         = module.SERVERS.output-ec2_node2.id
   node2_instance_private_ip                 = module.SERVERS.output-ec2_node2.private_ip
 }
-/****/

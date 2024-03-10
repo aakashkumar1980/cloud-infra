@@ -1,29 +1,30 @@
+/** VPC_A **/
 data "aws_vpc" "vpc_a" {
-  provider = aws.rn
+  provider = aws.rg
   filter {
     name   = "tag:Name"
     values = ["${var.ns}.vpc_a"]
   }
 }
-
+/** VPC_B **/
 data "aws_vpc" "vpc_b" {
-  provider = aws.rn
+  provider = aws.rg
   filter {
     name   = "tag:Name"
     values = ["${var.ns}.vpc_b"]
   }
 }
 
-
+/** VPC_C **/
 data "aws_vpc" "vpc_c" {
-  provider = aws.rl
+  provider = aws.rn
   filter {
     name   = "tag:Name"
     values = ["${var.ns}.vpc_c"]
   }
 }
 data "aws_security_group" "vpc_c-sg_private" {
-  provider = aws.rl
+  provider = aws.rn
   vpc_id   = data.aws_vpc.vpc_c.id
 
   filter {
@@ -32,7 +33,7 @@ data "aws_security_group" "vpc_c-sg_private" {
   }
 }
 data "aws_network_acls" "vpc_c-nacl_private" {
-  provider = aws.rl
+  provider = aws.rn
   vpc_id   = data.aws_vpc.vpc_c.id
 
   filter {
@@ -41,7 +42,7 @@ data "aws_network_acls" "vpc_c-nacl_private" {
   }
 }
 data "aws_route_table" "vpc_c-rt_private" {
-  provider = aws.rl
+  provider = aws.rn
   vpc_id   = data.aws_vpc.vpc_c.id
 
   filter {
