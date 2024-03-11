@@ -8,6 +8,9 @@ variable "base_ns" {
 variable "vpc_a-region_name" {
   default = null
 }
+variable "vpc_b-region_name" {
+  default = null
+}
 variable "control_plane_primary_instance_id" {
   default = null
 }

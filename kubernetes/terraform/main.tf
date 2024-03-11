@@ -22,17 +22,17 @@ module "SERVERS" {
   keypair       = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.keypair"
   user_data_ssm = module.COMMON-BASE_INFRA_SETUP.project.ec2.standard.user_data_ssm
 }
-resource "null_resource" "sleep4minutes" {
+resource "null_resource" "sleep5minutes" {
   provisioner "local-exec" {
-    command = "sleep 240"
+    command = "sleep 300"
   }
   depends_on = [module.SERVERS]
 }
 
 
 module "SOFTWARE" {
-  source     = "./software"
-  depends_on = [null_resource.sleep4minutes]
+  source = "./software"
+  depends_on = [null_resource.sleep5minutes]
   providers = {
     aws = aws.region_nvirginia
   }
@@ -40,7 +40,8 @@ module "SOFTWARE" {
   ns      = "${module.COMMON-BASE_INFRA_SETUP.project.namespace}.${local.project.namespace}"
   base_ns = module.COMMON-BASE_INFRA_SETUP.project.namespace
 
-  vpc_a-region_name                          = data.aws_region.vpc_a-region.name
+  vpc_a-region_name                         = data.aws_region.vpc_a-region.name
+  vpc_b-region_name                         = data.aws_region.vpc_b-region.name
   control_plane_primary_instance_id         = module.SERVERS.output-ec2_cplane_active.id
   control_plane_primary_instance_private_ip = module.SERVERS.output-ec2_cplane_active.private_ip
   node1_instance_id                         = module.SERVERS.output-ec2_node1.id

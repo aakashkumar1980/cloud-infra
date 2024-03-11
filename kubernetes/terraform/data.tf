@@ -1,6 +1,9 @@
 data "aws_region" "vpc_a-region" {
   provider = aws.region_nvirginia
 }
+data "aws_region" "vpc_b-region" {
+  provider = aws.region_nvirginia
+}
 
 data "aws_vpc" "vpc_a" {
   provider = aws.region_nvirginia
