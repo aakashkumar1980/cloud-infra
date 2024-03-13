@@ -20,7 +20,7 @@ resource "null_resource" "k8s_setup" {
   provisioner "local-exec" {
     command = <<EOT
       ANSIBLE_CONFIG=${path.module}/ansible/ansible.cfg \
-        ansible-playbook -i ${path.module}/ansible/hosts.ini ${path.module}/k8s_setup.yml -v
+        ansible-playbook -i ${path.module}/ansible/hosts.ini ${path.module}/k8s_setup.yml
     EOT
   }
 }

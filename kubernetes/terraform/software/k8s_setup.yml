@@ -1,41 +1,57 @@
-- name: Install Kubernetes on Control Plane and Worker Nodes
-  hosts: all
+- name: Install Kubernetes on Control Plane
+  hosts: control_plane_primary
   become: yes
   tasks:
     - name: pre_requisite commands
       shell: |
         rm -f /var/lib/rpm/.rpm.lock
+        
         sudo dnf update -y
         sudo dnf upgrade -y
+        
         alias kubectl='sudo /usr/local/bin/k3s kubectl'
         source ~/.bashrc
+        
+        rpm --import https://rpm.rancher.io/public.key
       ignore_errors: yes
 
-
     ### KUBERNETES INSTALLATION  ###
-    - name: import rancher GPG key
-      shell: |
-        rpm --import https://rpm.rancher.io/public.key
-
-    - name: install k3s on control_plane
+    - name: Install k3s on Control Plane
       shell: |
         curl -sfL https://get.k3s.io | sh -
-      when: inventory_hostname == 'control_plane_primary'
 
     # KUBERNETES :: TOKENS
     - name: Get k3s node token from Control Plane and set as fact for all nodes
       shell: cat /var/lib/rancher/k3s/server/node-token
       register: k3s_token_output
-      delegate_to: control_plane_primary
       run_once: true
       become: true
+
     - name: Set k3s token fact for all hosts
       set_fact:
         k3s_token: "{{ k3s_token_output.stdout }}"
       run_once: true
 
-    # KUBERNETES :: WORKER NODES
+
+# KUBERNETES :: WORKER NODES
+- name: Install k3s on Worker Nodes
+  hosts: all
+  tasks:
+    - name: pre_requisite commands
+      shell: |
+        rm -f /var/lib/rpm/.rpm.lock
+        
+        sudo dnf update -y
+        sudo dnf upgrade -y
+        
+        alias kubectl='sudo /usr/local/bin/k3s kubectl'
+        source ~/.bashrc
+        
+        rpm --import https://rpm.rancher.io/public.key
+      ignore_errors: yes
+
     - name: Install k3s on Worker Nodes (to join worker nodes)
       shell: |
-        curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['control_plane_primary']['ansible_host'] }}:6443 K3S_TOKEN={{ k3s_token }} sh -
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['control_plane_primary']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['control_plane_primary']['k3s_token'] }} sh -
       when: inventory_hostname != 'control_plane_primary'
+      become: true
