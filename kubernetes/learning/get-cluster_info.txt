@@ -1,0 +1,13 @@
+echo "[kubernetes version]"
+kubectl version --output=yaml
+echo "[cluster info]"
+kubectl cluster-info
+echo "[nodes]"
+kubectl get nodes
+
+echo ""
+echo "[all]"
+kubectl get all
+echo "[services]"
+kubectl get services
+

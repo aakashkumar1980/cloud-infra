@@ -1,5 +1,0 @@
-kubectl version --output=yaml    --kubeconfig ./.kube/config
-kubectl cluster-info    --kubeconfig ./.kube/config
-
-kubectl get all    --kubeconfig ./.kube/config
-kubectl get services    --kubeconfig ./.kube/config

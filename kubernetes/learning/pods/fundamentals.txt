@@ -1,0 +1,31 @@
+POD_NAME="sample-pod"
+###################
+### POD: CREATE ###
+###################
+kubectl run "\$POD_NAME" --image=nginx:alpine
+
+#########################
+### POD: LIST/DETAILS ###
+#########################
+# list pods
+kubectl get pods
+# list pods (full details)
+kubectl get pods -o yaml
+kubectl get pod "\$POD_NAME" -o yaml
+
+# more details/events on a specific pod
+kubectl describe pod "\$POD_NAME"
+
+##################
+### POD: SHELL ###
+##################
+# get inside POD container shell
+kubectl exec "\$POD_NAME" -it sh
+
+
+
+###################
+### POD: DELETE ###
+###################
+kubectl delete pod "\$POD_NAME"
+

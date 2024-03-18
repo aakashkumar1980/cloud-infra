@@ -4,21 +4,21 @@ FILE_NAME=`pwd`/pods/xtemplates/nginx.yml
 ### .YML(File) VALIDATION ###
 #############################
 # test for any errors prior to executing
-kubectl create -f $FILE_NAME --dry-run=server --validate=true -o yaml --kubeconfig ./.kube/config
+kubectl create -f $FILE_NAME --dry-run=server --validate=true -o yaml
 
 ###################
 ### POD: CREATE ###
 ###################
 # save the current state, so that later the new changes in yml can be compared for the changes #
-kubectl create -f $FILE_NAME --save-config --kubeconfig ./.kube/config
+kubectl create -f $FILE_NAME --save-config
 # OR
-kubectl apply -f $FILE_NAME --kubeconfig ./.kube/config
+kubectl apply -f $FILE_NAME
 
 #########################
 ### POD: PORT-FORWARD ###
 #########################
 CONTROL_PLANE_IP=$( \
-    aws --region us-east-1 \
+    aws --region us-west-1 \
     ec2 describe-instances \
     --filters \
         "Name=instance-state-name,Values=running" \
@@ -29,7 +29,7 @@ CONTROL_PLANE_IP=$( \
 )
 ### 1.1. Connect to the master (i.e. ControlPlane) ###
 ssh -i \
-    /home/ubuntu/Desktop/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
+    $LEARNING_HOME/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
     centos@$CONTROL_PLANE_IP -o StrictHostKeyChecking=no
 ### 1.1.1. Access the 'nginx webpage' created above in the POD ###
 curl localhost:8080
@@ -40,7 +40,7 @@ kubectl port-forward $POD_NAME 8080:80
 ### 1.2.1. Open a new terminal and connect to the master (i.e. ControlPlane). ###
 ###      Then access the 'nginx webpage' created above in the POD again.    ###
 ssh -i \
-    /home/ubuntu/Desktop/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
+    $LEARNING_HOME/PRIVATE-LEARNINGv2/PROJECTS/learning/Cloud/aws/aws_certified_solutions_architect/_templates/keypair/.ssh/id_rsa_ec2-decrypted.pem \
     centos@$CONTROL_PLANE_IP -o StrictHostKeyChecking=no
 curl localhost:8080
 
@@ -48,4 +48,4 @@ curl localhost:8080
 ###################
 ### POD: DELETE ###
 ###################
-kubectl delete -f $FILE_NAME --kubeconfig ./.kube/config
+kubectl delete -f $FILE_NAME
