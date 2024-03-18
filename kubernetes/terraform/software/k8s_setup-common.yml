@@ -1,0 +1,28 @@
+- name: Install Common Softwares on all cluster
+  hosts: all
+  become: yes
+  tasks:
+    - name: remove rpm lock
+      shell: |
+        rm -f /var/lib/rpm/.rpm.lock
+        echo "[common] rpm lock removed" >> /tmp/k8s_setup.log
+      ignore_errors: yes
+
+    - name: update and upgrade
+      shell: |
+        sudo dnf update -y
+        sudo dnf upgrade -y
+        echo "[common] dnf update and upgrade done" >> /tmp/k8s_setup.log
+      ignore_errors: yes
+
+    - name: create kubectl alias
+      shell: |
+        alias kubectl='sudo /usr/local/bin/k3s kubectl'
+        source ~/.bashrc
+        echo "[common] kubectl alias created" >> /tmp/k8s_setup.log
+      ignore_errors: yes
+
+    - name: import rancher public key
+      shell: |
+        rpm --import https://rpm.rancher.io/public.key
+        echo "[common] rancher public key imported" >> /tmp/k8s_setup.log

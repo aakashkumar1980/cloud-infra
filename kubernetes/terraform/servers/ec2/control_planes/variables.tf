@@ -42,11 +42,9 @@ variable "iam_instance_profile" {
 variable "user_data_ssm" {
   default = null
 }
-variable "user_data_efs" {
-  default = null
-}
 
-variable "efs_file_system" {
+/**
+variable "user_data_efs" {
   default = null
 }
 variable "efs-output-sg" {
@@ -55,6 +53,8 @@ variable "efs-output-sg" {
 variable "efs-ingress-rules_map" {
   default = null
 }
+**/
+
 variable "ingress-rules_map" {
   default = null
 }

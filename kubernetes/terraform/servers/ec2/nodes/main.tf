@@ -4,8 +4,8 @@ module "SECURITYGROUP_CREATE" {
   tag_path = "${var.ns}.vpc_b"
   vpc_id   = var.vpc_b.id
 
-  efs-output-sg         = var.efs-output-sg
-  efs-ingress-rules_map = var.efs-ingress-rules_map
+#  efs-output-sg         = var.efs-output-sg
+#  efs-ingress-rules_map = var.efs-ingress-rules_map
   ingress-rules_map     = var.ingress-rules_map
 }
 
@@ -21,8 +21,7 @@ module "EC2" {
   keypair              = var.keypair
   iam_instance_profile = var.iam_instance_profile
   user_data_ssm        = var.user_data_ssm
-  user_data_efs        = var.user_data_efs
-  efs_file_system      = var.efs_file_system
+#  user_data_efs        = var.user_data_efs
 
   tag_path    = "${var.ns}.vpc_b"
   entity_name = each.value.hostname

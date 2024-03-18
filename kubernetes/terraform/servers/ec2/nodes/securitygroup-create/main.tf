@@ -18,6 +18,8 @@ module "SG-INGRESS_RULES" {
 
   securitygroup_id = module.SG.output-sg.id
 }
+
+/**
 module "SG_EFS-INGRESS_RULES" {
   source = "../../../../../../aws/terraform/_templates/security/securitygroup/ingress"
 
@@ -30,3 +32,4 @@ module "SG_EFS-INGRESS_RULES" {
   securitygroup_id         = module.SG.output-sg.id
   source_security_group_id = var.efs-output-sg.id
 }
+**/

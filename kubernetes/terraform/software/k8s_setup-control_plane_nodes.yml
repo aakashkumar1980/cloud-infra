@@ -1,0 +1,31 @@
+- name: Install Softwares on Control Plane
+  hosts: control_plane_primary
+  become: yes
+  tasks:
+    - name: Install K3s on Control Plane
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
+        sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+        echo "[control_plane] installed k3s" >> /tmp/k8s_setup.log
+
+    - name: Get K3s Token on Control Plane
+      shell: |
+        cat /var/lib/rancher/k3s/server/node-token
+        echo "[control_plane] k3s_token: $(sudo cat /var/lib/rancher/k3s/server/node-token)" >> /tmp/k8s_setup.log
+      register: k3s_token_output
+      run_once: true
+
+    - name: Set k3s token fact for all hosts on Control Plane
+      set_fact:
+        k3s_token: "{{ k3s_token_output.stdout }}"
+      run_once: true
+
+- name: Install Softwares on Nodes
+  hosts: node1 node2
+  become: yes
+  tasks:
+    - name: Install K3s on Nodes
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['control_plane_primary']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['control_plane_primary']['k3s_token'] }} sh -
+        echo "[nodes] installed k3s on nodes" >> /tmp/k8s_setup.log
+

@@ -17,17 +17,19 @@ module "CONTROL_PLANES" {
   keypair              = var.keypair
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
   user_data_ssm        = var.user_data_ssm
-  user_data_efs        = local.user_data_efs
 
-  efs_file_system = var.efs_file_system
+  /** EFS ACCESS **/
+  /**
+  user_data_efs   = local.user_data_efs
   efs-output-sg   = var.efs-output-sg
   efs-ingress-rules_map = [{
-    /** EFS ACCESS **/
     description = "efs"
     protocol    = var.efs.vpc_a.security_group.ingress.protocol
     from_port   = tonumber(var.efs.vpc_a.security_group.ingress.from_port)
     to_port     = tonumber(var.efs.vpc_a.security_group.ingress.to_port)
   }]
+  **/
+
   ingress-rules_map = [{
     /** CONTROL_PLANES ACCESS **/
     description = "etcd"
@@ -117,17 +119,19 @@ module "NODES" {
   keypair              = var.keypair
   iam_instance_profile = resource.aws_iam_instance_profile.instance_profile-ec2.name
   user_data_ssm        = var.user_data_ssm
-  user_data_efs        = local.user_data_efs
 
-  efs_file_system = var.efs_file_system
+  /** EFS ACCESS **/
+  /**
+  user_data_efs   = local.user_data_efs
   efs-output-sg   = var.efs-output-sg
   efs-ingress-rules_map = [{
-    /** EFS ACCESS **/
     description = "efs"
     protocol    = var.efs.vpc_a.security_group.ingress.protocol
     from_port   = tonumber(var.efs.vpc_a.security_group.ingress.from_port)
     to_port     = tonumber(var.efs.vpc_a.security_group.ingress.to_port)
   }]
+  **/
+
   ingress-rules_map = [{
     /** CONTROL_PLANES ACCESS **/
     description = "kubelet"

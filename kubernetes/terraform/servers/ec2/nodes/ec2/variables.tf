@@ -20,12 +20,12 @@ variable "iam_instance_profile" {
 variable "user_data_ssm" {
   default = null
 }
+
+/**
 variable "user_data_efs" {
   default = null
 }
-variable "efs_file_system" {
-  default = null
-}
+**/
 
 variable "tag_path" {
   default = null

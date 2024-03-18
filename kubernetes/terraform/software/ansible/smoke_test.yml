@@ -1,8 +1,8 @@
 - name: Smoke Test for Kubernetes Cluster EC2 Instances
   hosts: all
   tasks:
-    - name: Create a sample file in /tmp directory
+    - name: Create a sample log file in /tmp directory
       ansible.builtin.file:
-        path: /tmp/smoke_test2.txt
+        path: /tmp/k8s_setup.log
         state: touch
         mode: '0644'

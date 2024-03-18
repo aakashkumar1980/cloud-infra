@@ -7,9 +7,6 @@ variable "security_groups" {
 variable "user_data_ssm" {
   default = null
 }
-variable "user_data_efs" {
-  default = null
-}
 
 variable "ami" {
   default = null
@@ -23,9 +20,12 @@ variable "keypair" {
 variable "iam_instance_profile" {
   default = null
 }
-variable "efs_file_system" {
+
+/**
+variable "user_data_efs" {
   default = null
 }
+**/
 
 variable "tag_path" {
   default = null

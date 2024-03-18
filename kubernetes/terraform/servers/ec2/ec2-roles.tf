@@ -8,6 +8,7 @@ resource "aws_iam_role_policy_attachment" "ec2_read_only-policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
 }
 
+/**
 resource "aws_iam_policy" "custom_efs_access" {
   name        = "${var.ns}.customEFS-fullaccess"
   path        = "/"
@@ -28,8 +29,7 @@ resource "aws_iam_role_policy_attachment" "efs_full_access-policy_attachment" {
   role       = aws_iam_role.role-ec2.name
   policy_arn = aws_iam_policy.custom_efs_access.arn
 }
-
-
+**/
 
 resource "aws_iam_role" "role-ec2" {
   name = "${var.ns}.role-ec2"

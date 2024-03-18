@@ -1,3 +1,4 @@
+/** TODO: Implement later if required in active-standby mode
 module "EFS" {
   source = "./efs"
 
@@ -9,7 +10,7 @@ module "EFS" {
   vpc_b                = var.vpc_b
   vpc_a-subnet_private = var.vpc_a-subnet_private
 }
-
+**/
 
 module "EC2" {
   source = "./ec2"
@@ -17,7 +18,6 @@ module "EC2" {
   ns      = var.ns
   base_ns = var.base_ns
 
-  efs                  = local.efs
   servers              = local.servers
   vpc_a                = var.vpc_a
   vpc_b                = var.vpc_b
@@ -26,8 +26,8 @@ module "EC2" {
   vpc_a-sg_private     = var.vpc_a-sg_private
   vpc_b-sg_private     = var.vpc_b-sg_private
 
-  efs_file_system = module.EFS.output-efs_file_system
-  efs-output-sg   = module.EFS.output-sg
+#  efs             = local.efs
+#  efs-output-sg   = module.EFS.output-sg
 
   ami           = var.ami
   keypair       = var.keypair

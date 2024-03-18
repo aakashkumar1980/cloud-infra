@@ -5,9 +5,6 @@ variable "base_ns" {
   default = null
 }
 
-variable "efs" {
-  default = null
-}
 variable "servers" {
   default = null
 }
@@ -30,12 +27,14 @@ variable "vpc_b-sg_private" {
   default = null
 }
 
-variable "efs_file_system" {
+/**
+variable "efs" {
   default = null
 }
 variable "efs-output-sg" {
   default = null
 }
+**/
 
 variable "ami" {
   default = null
