@@ -34,3 +34,4 @@ override.tf.json
 
 /kubernetes/terraform/software/ansible/hosts.ini
 env
+.ipynb_checkpoints/
