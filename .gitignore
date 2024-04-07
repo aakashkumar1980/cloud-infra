@@ -33,3 +33,4 @@ override.tf.json
 /.idea/
 
 /kubernetes/terraform/software/ansible/hosts.ini
+env
