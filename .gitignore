@@ -30,7 +30,7 @@ override.tf.json
 # example: *tfplan*
 
 # Ignore CLI configuration files
-/.idea/
+.idea/
 
 /kubernetes/terraform/software/ansible/hosts.ini
 env
