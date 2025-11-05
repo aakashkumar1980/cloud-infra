@@ -1,5 +1,6 @@
 {
   "region_nvirginia": {
+    "region": "us-east-1",
     "vpc": {
       "vpc_a": {
         "cidr_block": "10.0.0.0/24",
@@ -23,6 +24,7 @@
     }
   },
   "region_london": {
+    "region": "eu-west-2",
     "vpc": {
       "vpc_c": {
         "cidr_block": "192.168.0.0/26",
