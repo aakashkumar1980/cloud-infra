@@ -37,3 +37,4 @@ env
 .ipynb_checkpoints/
 _references/
 exported_car-sales.csv
+/aws/.terraform.lock.hcl
