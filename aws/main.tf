@@ -8,6 +8,6 @@ module "region_nvirginia" {
   region             = local.region_nvirginia
   vpcs               = local.region_nvirginia_vpcs
   single_nat_gateway = var.single_nat_gateway
-  extra_tags         = local.common_tags
+  tags         = local.tags
 }
 

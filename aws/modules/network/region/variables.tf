@@ -1,12 +1,10 @@
 /**
- * Region-scoped “orchestrator” module.
- * It fans out one child VPC module per entry in var.vpcs using module for_each.
+ * AWS region to build VPCs in
  */
-variable "project" { type = string }
-variable "env"     { type = string }
-variable "owner"   { type = string }
-variable "region"  { type = string }
-
+variable "region"  {
+  description = "AWS region to build VPCs in"
+  type        = string
+}
 /**
  * Map of VPC definitions. Each value has:
  *   - cidr_block (string)
@@ -33,8 +31,8 @@ variable "single_nat_gateway" {
   default     = true
 }
 
-variable "extra_tags" {
-  description = "Extra tags to merge into all resources"
+variable "tags" {
+  description = "Tags to merge into all resources"
   type        = map(string)
   default     = {}
 }

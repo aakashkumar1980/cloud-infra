@@ -4,7 +4,7 @@
 */
 locals {
   // common tags for all resources
-  common_tags = {
+  tags = {
     project   = var.project
     env       = var.env
     owner     = var.owner

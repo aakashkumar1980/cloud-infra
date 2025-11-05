@@ -6,9 +6,6 @@
  * - NAT (single or per-AZ) + private route table(s)
  * - Route table associations for public/private subnets
  */
-variable "project" { type = string }
-variable "env"     { type = string }
-variable "owner"   { type = string }
 variable "region"  { type = string }
 
 variable "name" {
@@ -42,8 +39,8 @@ variable "single_nat_gateway" {
   default     = true
 }
 
-variable "extra_tags" {
-  description = "Extra tags merged into all resources"
+variable "tags" {
+  description = "Tags to merge into all resources"
   type        = map(string)
   default     = {}
 }
