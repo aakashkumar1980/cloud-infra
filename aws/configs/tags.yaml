@@ -1,0 +1,23 @@
+schema_version: 1
+global_tags:
+  project: terraform-aws-certification
+  managedby: terraform
+  owner: aakash.kumar
+  contact: aakash.kumar1980@yahoo.com
+  iac: 'true'
+
+environment_tags:
+  dev:
+    environment: dev
+    costcenter: rnd
+    lifecycle: experimental
+  stage:
+    environment: stage
+    costcenter: qa
+    lifecycle: validation
+  prod:
+    environment: prod
+    costcenter: ops
+    lifecycle: stable
+    backup: enabled
+

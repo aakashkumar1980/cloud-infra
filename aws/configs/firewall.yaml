@@ -1,0 +1,38 @@
+# base/firewall.yaml
+# Security group rule catalog shared by all environments.
+ingress:
+  standard_rules:
+    - description: ping
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      cidr_ipv4: 0.0.0.0/0
+    - description: http
+      protocol: tcp
+      from_port: 80
+      to_port: 80
+      cidr_ipv4: 0.0.0.0/0
+    - description: https
+      protocol: tcp
+      from_port: 443
+      to_port: 443
+      cidr_ipv4: 0.0.0.0/0
+    - description: ssh
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # TODO: restrict in non-dev environments (office/VPN CIDR)
+      cidr_ipv4: 0.0.0.0/0
+
+  app_rules:
+    - description: app-http
+      protocol: tcp
+      from_port: 8080
+      to_port: 8080
+      source_sg_ref: app-lb
+
+egress:
+  - protocol: all
+    from_port: -1
+    to_port: -1
+    cidr_ipv4: 0.0.0.0/0
