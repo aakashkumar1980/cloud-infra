@@ -5,7 +5,7 @@
  * terraform apply -var="profile=dev"
  */
 variable "profile" {
-  description = "Deployment environment profile (e.g. dev, stage, prod)"
+  description = "Deployment environment profile (e.g. dev, qa, prod)"
   type        = string
 }
 
