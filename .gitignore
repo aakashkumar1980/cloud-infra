@@ -38,3 +38,4 @@ env
 _references/
 exported_car-sales.csv
 /aws/.terraform.lock.hcl
+/aws/base_network/.terraform.lock.hcl
