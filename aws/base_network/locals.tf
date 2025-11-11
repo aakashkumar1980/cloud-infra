@@ -13,13 +13,16 @@ variable "profile" {
  * Local variables to load and merge configuration files.
  */
 locals {
+  config_dir = abspath("${path.module}/../configs")
+  env_dir    = abspath("${local.config_dir}/${var.profile}")
+
   # Load shared configs
-  firewall = yamldecode(file("${path.module}/../../configs/firewall.yaml"))
-  tags     = yamldecode(file("${path.module}/../../configs/tags.yaml"))
+  firewall = yamldecode(file("${local.config_dir}/firewall.yaml"))
+  tags     = yamldecode(file("${local.config_dir}/tags.yaml"))
 
   # Load environment-specific configs dynamically
-  amis       = yamldecode(file("${path.module}/../../configs/${var.profile}/amis.yaml"))
-  networking = yamldecode(file("${path.module}/../../configs/${var.profile}/networking.yaml"))
+  amis       = yamldecode(file("${local.env_dir}/amis.yaml"))
+  networking = yamldecode(file("${local.env_dir}/networking.yaml"))
 
   # Merge tags for current environment
   merged_tags = merge(
