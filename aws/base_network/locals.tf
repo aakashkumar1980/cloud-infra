@@ -1,32 +1,37 @@
 /**
- * This variable defines the deployment environment profile, and
- * is used to load environment-specific configurations.
- * Example usage:
- * terraform apply -var="profile=dev"
- */
-variable "profile" {
-  description = "Deployment environment profile (e.g. dev, qa, prod)"
-  type        = string
-}
-
-/**
- * Local variables to load and merge configuration files.
+ * Locals
+ *
+ * - Compute absolute paths to config directories.
+ * - Load shared (tags.yaml) and environment-specific (networking.yaml).
+ * - Merge all-lowercase tags into common set.
+ * - Extract region-specific VPC maps for cleaner passing to modules.
+ *
+ * Folder layout assumption:
+ *   base_network/
+ *   ../configs/tags.yaml
+ *   ../configs/firewalls.yaml
+ *   ../configs/<profile>/networking.yaml
+ *   ../configs/<profile>/amis.yaml
  */
 locals {
+  // Paths
   config_dir = abspath("${path.module}/../configs")
   env_dir    = abspath("${local.config_dir}/${var.profile}")
 
-  # Load shared configs
-  firewall = yamldecode(file("${local.config_dir}/firewall.yaml"))
-  tags     = yamldecode(file("${local.config_dir}/tags.yaml"))
+  // Config files
+  tags_cfg    = yamldecode(file("${local.config_dir}/tags.yaml"))
+  networking  = yamldecode(file("${local.env_dir}/networking.yaml"))
 
-  # Load environment-specific configs dynamically
-  amis       = yamldecode(file("${local.env_dir}/amis.yaml"))
-  networking = yamldecode(file("${local.env_dir}/networking.yaml"))
-
-  # Merge tags for current environment
-  merged_tags = merge(
-    local.tags.global_tags,
-    lookup(local.tags.environment_tags, var.profile, {})
+  // Tags (all-lowercase keys, per your convention)
+  tags_common = merge(
+    local.tags_cfg.global_tags,
+    lookup(local.tags_cfg.environment_tags, var.profile, {})
   )
+
+  // Region-scoped VPC maps (safe if region is missing)
+  vpcs_nvirginia = try(local.networking.regions["us-east-1"].vpcs, {})
+  vpcs_london = try(local.networking.regions["eu-west-2"].vpcs, {})
+
+  // AZ letter → numeric index mapping (a=0, b=1, c=2)
+  az_letter_to_ix = { a = 0, b = 1, c = 2 }
 }
