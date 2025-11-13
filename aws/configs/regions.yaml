@@ -1,0 +1,3 @@
+## mappings of region code to their respective AWS region codes
+nvirginia: us-east-1
+london: eu-west-2

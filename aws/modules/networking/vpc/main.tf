@@ -12,7 +12,7 @@ resource "aws_vpc" "this" {
   // VPC CIDR block from config
   cidr_block = each.value.cidr
   tags = merge(var.common_tags, {
-    name   = each.key
+    Name   = "${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
     region = var.region
   })
 }

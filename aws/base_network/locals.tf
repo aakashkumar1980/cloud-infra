@@ -19,6 +19,7 @@ locals {
   env_dir    = abspath("${local.config_dir}/${var.profile}")
 
   // Config files
+  regions_cfg = yamldecode(file("${local.config_dir}/regions.yaml"))
   tags_cfg    = yamldecode(file("${local.config_dir}/tags.yaml"))
   networking  = jsondecode(file("${local.env_dir}/networking.json"))
 
@@ -29,8 +30,8 @@ locals {
   )
 
   // Region-scoped VPC maps (safe if region is missing)
-  vpcs_nvirginia = try(local.networking.regions["us-east-1"].vpcs, {})
-  vpcs_london = try(local.networking.regions["eu-west-2"].vpcs, {})
+  vpcs_nvirginia = try(local.networking.regions[local.regions_cfg["nvirginia"]].vpcs, {})
+  vpcs_london = try(local.networking.regions[local.regions_cfg["london"]].vpcs, {})
 
   // AZ letter → numeric index mapping (a=0, b=1, c=2)
   az_letter_to_ix = { a = 0, b = 1, c = 2 }
