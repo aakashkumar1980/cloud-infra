@@ -20,7 +20,7 @@ locals {
 
   // Config files
   tags_cfg    = yamldecode(file("${local.config_dir}/tags.yaml"))
-  networking  = yamldecode(file("${local.env_dir}/networking.yaml"))
+  networking  = jsondecode(file("${local.env_dir}/networking.json"))
 
   // Tags (all-lowercase keys, per your convention)
   tags_common = merge(
