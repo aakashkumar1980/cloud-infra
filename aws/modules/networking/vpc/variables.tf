@@ -1,3 +1,3 @@
-variable "vpcs" { type = map(any) }
+variable "vpcs"        { type = map(any) }
 variable "common_tags" { type = map(string) }
-variable "region" { type = string }
+variable "region"      { type = string }

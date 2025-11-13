@@ -1,4 +1,4 @@
-/**
+
 module "networking_nvirginia" {
   source    = "../modules/networking"
   providers = { aws = aws.nvirginia }
@@ -20,5 +20,3 @@ module "networking_london" {
   az_letter_to_ix = local.az_letter_to_ix
   common_tags     = local.tags_common
 }
-
-**/
