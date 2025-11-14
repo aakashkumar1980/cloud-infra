@@ -8,13 +8,12 @@
  */
 resource "aws_subnet" "this" {
   for_each          = local.subnets_flat
+
   vpc_id            = var.vpc_ids[each.value.vpc_name]
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
 
   tags = merge(var.common_tags, {
-    name   = "${each.value.vpc_name}-${each.value.name}"
-    tier   = each.value.tier
-    region = var.region
+    Name   = "subnet_${each.value.name}-${each.value.vpc_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }

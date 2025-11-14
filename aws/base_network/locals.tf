@@ -30,8 +30,8 @@ locals {
   )
 
   // Region-scoped VPC maps (safe if region is missing)
-  vpcs_nvirginia = try(local.networking.regions[local.regions_cfg["nvirginia"]].vpcs, {})
-  vpcs_london = try(local.networking.regions[local.regions_cfg["london"]].vpcs, {})
+  vpcs_nvirginia = try(local.networking.regions["nvirginia"].vpcs, {})
+  vpcs_london = try(local.networking.regions["london"].vpcs, {})
 
   // AZ letter → numeric index mapping (a=0, b=1, c=2)
   az_letter_to_ix = { a = 0, b = 1, c = 2 }

@@ -6,7 +6,7 @@ module "vpc" {
   region      = var.region
 }
 
-/**
+
 module "subnets" {
   source           = "./subnets"
   vpcs             = var.vpcs
@@ -16,4 +16,3 @@ module "subnets" {
   common_tags      = var.common_tags
   region           = var.region
 }
-**/

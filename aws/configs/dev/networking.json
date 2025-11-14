@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "regions": {
-    "us-east-1": {
+    "nvirginia": {
       "vpcs": {
         "vpc_a": {
           "cidr": "10.0.0.0/24",
           "subnets": [
-            {"id": "1", "name": "generic-a", "tier": "generic", "cidr": "10.0.0.0/27", "az": "a"},
-            {"id": "2", "name": "public-a", "tier": "public", "cidr": "10.0.0.32/27", "az": "a"},
-            {"id": "3", "name": "public-b", "tier": "public", "cidr": "10.0.0.64/27", "az": "b"},
-            {"id": "4", "name": "private-a", "tier": "private", "cidr": "10.0.0.96/27", "az": "a"},
-            {"id": "5", "name": "private-b", "tier": "private", "cidr": "10.0.0.128/27", "az": "b"},
-            {"id": "6", "name": "private-c", "tier": "private", "cidr": "10.0.0.160/27", "az": "c"}
+            {"id": "1", "tier": "generic", "cidr": "10.0.0.0/27", "az": "a"},
+            {"id": "2", "tier": "public", "cidr": "10.0.0.32/27", "az": "a"},
+            {"id": "3", "tier": "public", "cidr": "10.0.0.64/27", "az": "b"},
+            {"id": "4", "tier": "private", "cidr": "10.0.0.96/27", "az": "a"},
+            {"id": "5", "tier": "private", "cidr": "10.0.0.128/27", "az": "b"},
+            {"id": "6", "tier": "private", "cidr": "10.0.0.160/27", "az": "c"}
           ],
           "free_cidrs": [
             "10.0.0.192/27",
@@ -21,9 +21,9 @@
         "vpc_b": {
           "cidr": "172.16.0.0/26",
           "subnets":[
-            {"id":"1","name":"generic-a","tier":"generic","cidr":"172.16.0.0/28","az":"a"},
-            {"id":"2","name":"public-b","tier":"public","cidr":"172.16.0.16/28","az":"b"},
-            {"id":"3","name":"private-c","tier":"private","cidr":"172.16.0.32/28","az":"c"}
+            {"id":"1", "tier":"generic", "cidr":"172.16.0.0/28", "az":"a"},
+            {"id":"2", "tier":"public", "cidr":"172.16.0.16/28", "az":"b"},
+            {"id":"3", "tier":"private", "cidr":"172.16.0.32/28", "az":"c"}
           ],
           "free_cidrs": [
             "172.16.0.48/28"
@@ -31,14 +31,14 @@
         }
       }
     },
-    "eu-west-2": {
+    "london": {
       "vpcs": {
         "vpc_c": {
           "cidr": "192.168.0.0/26",
           "subnets":[
-            {"id":"1","name":"generic-a","tier":"generic","cidr":"192.168.0.0/28","az":"a"},
-            {"id":"2","name":"public-b","tier":"public","cidr":"192.168.0.16/28","az":"b"},
-            {"id":"3","name":"private-c","tier":"private","cidr":"192.168.0.32/28","az":"c"}
+            {"id":"1", "tier":"generic", "cidr":"192.168.0.0/28", "az":"a"},
+            {"id":"2", "tier":"public", "cidr":"192.168.0.16/28", "az":"b"},
+            {"id":"3", "tier":"private", "cidr":"192.168.0.32/28", "az":"c"}
           ],
           "free_cidrs": [
             "192.168.0.48/28"
@@ -47,9 +47,9 @@
         "vpc_acopy": {
           "cidr": "10.0.0.0/24",
           "subnets":[
-            {"id":"1","name":"generic-a","tier":"generic","cidr":"10.0.0.0/27","az":"a"},
-            {"id":"2","name":"public-b","tier":"public","cidr":"10.0.0.192/27","az":"b"},
-            {"id":"3","name":"private-c","tier":"private","cidr":"10.0.0.224/27","az":"c"}
+            {"id":"1", "tier":"generic", "cidr":"10.0.0.0/27", "az":"a"},
+            {"id":"2", "tier":"public", "cidr":"10.0.0.192/27", "az":"b"},
+            {"id":"3", "tier":"private", "cidr":"10.0.0.224/27", "az":"c"}
           ],
           "free_cidrs": [
             "10.0.0.32/27",

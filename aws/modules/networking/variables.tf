@@ -1,31 +1,38 @@
 /**
- * Module Inputs
- *
- * region: AWS region string (e.g., "us-east-1")
- * vpcs:   map of VPC definitions (see sample below)
- * az_names: list of AZ names from data.aws_availability_zones
- * az_letter_to_ix: mapping to translate "a/b/c" → index in az_names
- * common_tags: merged tag set (lowercase)
- *
- * Example var.vpcs:
- * {
- *   vpc_a = {
- *     cidr = "10.0.0.0/24"
- *     subnets = [
- *       { id="1", name="public-a",  tier="public",  cidr="10.0.0.32/27", az="a" },
- *       { id="2", name="private-a", tier="private", cidr="10.0.0.96/27", az="a" }
- *     ]
- *   }
- * }
- *
- * Example var.az_names:
- *  [ "us-east-1", "eu-west-2" ]
- *
- * Example var.az_letter_to_ix:
- *  { a=0, b=1, c=2 }
+ * AWS Region
+ * Example: "us-east-1"
  */
 variable "region" { type = string }
+
+/**
+ * VPC Definitions
+  Example:
+  {
+    vpc_a = {
+      cidr = "10.0.0.0/24"
+      subnets = [
+        { id="1", name="public-a",  tier="public",  cidr="10.0.0.32/27", az="a" },
+        { id="2", name="private-a", tier="private", cidr="10.0.0.96/27", az="a" }
+      ]
+    }
+  }
+ */
 variable "vpcs" { type = map(any) }
+
+/**
+ * Availability Zone Names
+ * Example: [ "us-east-1a", "us-east-1b", "us-east-1c" ]
+ */
 variable "az_names" { type = list(string) }
+
+/**
+ * AZ Letter to Index Mapping
+ * Example: { a=0, b=1, c=2 }
+ */
 variable "az_letter_to_ix" { type = map(number) }
+
+/**
+ * Common Tags
+ * Example: { environment="prod", project="myapp" ... }
+ */
 variable "common_tags" { type = map(string) }
