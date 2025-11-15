@@ -24,13 +24,6 @@ ingress:
       # TODO: restrict in non-dev environments (office/VPN CIDR)
       cidr_ipv4: 0.0.0.0/0
 
-  app_rules:
-    - description: app-http
-      protocol: tcp
-      from_port: 8080
-      to_port: 8080
-      source_sg_ref: app-lb
-
 egress:
   - protocol: all
     from_port: -1
