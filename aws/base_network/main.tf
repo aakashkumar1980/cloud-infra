@@ -1,6 +1,6 @@
 
 module "networking_nvirginia" {
-  source    = "../modules/networking"
+  source    = "./modules/networking"
   providers = { aws = aws.nvirginia }
 
   region          = "nvirginia"
@@ -11,7 +11,7 @@ module "networking_nvirginia" {
 }
 
 module "networking_london" {
-  source    = "../modules/networking"
+  source    = "./modules/networking"
   providers = { aws = aws.london }
 
   region          = "london"
