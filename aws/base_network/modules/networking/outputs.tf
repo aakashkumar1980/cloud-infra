@@ -4,6 +4,12 @@
 output "vpc_ids" {
   value = module.vpc.vpc_ids
 }
+/**
+ * Outputs the IDs of the created Internet Gateways.
+ */
+output "igw_ids" {
+  value = module.internet_gateway.igw_ids
+}
 
 /**
  * Outputs the IDs of the created subnets.

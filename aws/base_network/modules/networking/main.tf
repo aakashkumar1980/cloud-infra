@@ -5,6 +5,13 @@ module "vpc" {
   common_tags = var.common_tags
   region      = var.region
 }
+module "internet_gateway" {
+  source      = "./internet_gateway"
+  vpcs        = var.vpcs
+  vpc_ids     = module.vpc.vpc_ids
+  common_tags = var.common_tags
+  region      = var.region
+}
 
 
 module "subnets" {
