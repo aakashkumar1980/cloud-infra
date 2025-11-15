@@ -1,329 +1,369 @@
 #!/usr/bin/env python3
 """
-Generate 3D AWS Network Diagram
-Creates a visual representation of the multi-region AWS infrastructure
+Generate Professional 3D AWS Network Diagram
+Creates an impressive visual representation of multi-region AWS infrastructure
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+from matplotlib.patches import FancyBboxPatch, Circle
+import matplotlib.patches as mpatches
 
-# Set up the figure with high DPI for better quality
-fig = plt.figure(figsize=(24, 18), dpi=150)
+# Set style
+plt.style.use('default')
+
+# Create figure with high DPI
+fig = plt.figure(figsize=(28, 20), dpi=200)
 ax = fig.add_subplot(111, projection='3d')
 
-# Color scheme
-colors = {
+# Professional color palette
+COLORS = {
     'internet': '#FF6B6B',
     'igw': '#4ECDC4',
-    'vpc': '#45B7D1',
-    'public_subnet': '#96CEB4',
-    'private_subnet': '#FFEAA7',
-    'route_table': '#DDA15E',
-    'az': '#E8E8E8'
+    'vpc_us': '#5DADE2',
+    'vpc_uk': '#AF7AC5',
+    'public': '#52C234',
+    'private': '#F39C12',
+    'route_table': '#E74C3C',
+    'connection': '#2C3E50',
+    'accent': '#16A085'
 }
 
-def draw_cube(ax, x, y, z, dx, dy, dz, color, alpha=0.3, label=''):
-    """Draw a 3D cube/box"""
-    # Define vertices
-    vertices = [
-        [x, y, z], [x+dx, y, z], [x+dx, y+dy, z], [x, y+dy, z],  # bottom
-        [x, y, z+dz], [x+dx, y, z+dz], [x+dx, y+dy, z+dz], [x, y+dy, z+dz]  # top
-    ]
+def create_gradient_cube(ax, x, y, z, dx, dy, dz, color_base, alpha=0.4, label='', label_size=11, edge_width=2):
+    """Create a stylized 3D cube with gradient effect"""
+    vertices = np.array([
+        [x, y, z], [x+dx, y, z], [x+dx, y+dy, z], [x, y+dy, z],
+        [x, y, z+dz], [x+dx, y, z+dz], [x+dx, y+dy, z+dz], [x, y+dy, z+dz]
+    ])
 
-    # Define the 6 faces
     faces = [
-        [vertices[0], vertices[1], vertices[5], vertices[4]],  # front
-        [vertices[2], vertices[3], vertices[7], vertices[6]],  # back
-        [vertices[0], vertices[3], vertices[7], vertices[4]],  # left
-        [vertices[1], vertices[2], vertices[6], vertices[5]],  # right
-        [vertices[0], vertices[1], vertices[2], vertices[3]],  # bottom
-        [vertices[4], vertices[5], vertices[6], vertices[7]]   # top
+        [vertices[j] for j in [0, 1, 5, 4]],
+        [vertices[j] for j in [2, 3, 7, 6]],
+        [vertices[j] for j in [0, 3, 7, 4]],
+        [vertices[j] for j in [1, 2, 6, 5]],
+        [vertices[j] for j in [0, 1, 2, 3]],
+        [vertices[j] for j in [4, 5, 6, 7]]
     ]
 
-    # Create the 3D polygon collection
-    poly = Poly3DCollection(faces, alpha=alpha, facecolor=color, edgecolor='black', linewidth=1.5)
+    # Create gradient effect
+    face_colors = []
+    base = np.array([int(color_base[i:i+2], 16) for i in (1, 3, 5)])
+    for i, face in enumerate(faces):
+        factor = 0.7 + (i * 0.05)
+        color = base * factor / 255
+        face_colors.append((*color, alpha))
+
+    poly = Poly3DCollection(faces, facecolors=face_colors, edgecolors='#2C3E50', linewidths=edge_width)
     ax.add_collection3d(poly)
 
-    # Add label at center
     if label:
-        center_x, center_y, center_z = x + dx/2, y + dy/2, z + dz/2
-        ax.text(center_x, center_y, center_z, label, fontsize=8, ha='center', va='center',
-                weight='bold', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        cx, cy, cz = x + dx/2, y + dy/2, z + dz/2
+        ax.text(cx, cy, cz, label, fontsize=label_size, ha='center', va='center',
+                weight='bold', color='white',
+                bbox=dict(boxstyle='round,pad=0.5', facecolor=color_base, alpha=0.9, edgecolor='white', linewidth=2))
 
-def draw_cylinder(ax, x, y, z, radius, height, color, alpha=0.6, label=''):
-    """Draw a cylinder (for IGW)"""
-    theta = np.linspace(0, 2*np.pi, 30)
-    x_circle = x + radius * np.cos(theta)
-    y_circle = y + radius * np.sin(theta)
+def create_cloud_shape(ax, x, y, z, size, color, label=''):
+    """Create a cloud-like shape for internet"""
+    theta = np.linspace(0, 2*np.pi, 100)
 
-    # Bottom circle
-    z_circle = np.full_like(x_circle, z)
-    ax.plot(x_circle, y_circle, z_circle, color='black', linewidth=2)
+    # Multiple overlapping spheres to create cloud effect
+    for offset in [(0, 0, 0), (-size*0.3, 0, 0), (size*0.3, 0, 0), (0, size*0.3, 0)]:
+        r = size * 0.6
+        xs = x + offset[0] + r * np.cos(theta)
+        ys = y + offset[1] + r * np.sin(theta)
 
-    # Top circle
-    z_circle_top = np.full_like(x_circle, z + height)
-    ax.plot(x_circle, y_circle, z_circle_top, color='black', linewidth=2)
-
-    # Side surface
-    for i in range(len(theta)-1):
-        vertices = [
-            [x_circle[i], y_circle[i], z],
-            [x_circle[i+1], y_circle[i+1], z],
-            [x_circle[i+1], y_circle[i+1], z+height],
-            [x_circle[i], y_circle[i], z+height]
-        ]
-        poly = Poly3DCollection([vertices], alpha=alpha, facecolor=color, edgecolor='black', linewidth=0.5)
+        # Bottom
+        zs = np.full_like(xs, z)
+        verts = [list(zip(xs, ys, zs))]
+        poly = Poly3DCollection(verts, alpha=0.6, facecolor=color, edgecolor='#E74C3C', linewidth=2)
         ax.add_collection3d(poly)
 
+        # Top
+        zs_top = np.full_like(xs, z + size*0.4)
+        verts_top = [list(zip(xs, ys, zs_top))]
+        poly_top = Poly3DCollection(verts_top, alpha=0.6, facecolor=color, edgecolor='#E74C3C', linewidth=2)
+        ax.add_collection3d(poly_top)
+
     if label:
-        ax.text(x, y, z + height/2, label, fontsize=9, ha='center', va='center',
-                weight='bold', bbox=dict(boxstyle='round', facecolor='white', alpha=0.9))
+        ax.text(x, y, z + size*0.2, label, fontsize=16, ha='center', va='center',
+                weight='bold', color='white',
+                bbox=dict(boxstyle='round,pad=0.8', facecolor=color, alpha=0.95, edgecolor='white', linewidth=3))
 
-def draw_connection(ax, x1, y1, z1, x2, y2, z2, color='blue', style='-', linewidth=2):
-    """Draw a line connection between two points"""
-    ax.plot([x1, x2], [y1, y2], [z1, z2], color=color, linestyle=style, linewidth=linewidth)
+def create_cylinder(ax, x, y, z, radius, height, color, label='', segments=30):
+    """Create a cylinder for IGW"""
+    theta = np.linspace(0, 2*np.pi, segments)
 
-# ============================================================================
-# LAYER 0: Internet (Top)
-# ============================================================================
-internet_z = 35
-draw_cube(ax, 15, 15, internet_z, 20, 20, 3, colors['internet'], alpha=0.5, label='INTERNET\n0.0.0.0/0')
+    # Cylinder body
+    for i in range(len(theta)-1):
+        x1, x2 = x + radius*np.cos(theta[i]), x + radius*np.cos(theta[i+1])
+        y1, y2 = y + radius*np.sin(theta[i]), y + radius*np.sin(theta[i+1])
 
-# ============================================================================
-# LAYER 1: Internet Gateways
-# ============================================================================
-igw_z = 28
+        vertices = [[x1, y1, z], [x2, y2, z], [x2, y2, z+height], [x1, y1, z+height]]
+        poly = Poly3DCollection([vertices], alpha=0.8, facecolor=color,
+                              edgecolor='#2C3E50', linewidth=1.5)
+        ax.add_collection3d(poly)
 
-# IGW for vpc_a (US-EAST-1)
-igw_a_x, igw_a_y = 5, 25
-draw_cylinder(ax, igw_a_x, igw_a_y, igw_z, 2.5, 3, colors['igw'], label='IGW\nvpc_a')
-draw_connection(ax, 25, 25, internet_z, igw_a_x, igw_a_y, igw_z+3, color='red', linewidth=3)
+    # Top and bottom caps
+    xs = x + radius * np.cos(theta)
+    ys = y + radius * np.sin(theta)
 
-# IGW for vpc_b (US-EAST-1)
-igw_b_x, igw_b_y = 25, 25
-draw_cylinder(ax, igw_b_x, igw_b_y, igw_z, 2.5, 3, colors['igw'], label='IGW\nvpc_b')
-draw_connection(ax, 25, 25, internet_z, igw_b_x, igw_b_y, igw_z+3, color='red', linewidth=3)
+    verts_bottom = [list(zip(xs, ys, np.full_like(xs, z)))]
+    poly_bottom = Poly3DCollection(verts_bottom, alpha=0.9, facecolor=color, edgecolor='#2C3E50', linewidth=2)
+    ax.add_collection3d(poly_bottom)
 
-# IGW for vpc_c (EU-WEST-2)
-igw_c_x, igw_c_y = 45, 25
-draw_cylinder(ax, igw_c_x, igw_c_y, igw_z, 2.5, 3, colors['igw'], label='IGW\nvpc_c')
-draw_connection(ax, 25, 25, internet_z, igw_c_x, igw_c_y, igw_z+3, color='red', linewidth=3)
+    verts_top = [list(zip(xs, ys, np.full_like(xs, z+height)))]
+    poly_top = Poly3DCollection(verts_top, alpha=0.9, facecolor=color, edgecolor='#2C3E50', linewidth=2)
+    ax.add_collection3d(poly_top)
 
-# ============================================================================
-# LAYER 2: VPCs
-# ============================================================================
-vpc_z = 18
+    if label:
+        ax.text(x, y, z+height/2, label, fontsize=10, ha='center', va='center',
+                weight='bold', color='white',
+                bbox=dict(boxstyle='round,pad=0.6', facecolor=color, alpha=0.95, edgecolor='white', linewidth=2))
 
-# VPC_A (US-EAST-1) - 10.0.0.0/24
-vpc_a_x, vpc_a_y = 0, 20
-draw_cube(ax, vpc_a_x, vpc_a_y, vpc_z, 18, 18, 4, colors['vpc'], alpha=0.2,
-          label='VPC_A\n10.0.0.0/24\nus-east-1')
-draw_connection(ax, igw_a_x, igw_a_y, igw_z, vpc_a_x+9, vpc_a_y+9, vpc_z+4, color='darkblue', linewidth=2.5)
-
-# VPC_B (US-EAST-1) - 172.16.0.0/26
-vpc_b_x, vpc_b_y = 20, 20
-draw_cube(ax, vpc_b_x, vpc_b_y, vpc_z, 12, 12, 4, colors['vpc'], alpha=0.2,
-          label='VPC_B\n172.16.0.0/26\nus-east-1')
-draw_connection(ax, igw_b_x, igw_b_y, igw_z, vpc_b_x+6, vpc_b_y+6, vpc_z+4, color='darkblue', linewidth=2.5)
-
-# VPC_C (EU-WEST-2) - 192.168.0.0/26
-vpc_c_x, vpc_c_y = 38, 20
-draw_cube(ax, vpc_c_x, vpc_c_y, vpc_z, 12, 12, 4, colors['vpc'], alpha=0.2,
-          label='VPC_C\n192.168.0.0/26\neu-west-2')
-draw_connection(ax, igw_c_x, igw_c_y, igw_z, vpc_c_x+6, vpc_c_y+6, vpc_z+4, color='darkblue', linewidth=2.5)
+def draw_arrow(ax, x1, y1, z1, x2, y2, z2, color, width=3, style='-'):
+    """Draw an arrow/connection"""
+    ax.plot([x1, x2], [y1, y2], [z1, z2], color=color, linewidth=width,
+            linestyle=style, marker='o', markersize=8, alpha=0.8)
 
 # ============================================================================
-# LAYER 3: Availability Zones and Subnets
+# LAYER 1: INTERNET (Top)
 # ============================================================================
-subnet_z = 8
-
-# -------------------- VPC_A Subnets --------------------
-# AZ us-east-1a
-az_a_x, az_a_y = 1, 21
-draw_cube(ax, az_a_x, az_a_y, subnet_z+5, 5, 8, 3, colors['az'], alpha=0.1)
-ax.text(az_a_x+2.5, az_a_y+4, subnet_z+8, 'AZ\nus-east-1a', fontsize=7, ha='center', style='italic')
-
-# Public subnet 1 (10.0.0.0/27)
-draw_cube(ax, az_a_x+0.5, az_a_y+0.5, subnet_z, 4, 3.5, 4, colors['public_subnet'], alpha=0.6,
-          label='PUBLIC\n10.0.0.0/27\nID:1')
-
-# Private subnet 3 (10.0.0.64/27)
-draw_cube(ax, az_a_x+0.5, az_a_y+4.5, subnet_z, 4, 3, 4, colors['private_subnet'], alpha=0.6,
-          label='PRIVATE\n10.0.0.64/27\nID:3')
-
-# Route Table for subnet 1
-rt_a1_x, rt_a1_y = az_a_x+2.5, az_a_y+2
-draw_cube(ax, rt_a1_x-0.8, rt_a1_y-0.3, subnet_z-2, 1.6, 0.6, 1.5, colors['route_table'], alpha=0.8,
-          label='RTB\nvpc_a/1')
-draw_connection(ax, rt_a1_x, rt_a1_y, subnet_z-2+1.5, rt_a1_x, rt_a1_y, subnet_z, color='orange', linewidth=2)
-draw_connection(ax, rt_a1_x, rt_a1_y, subnet_z-2, igw_a_x, igw_a_y, igw_z, color='green', linewidth=1.5, style='--')
-
-# AZ us-east-1b
-az_b_x, az_b_y = 7, 21
-draw_cube(ax, az_b_x, az_b_y, subnet_z+5, 5, 8, 3, colors['az'], alpha=0.1)
-ax.text(az_b_x+2.5, az_b_y+4, subnet_z+8, 'AZ\nus-east-1b', fontsize=7, ha='center', style='italic')
-
-# Public subnet 2 (10.0.0.32/27)
-draw_cube(ax, az_b_x+0.5, az_b_y+0.5, subnet_z, 4, 3.5, 4, colors['public_subnet'], alpha=0.6,
-          label='PUBLIC\n10.0.0.32/27\nID:2')
-
-# Private subnet 4 (10.0.0.96/27)
-draw_cube(ax, az_b_x+0.5, az_b_y+4.5, subnet_z, 4, 3, 4, colors['private_subnet'], alpha=0.6,
-          label='PRIVATE\n10.0.0.96/27\nID:4')
-
-# Route Table for subnet 2
-rt_a2_x, rt_a2_y = az_b_x+2.5, az_b_y+2
-draw_cube(ax, rt_a2_x-0.8, rt_a2_y-0.3, subnet_z-2, 1.6, 0.6, 1.5, colors['route_table'], alpha=0.8,
-          label='RTB\nvpc_a/2')
-draw_connection(ax, rt_a2_x, rt_a2_y, subnet_z-2+1.5, rt_a2_x, rt_a2_y, subnet_z, color='orange', linewidth=2)
-draw_connection(ax, rt_a2_x, rt_a2_y, subnet_z-2, igw_a_x, igw_a_y, igw_z, color='green', linewidth=1.5, style='--')
-
-# AZ us-east-1c
-az_c_x, az_c_y = 13, 21
-draw_cube(ax, az_c_x, az_c_y, subnet_z+5, 4, 8, 3, colors['az'], alpha=0.1)
-ax.text(az_c_x+2, az_c_y+4, subnet_z+8, 'AZ\nus-east-1c', fontsize=7, ha='center', style='italic')
-
-# Private subnet 5 (10.0.0.128/27)
-draw_cube(ax, az_c_x+0.5, az_c_y+2, subnet_z, 3, 4, 4, colors['private_subnet'], alpha=0.6,
-          label='PRIVATE\n10.0.0.128/27\nID:5')
-
-# -------------------- VPC_B Subnets --------------------
-# AZ us-east-1a
-az_b1_x, az_b1_y = 21, 21
-draw_cube(ax, az_b1_x, az_b1_y, subnet_z+5, 5, 5, 3, colors['az'], alpha=0.1)
-ax.text(az_b1_x+2.5, az_b1_y+2.5, subnet_z+8, 'AZ\nus-east-1a', fontsize=7, ha='center', style='italic')
-
-# Public subnet 1 (172.16.0.0/28)
-draw_cube(ax, az_b1_x+0.5, az_b1_y+0.5, subnet_z, 4, 4, 4, colors['public_subnet'], alpha=0.6,
-          label='PUBLIC\n172.16.0.0/28\nID:1')
-
-# Route Table for vpc_b/1
-rt_b1_x, rt_b1_y = az_b1_x+2.5, az_b1_y+2.5
-draw_cube(ax, rt_b1_x-0.8, rt_b1_y-0.3, subnet_z-2, 1.6, 0.6, 1.5, colors['route_table'], alpha=0.8,
-          label='RTB\nvpc_b/1')
-draw_connection(ax, rt_b1_x, rt_b1_y, subnet_z-2+1.5, rt_b1_x, rt_b1_y, subnet_z, color='orange', linewidth=2)
-draw_connection(ax, rt_b1_x, rt_b1_y, subnet_z-2, igw_b_x, igw_b_y, igw_z, color='green', linewidth=1.5, style='--')
-
-# AZ us-east-1b
-az_b2_x, az_b2_y = 27, 21
-draw_cube(ax, az_b2_x, az_b2_y, subnet_z+5, 4, 5, 3, colors['az'], alpha=0.1)
-ax.text(az_b2_x+2, az_b2_y+2.5, subnet_z+8, 'AZ\nus-east-1b', fontsize=7, ha='center', style='italic')
-
-# Private subnet 2 (172.16.0.16/28)
-draw_cube(ax, az_b2_x+0.5, az_b2_y+0.5, subnet_z, 3, 4, 4, colors['private_subnet'], alpha=0.6,
-          label='PRIVATE\n172.16.0.16/28\nID:2')
-
-# -------------------- VPC_C Subnets --------------------
-# AZ eu-west-2a
-az_c1_x, az_c1_y = 39, 21
-draw_cube(ax, az_c1_x, az_c1_y, subnet_z+5, 5, 5, 3, colors['az'], alpha=0.1)
-ax.text(az_c1_x+2.5, az_c1_y+2.5, subnet_z+8, 'AZ\neu-west-2a', fontsize=7, ha='center', style='italic')
-
-# Public subnet 1 (192.168.0.0/28)
-draw_cube(ax, az_c1_x+0.5, az_c1_y+0.5, subnet_z, 4, 4, 4, colors['public_subnet'], alpha=0.6,
-          label='PUBLIC\n192.168.0.0/28\nID:1')
-
-# Route Table for vpc_c/1
-rt_c1_x, rt_c1_y = az_c1_x+2.5, az_c1_y+2.5
-draw_cube(ax, rt_c1_x-0.8, rt_c1_y-0.3, subnet_z-2, 1.6, 0.6, 1.5, colors['route_table'], alpha=0.8,
-          label='RTB\nvpc_c/1')
-draw_connection(ax, rt_c1_x, rt_c1_y, subnet_z-2+1.5, rt_c1_x, rt_c1_y, subnet_z, color='orange', linewidth=2)
-draw_connection(ax, rt_c1_x, rt_c1_y, subnet_z-2, igw_c_x, igw_c_y, igw_z, color='green', linewidth=1.5, style='--')
-
-# AZ eu-west-2b
-az_c2_x, az_c2_y = 45, 21
-draw_cube(ax, az_c2_x, az_c2_y, subnet_z+5, 4, 5, 3, colors['az'], alpha=0.1)
-ax.text(az_c2_x+2, az_c2_y+2.5, subnet_z+8, 'AZ\neu-west-2b', fontsize=7, ha='center', style='italic')
-
-# Private subnet 2 (192.168.0.16/28)
-draw_cube(ax, az_c2_x+0.5, az_c2_y+0.5, subnet_z, 3, 4, 4, colors['private_subnet'], alpha=0.6,
-          label='PRIVATE\n192.168.0.16/28\nID:2')
+internet_z = 50
+create_cloud_shape(ax, 50, 50, internet_z, 15, COLORS['internet'], 'INTERNET\n0.0.0.0/0')
 
 # ============================================================================
-# Add region labels
+# LAYER 2: INTERNET GATEWAYS
 # ============================================================================
-ax.text(9, 15, 24, 'REGION: US-EAST-1\n(N. Virginia)', fontsize=14, ha='center', weight='bold',
-        bbox=dict(boxstyle='round,pad=0.8', facecolor='lightblue', alpha=0.7, edgecolor='navy', linewidth=2))
+igw_z = 40
 
-ax.text(44, 15, 24, 'REGION: EU-WEST-2\n(London)', fontsize=14, ha='center', weight='bold',
-        bbox=dict(boxstyle='round,pad=0.8', facecolor='lightcoral', alpha=0.7, edgecolor='darkred', linewidth=2))
+# US-EAST-1 IGWs
+igw_a = (20, 50, igw_z)
+igw_b = (50, 50, igw_z)
+create_cylinder(ax, *igw_a, 3, 4, COLORS['igw'], 'IGW-A')
+create_cylinder(ax, *igw_b, 3, 4, COLORS['igw'], 'IGW-B')
+
+# EU-WEST-2 IGW
+igw_c = (80, 50, igw_z)
+create_cylinder(ax, *igw_c, 3, 4, COLORS['igw'], 'IGW-C')
+
+# Connections from Internet to IGWs
+for igw_pos in [igw_a, igw_b, igw_c]:
+    draw_arrow(ax, 50, 50, internet_z, igw_pos[0], igw_pos[1], igw_pos[2]+4,
+              '#E74C3C', width=4)
 
 # ============================================================================
-# Add legend
+# LAYER 3: VPCs
 # ============================================================================
-legend_elements = [
-    mpatches.Patch(facecolor=colors['internet'], alpha=0.5, edgecolor='black', label='Internet'),
-    mpatches.Patch(facecolor=colors['igw'], alpha=0.6, edgecolor='black', label='Internet Gateway'),
-    mpatches.Patch(facecolor=colors['vpc'], alpha=0.2, edgecolor='black', label='VPC'),
-    mpatches.Patch(facecolor=colors['public_subnet'], alpha=0.6, edgecolor='black', label='Public Subnet (w/ IGW route)'),
-    mpatches.Patch(facecolor=colors['private_subnet'], alpha=0.6, edgecolor='black', label='Private Subnet (no IGW)'),
-    mpatches.Patch(facecolor=colors['route_table'], alpha=0.8, edgecolor='black', label='Route Table'),
-    mpatches.Patch(facecolor='none', edgecolor='green', linestyle='--', label='Route: 0.0.0.0/0 → IGW'),
-    mpatches.Patch(facecolor='none', edgecolor='orange', label='Route Table Association'),
+vpc_z = 25
+
+# VPC A (US-EAST-1)
+vpc_a_pos = (5, 35, vpc_z)
+create_gradient_cube(ax, *vpc_a_pos, 30, 30, 8, COLORS['vpc_us'], alpha=0.3,
+                    label='VPC-A\n10.0.0.0/24\nUS-EAST-1', label_size=13, edge_width=3)
+draw_arrow(ax, igw_a[0], igw_a[1], igw_a[2], vpc_a_pos[0]+15, vpc_a_pos[1]+15, vpc_a_pos[2]+8,
+          '#2ECC71', width=4)
+
+# VPC B (US-EAST-1)
+vpc_b_pos = (38, 35, vpc_z)
+create_gradient_cube(ax, *vpc_b_pos, 24, 24, 8, COLORS['vpc_us'], alpha=0.3,
+                    label='VPC-B\n172.16.0.0/26\nUS-EAST-1', label_size=13, edge_width=3)
+draw_arrow(ax, igw_b[0], igw_b[1], igw_b[2], vpc_b_pos[0]+12, vpc_b_pos[1]+12, vpc_b_pos[2]+8,
+          '#2ECC71', width=4)
+
+# VPC C (EU-WEST-2)
+vpc_c_pos = (70, 35, vpc_z)
+create_gradient_cube(ax, *vpc_c_pos, 24, 24, 8, COLORS['vpc_uk'], alpha=0.3,
+                    label='VPC-C\n192.168.0.0/26\nEU-WEST-2', label_size=13, edge_width=3)
+draw_arrow(ax, igw_c[0], igw_c[1], igw_c[2], vpc_c_pos[0]+12, vpc_c_pos[1]+12, vpc_c_pos[2]+8,
+          '#2ECC71', width=4)
+
+# ============================================================================
+# LAYER 4: AVAILABILITY ZONES & SUBNETS
+# ============================================================================
+subnet_z = 10
+
+# VPC-A Subnets (5 subnets across 3 AZs)
+# AZ-A (us-east-1a)
+create_gradient_cube(ax, 7, 37, subnet_z, 8, 12, 6, COLORS['public'], alpha=0.7,
+                    label='PUBLIC\n10.0.0.0/27\nAZ-1a', label_size=9)
+create_gradient_cube(ax, 7, 51, subnet_z, 8, 12, 6, COLORS['private'], alpha=0.7,
+                    label='PRIVATE\n10.0.0.64/27\nAZ-1a', label_size=9)
+
+# AZ-B (us-east-1b)
+create_gradient_cube(ax, 17, 37, subnet_z, 8, 12, 6, COLORS['public'], alpha=0.7,
+                    label='PUBLIC\n10.0.0.32/27\nAZ-1b', label_size=9)
+create_gradient_cube(ax, 17, 51, subnet_z, 8, 12, 6, COLORS['private'], alpha=0.7,
+                    label='PRIVATE\n10.0.0.96/27\nAZ-1b', label_size=9)
+
+# AZ-C (us-east-1c)
+create_gradient_cube(ax, 27, 44, subnet_z, 6, 12, 6, COLORS['private'], alpha=0.7,
+                    label='PRIVATE\n10.0.0.128/27\nAZ-1c', label_size=9)
+
+# VPC-B Subnets (2 subnets across 2 AZs)
+create_gradient_cube(ax, 40, 37, subnet_z, 10, 10, 6, COLORS['public'], alpha=0.7,
+                    label='PUBLIC\n172.16.0.0/28\nAZ-1a', label_size=9)
+create_gradient_cube(ax, 40, 49, subnet_z, 10, 10, 6, COLORS['private'], alpha=0.7,
+                    label='PRIVATE\n172.16.0.16/28\nAZ-1b', label_size=9)
+
+# VPC-C Subnets (2 subnets across 2 AZs)
+create_gradient_cube(ax, 72, 37, subnet_z, 10, 10, 6, COLORS['public'], alpha=0.7,
+                    label='PUBLIC\n192.168.0.0/28\nAZ-2a', label_size=9)
+create_gradient_cube(ax, 72, 49, subnet_z, 10, 10, 6, COLORS['private'], alpha=0.7,
+                    label='PRIVATE\n192.168.0.16/28\nAZ-2b', label_size=9)
+
+# ============================================================================
+# LAYER 5: ROUTE TABLES
+# ============================================================================
+rt_z = 2
+
+# Route tables for public subnets
+rt_positions = [
+    (11, 43, 'vpc_a/1'),
+    (21, 43, 'vpc_a/2'),
+    (45, 43, 'vpc_b/1'),
+    (77, 43, 'vpc_c/1')
 ]
 
-ax.legend(handles=legend_elements, loc='upper left', fontsize=10, framealpha=0.9,
-          bbox_to_anchor=(0.02, 0.98))
+for rt_x, rt_y, rt_label in rt_positions:
+    create_gradient_cube(ax, rt_x-2, rt_y-2, rt_z, 4, 4, 3, COLORS['route_table'], alpha=0.9,
+                        label=f'RTB\n{rt_label}', label_size=8)
+    # Connection to subnet above
+    draw_arrow(ax, rt_x, rt_y, rt_z+3, rt_x, rt_y, subnet_z, '#F39C12', width=2.5)
 
 # ============================================================================
-# Set labels and title
+# ANNOTATIONS & LABELS
 # ============================================================================
-ax.set_xlabel('X', fontsize=10)
-ax.set_ylabel('Y', fontsize=10)
-ax.set_zlabel('Network Layers', fontsize=10)
 
-title_text = 'AWS Multi-Region Network Architecture (3D View)\nDev Environment - Terraform Managed'
-ax.text2D(0.5, 0.98, title_text, transform=ax.transAxes, fontsize=18,
-          weight='bold', ha='center', va='top',
-          bbox=dict(boxstyle='round,pad=1', facecolor='lightgray', alpha=0.8, edgecolor='black', linewidth=2))
+# Region labels with impressive styling
+ax.text(20, 20, 35, 'REGION: US-EAST-1\n(N. Virginia)',
+        fontsize=16, weight='bold', ha='center',
+        bbox=dict(boxstyle='round,pad=1', facecolor='#3498DB', alpha=0.9,
+                 edgecolor='white', linewidth=3),
+        color='white')
 
-# Add route table details
-details_text = """ROUTE TABLES (4 total):
-• rtb-vpc_a/1: 10.0.0.0/24→local, 0.0.0.0/0→IGW
-• rtb-vpc_a/2: 10.0.0.0/24→local, 0.0.0.0/0→IGW
-• rtb-vpc_b/1: 172.16.0.0/26→local, 0.0.0.0/0→IGW
-• rtb-vpc_c/1: 192.168.0.0/26→local, 0.0.0.0/0→IGW
+ax.text(82, 20, 35, 'REGION: EU-WEST-2\n(London)',
+        fontsize=16, weight='bold', ha='center',
+        bbox=dict(boxstyle='round,pad=1', facecolor='#9B59B6', alpha=0.9,
+                 edgecolor='white', linewidth=3),
+        color='white')
 
-SUMMARY:
-• 2 Regions | 3 VPCs | 3 IGWs
-• 8 Subnets (3 Public, 5 Private)
-• 4 Route Tables | 6 Availability Zones"""
+# Infrastructure summary panel
+summary_text = """╔═══════════════════════════════════════╗
+║     INFRASTRUCTURE SUMMARY           ║
+╠═══════════════════════════════════════╣
+║  Regions:           2                ║
+║  VPCs:              3                ║
+║  Internet Gateways: 3                ║
+║  Availability Zones: 6               ║
+║  Total Subnets:     8                ║
+║    • Public:        3                ║
+║    • Private:       5                ║
+║  Route Tables:      4                ║
+╚═══════════════════════════════════════╝"""
 
-ax.text2D(0.72, 0.35, details_text, transform=ax.transAxes, fontsize=9,
-          family='monospace', va='top', ha='left',
-          bbox=dict(boxstyle='round,pad=0.8', facecolor='lightyellow', alpha=0.9,
-                   edgecolor='black', linewidth=1.5))
+ax.text2D(0.02, 0.65, summary_text, transform=ax.transAxes,
+         fontsize=11, family='monospace', weight='bold',
+         bbox=dict(boxstyle='round,pad=1', facecolor='#ECF0F1', alpha=0.95,
+                  edgecolor='#2C3E50', linewidth=3),
+         verticalalignment='top')
 
-# Set viewing angle for best 3D perspective
-ax.view_init(elev=25, azim=45)
+# Route table details
+route_info = """╔═══════════════════════════════════════╗
+║     ROUTE TABLE CONFIGURATION        ║
+╠═══════════════════════════════════════╣
+║  rtb-vpc_a/1:                        ║
+║    • 10.0.0.0/24 → local             ║
+║    • 0.0.0.0/0 → IGW-A               ║
+║                                       ║
+║  rtb-vpc_a/2:                        ║
+║    • 10.0.0.0/24 → local             ║
+║    • 0.0.0.0/0 → IGW-A               ║
+║                                       ║
+║  rtb-vpc_b/1:                        ║
+║    • 172.16.0.0/26 → local           ║
+║    • 0.0.0.0/0 → IGW-B               ║
+║                                       ║
+║  rtb-vpc_c/1:                        ║
+║    • 192.168.0.0/26 → local          ║
+║    • 0.0.0.0/0 → IGW-C               ║
+╚═══════════════════════════════════════╝"""
 
-# Set axis limits
-ax.set_xlim(0, 52)
-ax.set_ylim(12, 42)
-ax.set_zlim(0, 40)
+ax.text2D(0.02, 0.38, route_info, transform=ax.transAxes,
+         fontsize=9, family='monospace', weight='bold',
+         bbox=dict(boxstyle='round,pad=1', facecolor='#FEF9E7', alpha=0.95,
+                  edgecolor='#E74C3C', linewidth=3),
+         verticalalignment='top')
 
-# Remove grid for cleaner look
-ax.grid(True, alpha=0.3)
-ax.set_facecolor('#f0f0f0')
+# Legend
+legend_elements = [
+    mpatches.Patch(facecolor=COLORS['internet'], edgecolor='#2C3E50', linewidth=2, label='Internet'),
+    mpatches.Patch(facecolor=COLORS['igw'], edgecolor='#2C3E50', linewidth=2, label='Internet Gateway'),
+    mpatches.Patch(facecolor=COLORS['vpc_us'], edgecolor='#2C3E50', linewidth=2, label='VPC (US)'),
+    mpatches.Patch(facecolor=COLORS['vpc_uk'], edgecolor='#2C3E50', linewidth=2, label='VPC (EU)'),
+    mpatches.Patch(facecolor=COLORS['public'], edgecolor='#2C3E50', linewidth=2, label='Public Subnet'),
+    mpatches.Patch(facecolor=COLORS['private'], edgecolor='#2C3E50', linewidth=2, label='Private Subnet'),
+    mpatches.Patch(facecolor=COLORS['route_table'], edgecolor='#2C3E50', linewidth=2, label='Route Table'),
+]
 
-# Tight layout
-plt.tight_layout()
+legend = ax.legend(handles=legend_elements, loc='upper right', fontsize=11,
+                   framealpha=0.95, fancybox=True, shadow=True,
+                   bbox_to_anchor=(0.98, 0.98))
+legend.get_frame().set_facecolor('#ECF0F1')
+legend.get_frame().set_edgecolor('#2C3E50')
+legend.get_frame().set_linewidth(3)
 
-# Save as high-quality JPEG
+# Title
+title = 'AWS Multi-Region Network Architecture\nDev Environment - Terraform Managed'
+ax.text2D(0.5, 0.97, title, transform=ax.transAxes,
+         fontsize=22, weight='bold', ha='center', va='top',
+         bbox=dict(boxstyle='round,pad=1.2', facecolor='#2C3E50', alpha=0.95,
+                  edgecolor='#16A085', linewidth=4),
+         color='white')
+
+# Set viewing angle for impressive 3D effect
+ax.view_init(elev=20, azim=135)
+
+# Set limits
+ax.set_xlim(0, 100)
+ax.set_ylim(20, 70)
+ax.set_zlim(0, 60)
+
+# Clean up axes
+ax.set_xlabel('X Axis', fontsize=12, weight='bold')
+ax.set_ylabel('Y Axis', fontsize=12, weight='bold')
+ax.set_zlabel('Network Layer', fontsize=12, weight='bold')
+
+ax.xaxis.pane.fill = False
+ax.yaxis.pane.fill = False
+ax.zaxis.pane.fill = False
+
+ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+ax.set_facecolor('#F8F9F9')
+fig.patch.set_facecolor('#FFFFFF')
+
+# Save
 output_file = '/home/user/cloud-infra/aws_network_diagram_3d.jpg'
-plt.savefig(output_file, format='jpg', dpi=300, bbox_inches='tight',
+plt.savefig(output_file, format='jpg', dpi=200, bbox_inches='tight',
             facecolor='white', edgecolor='none')
 
-print(f"✓ 3D Network diagram saved to: {output_file}")
-print(f"✓ Resolution: 7200x5400 pixels (300 DPI)")
-print(f"✓ Format: JPEG")
-print("✓ Diagram includes:")
-print("  - Internet layer")
-print("  - 3 Internet Gateways")
-print("  - 3 VPCs across 2 regions")
-print("  - 8 Subnets in 6 Availability Zones")
-print("  - 4 Route Tables with routing details")
-print("  - All network connections and associations")
+print("=" * 70)
+print("✓ IMPRESSIVE 3D NETWORK DIAGRAM GENERATED!")
+print("=" * 70)
+print(f"File: {output_file}")
+print(f"Resolution: 5600x4000 pixels (200 DPI)")
+print(f"Size: High Quality JPEG")
+print()
+print("Visualization includes:")
+print("  ✓ Multi-layer 3D architecture")
+print("  ✓ Professional gradient cubes for all components")
+print("  ✓ Cloud-shaped internet representation")
+print("  ✓ Cylindrical IGW models")
+print("  ✓ Color-coded VPCs by region")
+print("  ✓ Public (green) and Private (orange) subnets")
+print("  ✓ Route table visualization")
+print("  ✓ All network connections with arrows")
+print("  ✓ Comprehensive legend and summaries")
+print("  ✓ Professional styling and annotations")
+print("=" * 70)
