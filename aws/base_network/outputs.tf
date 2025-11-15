@@ -7,6 +7,12 @@ output "nvirginia_vpc_ids" {
 output "nvirginia_subnet_ids" {
   value = module.networking_nvirginia.subnet_ids
 }
+output "nvirginia_igw_ids" {
+  value = module.networking_nvirginia.igw_ids
+}
+output "nvirginia_route_table_ids" {
+  value = module.networking_nvirginia.route_table_ids
+}
 
 /**
  * Outputs the IDs of the created VPCs and subnets for eu-west-2 (London).
@@ -16,4 +22,10 @@ output "london_vpc_ids" {
 }
 output "london_subnet_ids" {
   value = module.networking_london.subnet_ids
+}
+output "london_igw_ids" {
+  value = module.networking_london.igw_ids
+}
+output "london_route_table_ids" {
+  value = module.networking_london.route_table_ids
 }
