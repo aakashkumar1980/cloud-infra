@@ -17,4 +17,10 @@ output "igw_ids" {
 output "subnet_ids" {
   value = module.subnets.subnet_ids
 }
+/**
+ * Outputs the IDs of the created route tables for public subnets.
+ */
+output "route_table_public_ids" {
+  value = module.route_tables_public.route_table_ids
+}
 

@@ -29,7 +29,6 @@
     }
   }
  */
-
 locals {
   subnets_flat = merge([
     for vpc_name, v in var.vpcs : {

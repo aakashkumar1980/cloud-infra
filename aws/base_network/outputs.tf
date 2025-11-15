@@ -10,6 +10,9 @@ output "nvirginia_subnet_ids" {
 output "nvirginia_igw_ids" {
   value = module.networking_nvirginia.igw_ids
 }
+output "nvirginia_route_table_public_ids" {
+  value = module.networking_nvirginia.route_table_public_ids
+}
 
 /**
  * Outputs the IDs of the created VPCs and subnets, internet_gateways for eu-west-2 (London).
@@ -22,4 +25,7 @@ output "london_subnet_ids" {
 }
 output "london_igw_ids" {
   value = module.networking_london.igw_ids
+}
+output "london_route_table_public_ids" {
+  value = module.networking_london.route_table_public_ids
 }
