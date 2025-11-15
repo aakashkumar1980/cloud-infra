@@ -13,7 +13,7 @@ resource "aws_route_table" "public" {
 
   vpc_id = var.vpc_ids[each.value.vpc_name]
   tags = merge(var.common_tags, {
-    Name = "rtb-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "rtb_public-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
     Tier = each.value.tier
   })
 }
