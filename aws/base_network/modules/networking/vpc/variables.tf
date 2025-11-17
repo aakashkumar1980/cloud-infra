@@ -16,4 +16,16 @@ variable "vpcs"        { type = map(any) }
  */
 variable "common_tags" { type = map(string) }
 
+/**
+ * Availability Zone Names
+ * Example: [ "us-east-1a", "us-east-1b", "us-east-1c" ]
+ */
+variable "az_names" { type = list(string) }
+
+/**
+ * AZ Letter to Index Mapping
+ * Example: { a=0, b=1, c=2 }
+ */
+variable "az_letter_to_ix" { type = map(number) }
+
 

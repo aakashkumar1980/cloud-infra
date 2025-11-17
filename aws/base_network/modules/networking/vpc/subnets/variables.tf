@@ -31,6 +31,12 @@ variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
 
 /**
+ * A map of Internet Gateway IDs for routing internet traffic.
+ * Each key is a unique identifier for the VPC, and the value is the corresponding IGW ID.
+ */
+variable "igw_ids"         { type = map(string) }
+
+/**
  * The common tags to apply to all resources.
  * Example: { "Environment" = "Production", "Owner" = "DevOps" ... }
  */
