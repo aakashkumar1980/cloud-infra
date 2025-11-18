@@ -17,3 +17,16 @@ resource "aws_subnet" "this" {
     Name   = "subnet_${each.value.name}-${each.value.vpc_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }
+
+/**
+ * Module to create Route Tables for Public Subnets and assign Internet Gateway routes
+ */
+module "route_tables_public" {
+  source      = "./route_tables/public"
+  vpcs        = var.vpcs
+  vpc_ids     = var.vpc_ids
+  igw_ids     = var.igw_ids
+  subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
+  common_tags = var.common_tags
+  region      = var.region
+}
