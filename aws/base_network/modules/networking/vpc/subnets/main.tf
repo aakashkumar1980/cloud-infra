@@ -40,8 +40,8 @@
  *   - private: Subnets without direct internet access (internal only)
  *
  * Naming Convention:
- *   Format: subnet_{tier}_az_{az_letter}-{vpc_name}-{region}-{environment}-{managed_by}
- *   Example: subnet_public_az_a-vpc_a-nvirginia-dev-terraform
+ *   Format: subnet_{tier}_zone_{zone_letter}-{vpc_name}-{region}-{environment}-{managed_by}
+ *   Example: subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  *
  * Data Transformation:
  *   The module uses local.subnets_flat (defined in locals.tf) which:

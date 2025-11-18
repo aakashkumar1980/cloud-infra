@@ -43,8 +43,8 @@
  *   - Tagged with Tier="public" for easy filtering
  *
  * Naming Convention:
- *   Format: routetable_public-{vpc_name}/{subnet_id}-{region}-{environment}-{managed_by}
- *   Example: routetable_public-vpc_a/1-nvirginia-dev-terraform
+ *   Format: routetable-{subnet_name}-{region}-{environment}-{managed_by}
+ *   Example: routetable-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  *
  * @for_each local.public_subnets - Filtered map containing only public tier subnets
  * @param vpc_id - Parent VPC ID for the route table
@@ -64,7 +64,7 @@ resource "aws_route_table" "public" {
   // Merge common tags with route table-specific tags
   // Tier tag enables filtering of public vs private route tables
   tags = merge(var.common_tags, {
-    Name = "routetable_public-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "routetable-${each.value.subnet_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
     Tier = each.value.tier
   })
 }
