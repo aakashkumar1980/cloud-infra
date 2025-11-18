@@ -150,7 +150,7 @@ module "subnets" {
  *   - vpc_a: NAT Gateway in first public subnet (zone a)
  *   - vpc_c: NAT Gateway in first public subnet (zone a)
  *
- * @source ./nat_gateway - NAT Gateway module path
+ * @source ./subnets/nat_gateway - NAT Gateway module path
  *
  * @param vpcs - VPC configurations to determine which VPCs need NAT Gateways
  * @param vpc_ids - Map of VPC names to VPC IDs for NAT Gateway association
@@ -163,7 +163,7 @@ module "subnets" {
  * @output nat_gateway_public_ips - Map of VPC names to NAT Gateway public IPs
  */
 module "nat_gateway" {
-  source      = "./nat_gateway"
+  source      = "./subnets/nat_gateway"
   vpcs        = var.vpcs
   vpc_ids     = { for k, v in aws_vpc.this : k => v.id }
   subnet_ids  = module.subnets.subnet_ids
