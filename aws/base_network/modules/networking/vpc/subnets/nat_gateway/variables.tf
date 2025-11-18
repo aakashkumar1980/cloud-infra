@@ -25,6 +25,12 @@ variable "subnet_ids" { type = map(string) }
 variable "igw_ids" { type = map(string) }
 
 /**
+ * A map of Internet Gateway names for reference in outputs.
+ * Each key is a VPC name, and the value is the corresponding Internet Gateway name.
+ */
+variable "igw_names" { type = map(string) }
+
+/**
  * The common tags to apply to all resources.
  * Example: { "Environment" = "Production", "Owner" = "DevOps" }
  */

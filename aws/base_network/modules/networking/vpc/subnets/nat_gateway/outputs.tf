@@ -17,11 +17,12 @@ output "nat_gateway_public_ips" {
 }
 
 /**
- * Outputs the Name tags of the created NAT Gateways.
+ * Outputs the Name tags of the created NAT Gateways with Internet Gateway relationship.
+ * Shows which Internet Gateway the NAT Gateway routes traffic through.
  */
 output "nat_gateway_names" {
-  value = { for k, v in aws_nat_gateway.this : k => v.tags["Name"] }
-  description = "Map of VPC names to NAT Gateway names"
+  value = { for k, v in aws_nat_gateway.this : k => "${v.tags["Name"]} -> ${var.igw_names[k]}" }
+  description = "Map of VPC names to NAT Gateway names with IGW routing information"
 }
 
 /**

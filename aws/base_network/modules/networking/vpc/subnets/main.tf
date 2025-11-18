@@ -119,6 +119,7 @@ module "nat_gateway" {
   vpc_ids     = var.vpc_ids
   subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
   igw_ids     = var.igw_ids
+  igw_names   = var.igw_names
   common_tags = var.common_tags
   region      = var.region
 }
