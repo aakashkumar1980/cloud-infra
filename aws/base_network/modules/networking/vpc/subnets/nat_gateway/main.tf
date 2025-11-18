@@ -44,8 +44,8 @@
  *   - Billed when not associated with running instance
  *
  * Naming Convention:
- *   Format: eip-natgw-{vpc_name}-{region}-{environment}-{managed_by}
- *   Example: eip-natgw-vpc_a-nvirginia-dev-terraform
+ *   Format: eip-natgw-subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
+ *   Example: eip-natgw-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  *
  * @for_each local.nat_gateway_subnets - One EIP per NAT Gateway
  * @param domain - "vpc" indicates EIP is for use in VPC
@@ -62,8 +62,9 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   // Merge common tags with EIP-specific Name tag
+  // Name format: eip-natgw-subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
   tags = merge(var.common_tags, {
-    Name = "eip-natgw-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "eip-natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }
 
@@ -86,8 +87,8 @@ resource "aws_eip" "nat" {
  *   - Requires Internet Gateway in the VPC
  *
  * Naming Convention:
- *   Format: natgw-{vpc_name}-{region}-{environment}-{managed_by}
- *   Example: natgw-vpc_a-nvirginia-dev-terraform
+ *   Format: natgw-subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
+ *   Example: natgw-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  *
  * @for_each local.nat_gateway_subnets - One NAT Gateway per VPC
  * @param allocation_id - EIP allocation ID for the NAT Gateway
@@ -108,8 +109,9 @@ resource "aws_nat_gateway" "this" {
   subnet_id = var.subnet_ids[each.value]
 
   // Merge common tags with NAT Gateway-specific Name tag
+  // Name format: natgw-subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
   tags = merge(var.common_tags, {
-    Name = "natgw-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 
   // Ensure Internet Gateway exists before creating NAT Gateway

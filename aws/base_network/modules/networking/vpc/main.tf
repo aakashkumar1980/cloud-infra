@@ -127,6 +127,7 @@ module "subnets" {
   az_names         = var.az_names
   az_letter_to_ix  = var.az_letter_to_ix
   igw_ids          = module.internet_gateway.igw_ids
+  igw_names        = module.internet_gateway.igw_names
   common_tags      = var.common_tags
   region           = var.region
 }
