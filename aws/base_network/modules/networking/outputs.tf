@@ -59,3 +59,24 @@ output "route_table_public_routes" {
   value = module.vpc.route_table_public_routes
 }
 
+/**
+ * Outputs the IDs of the created NAT Gateways.
+ */
+output "nat_gateway_ids" {
+  value = module.vpc.nat_gateway_ids
+}
+
+/**
+ * Outputs the Name tags of the created NAT Gateways.
+ */
+output "nat_gateway_names" {
+  value = module.vpc.nat_gateway_names
+}
+
+/**
+ * Outputs the route information for private route tables including destinations and targets.
+ */
+output "route_table_private_routes" {
+  value = module.vpc.route_table_private_routes
+}
+
