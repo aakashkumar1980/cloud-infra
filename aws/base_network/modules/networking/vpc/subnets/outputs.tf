@@ -33,4 +33,17 @@ output "route_table_public_routes" {
   value = module.route_tables_public.route_table_routes
 }
 
+/**
+ * Outputs the IDs of the created NAT Gateways.
+ */
+output "nat_gateway_ids" {
+  value = module.nat_gateway.nat_gateway_ids
+}
+
+/**
+ * Outputs the public IPs of the created NAT Gateways.
+ */
+output "nat_gateway_public_ips" {
+  value = module.nat_gateway.nat_gateway_public_ips
+}
 

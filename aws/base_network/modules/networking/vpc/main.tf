@@ -16,9 +16,8 @@
  * Resource Creation Order:
  *   1. VPCs (aws_vpc.this)
  *   2. Internet Gateways (module.internet_gateway)
- *   3. Subnets and Public Route Tables (module.subnets)
- *   4. NAT Gateways (module.nat_gateway)
- *   5. Private Route Tables (module.route_tables_private)
+ *   3. Subnets, NAT Gateways, and Public Route Tables (module.subnets)
+ *   4. Private Route Tables (module.route_tables_private)
  * ============================================================================
  */
 
@@ -100,6 +99,7 @@ module "internet_gateway" {
  *   - Distributes resources across availability zones
  *   - Separates public and private network tiers
  *   - Configures route tables for public subnet internet access
+ *   - Creates NAT gateways for private subnet internet access
  *
  * Subnet Types:
  *   - Public: Has route to Internet Gateway, can access internet
@@ -117,6 +117,8 @@ module "internet_gateway" {
  *
  * @output subnet_ids - Map of subnet identifiers to subnet IDs
  * @output route_table_public_ids - Map of public route table IDs
+ * @output nat_gateway_ids - Map of VPC names to NAT Gateway IDs
+ * @output nat_gateway_public_ips - Map of VPC names to NAT Gateway public IPs
  */
 module "subnets" {
   source           = "./subnets"
@@ -127,49 +129,6 @@ module "subnets" {
   igw_ids          = module.internet_gateway.igw_ids
   common_tags      = var.common_tags
   region           = var.region
-}
-
-/**
- * NAT Gateway Module
- *
- * Creates NAT Gateways to provide internet connectivity for resources in
- * private subnets. NAT Gateways enable outbound internet access while
- * keeping private subnet resources unreachable from the internet.
- *
- * Purpose:
- *   - Enables outbound internet access for private subnet resources
- *   - Provides managed, highly available NAT functionality
- *   - Eliminates single points of failure with AWS-managed redundancy
- *
- * Architecture:
- *   - One NAT Gateway per VPC (placed in public subnet)
- *   - Requires Elastic IP for public internet connectivity
- *   - Used by private route tables for default route (0.0.0.0/0)
- *
- * NAT Gateway Placement:
- *   - vpc_a: NAT Gateway in first public subnet (zone a)
- *   - vpc_c: NAT Gateway in first public subnet (zone a)
- *
- * @source ./subnets/nat_gateway - NAT Gateway module path
- *
- * @param vpcs - VPC configurations to determine which VPCs need NAT Gateways
- * @param vpc_ids - Map of VPC names to VPC IDs for NAT Gateway association
- * @param subnet_ids - Map of subnet identifiers to subnet IDs (NAT GW in public subnet)
- * @param igw_ids - Internet Gateway IDs for dependency management
- * @param common_tags - Tags to apply to NAT Gateway resources
- * @param region - Region identifier for NAT Gateway naming
- *
- * @output nat_gateway_ids - Map of VPC names to NAT Gateway IDs
- * @output nat_gateway_public_ips - Map of VPC names to NAT Gateway public IPs
- */
-module "nat_gateway" {
-  source      = "./subnets/nat_gateway"
-  vpcs        = var.vpcs
-  vpc_ids     = { for k, v in aws_vpc.this : k => v.id }
-  subnet_ids  = module.subnets.subnet_ids
-  igw_ids     = module.internet_gateway.igw_ids
-  common_tags = var.common_tags
-  region      = var.region
 }
 
 /**
@@ -203,7 +162,7 @@ module "route_tables_private" {
   source          = "./subnets/route_tables/private"
   vpcs            = var.vpcs
   vpc_ids         = { for k, v in aws_vpc.this : k => v.id }
-  nat_gateway_ids = module.nat_gateway.nat_gateway_ids
+  nat_gateway_ids = module.subnets.nat_gateway_ids
   subnet_ids      = module.subnets.subnet_ids
   common_tags     = var.common_tags
   region          = var.region
