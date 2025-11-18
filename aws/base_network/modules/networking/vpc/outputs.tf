@@ -86,19 +86,19 @@ output "nat_gateway_names" {
  * Outputs the IDs of the created private route tables.
  */
 output "route_table_private_ids" {
-  value = module.route_tables_private.route_table_ids
+  value = module.subnets.route_table_private_ids
 }
 
 /**
  * Outputs the Name tags of the created private route tables.
  */
 output "route_table_private_names" {
-  value = module.route_tables_private.route_table_names
+  value = module.subnets.route_table_private_names
 }
 
 /**
  * Outputs the route information for private route tables including destinations and targets.
  */
 output "route_table_private_routes" {
-  value = module.route_tables_private.route_table_routes
+  value = module.subnets.route_table_private_routes
 }

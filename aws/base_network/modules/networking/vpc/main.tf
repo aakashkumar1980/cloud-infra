@@ -134,37 +134,11 @@ module "subnets" {
 /**
  * Private Route Tables Module
  *
- * Creates and configures route tables for private subnets, including default
- * routes to NAT Gateways. Private subnets use NAT Gateways to enable outbound
- * internet connectivity while remaining unreachable from the internet.
+ * NOTE: Private route tables are created and managed through the subnets module.
+ * The module chain is: vpc → subnets → route_tables → route_tables_private
+ * Private route table outputs are exposed through module.subnets.route_table_private_*
  *
- * Purpose:
- *   - Creates one route table per private subnet
- *   - Adds default route (0.0.0.0/0) pointing to NAT Gateway
- *   - Associates route tables with their respective private subnets
- *
- * Routing Logic:
- *   - Private subnets: 0.0.0.0/0 → NAT Gateway → Internet Gateway (outbound internet access)
- *   - Public subnets: Not handled by this module (no NAT route)
- *
- * @source ./subnets/route_tables/private - Private route tables module path
- *
- * @param vpcs - VPC configurations to identify private subnets
- * @param vpc_ids - VPC IDs for route table association
- * @param nat_gateway_ids - NAT Gateway IDs for default route target
- * @param subnet_ids - Subnet IDs for route table associations
- * @param common_tags - Tags to apply to route table resources
- * @param region - Region identifier for resource naming
- *
- * @output route_table_ids - Map of private route table IDs
+ * This ensures route table associations are only created once, preventing
+ * "Resource.AlreadyAssociated" errors.
  */
-module "route_tables_private" {
-  source          = "./subnets/route_tables/private"
-  vpcs            = var.vpcs
-  vpc_ids         = { for k, v in aws_vpc.this : k => v.id }
-  nat_gateway_ids = module.subnets.nat_gateway_ids
-  subnet_ids      = module.subnets.subnet_ids
-  common_tags     = var.common_tags
-  region          = var.region
-}
 
