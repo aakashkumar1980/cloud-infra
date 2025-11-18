@@ -1,30 +1,86 @@
-# base/firewall.yaml
-# Security group rule catalog shared by all environments.
+# ============================================================================
+# AWS Security Group Rules Catalog
+# ============================================================================
+# This file defines reusable security group rules shared across all
+# environments. These rules control inbound and outbound network traffic
+# for AWS resources.
+#
+# Purpose:
+#   - Centralized firewall rule management
+#   - Consistent security policies across environments
+#   - Simplified security group configuration
+#
+# Security Considerations:
+#   - Review CIDR blocks before production deployment
+#   - Restrict SSH access to known IP ranges in production
+#   - Follow principle of least privilege
+#
+# Structure:
+#   - ingress: Inbound traffic rules
+#   - egress: Outbound traffic rules
+#
+# @section ingress - Inbound traffic rules for incoming connections
+# @section egress - Outbound traffic rules for outgoing connections
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Ingress Rules (Inbound Traffic)
+# ----------------------------------------------------------------------------
+# These rules define what traffic is allowed to reach your resources.
+# Each rule specifies protocol, port range, and source CIDR blocks.
+#
+# @field standard_rules - Common inbound rules applied to most resources
+# ----------------------------------------------------------------------------
 ingress:
   standard_rules:
+    # ICMP Rule - Allow ping for network diagnostics
+    # Protocol: ICMP, Ports: All (-1), Source: Anywhere
     - description: ping
       protocol: icmp
       from_port: -1
       to_port: -1
       cidr_ipv4: 0.0.0.0/0
+
+    # HTTP Rule - Allow web traffic on standard HTTP port
+    # Protocol: TCP, Port: 80, Source: Anywhere
     - description: http
       protocol: tcp
       from_port: 80
       to_port: 80
       cidr_ipv4: 0.0.0.0/0
+
+    # HTTPS Rule - Allow secure web traffic on standard HTTPS port
+    # Protocol: TCP, Port: 443, Source: Anywhere
     - description: https
       protocol: tcp
       from_port: 443
       to_port: 443
       cidr_ipv4: 0.0.0.0/0
+
+    # SSH Rule - Allow SSH access for remote management
+    # Protocol: TCP, Port: 22, Source: Anywhere
+    # SECURITY WARNING: In production, restrict to office/VPN CIDR blocks
+    # TODO: restrict in non-dev environments (office/VPN CIDR)
     - description: ssh
       protocol: tcp
       from_port: 22
       to_port: 22
-      # TODO: restrict in non-dev environments (office/VPN CIDR)
       cidr_ipv4: 0.0.0.0/0
 
+# ----------------------------------------------------------------------------
+# Egress Rules (Outbound Traffic)
+# ----------------------------------------------------------------------------
+# These rules define what traffic is allowed to leave your resources.
+# Default policy allows all outbound traffic.
+#
+# @field protocol - Network protocol (all, tcp, udp, icmp)
+# @field from_port - Starting port (-1 for all)
+# @field to_port - Ending port (-1 for all)
+# @field cidr_ipv4 - Destination CIDR block (0.0.0.0/0 for anywhere)
+# ----------------------------------------------------------------------------
 egress:
+  # Allow all outbound traffic
+  # This is a permissive rule suitable for most use cases
   - protocol: all
     from_port: -1
     to_port: -1
