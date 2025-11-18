@@ -3,7 +3,14 @@
   - keys as "vpc_name/tier_zone_z" and
   - values containing subnet details as a map.
 
-  Only includes subnets where tier == "private"
+  Only includes subnets where:
+  - tier == "private"
+  - VPC has a NAT Gateway (exists in var.nat_gateway_ids)
+
+  This ensures we only create NAT Gateway routes for private subnets
+  in VPCs that actually have NAT Gateways. VPCs without public subnets
+  (and therefore without NAT Gateways) are excluded.
+
   Example:
   {
     "vpc_c/private_zone_b" = {
@@ -24,7 +31,7 @@ locals {
         subnet_name = "subnet_${s.tier}_zone_${s.zone}-${vpc_name}"
         tier        = s.tier
       }
-      if s.tier == "private"
+      if s.tier == "private" && contains(keys(var.nat_gateway_ids), vpc_name)
     }
   ]...)
 }
