@@ -1,16 +1,67 @@
+# ============================================================================
+# AWS Resource Tagging Configuration
+# ============================================================================
+# This file defines the tagging strategy for all AWS resources across
+# different environments. Tags are used for cost allocation, resource
+# organization, and compliance tracking.
+#
+# Structure:
+#   - global_tags: Applied to ALL resources regardless of environment
+#   - environment_tags: Environment-specific tags (dev, stage, prod)
+#
+# Usage:
+#   These tags are merged in locals.tf and applied to all resources.
+#   Global tags are always applied, then environment-specific tags are
+#   merged based on the selected profile.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Global Tags
+# ----------------------------------------------------------------------------
+# These tags are applied to all resources across all environments.
+# They provide consistent metadata for project identification and ownership.
+#
+# @field project - Project identifier for resource grouping
+# @field managed_by - Infrastructure management tool identifier
+# @field owner - Primary owner/team responsible for resources
+# @field contact - Contact email for resource owner
+# ----------------------------------------------------------------------------
 global_tags:
   project: terraform-aws
   managed_by: terraform
   owner: aakash.kumar
   contact: aakash.kumar1980@yahoo.com
 
+# ----------------------------------------------------------------------------
+# Environment-Specific Tags
+# ----------------------------------------------------------------------------
+# These tags are applied based on the deployment environment (profile).
+# They enable cost tracking, compliance policies, and environment isolation.
+#
+# Environments:
+#   - dev: Development environment for testing and experimentation
+#   - stage: Staging environment for pre-production validation
+#   - prod: Production environment for live workloads
+#
+# @field environment - Environment name (dev/stage/prod)
+# @field cost_center - Department/team for cost allocation
+# @field backup - Backup policy (only for prod)
+# ----------------------------------------------------------------------------
 environment_tags:
+  # Development Environment Tags
+  # Used for R&D and initial feature development
   dev:
     environment: dev
     cost_center: rnd
+
+  # Staging Environment Tags
+  # Used for QA testing and pre-production validation
   stage:
     environment: stage
     cost_center: qa
+
+  # Production Environment Tags
+  # Used for live production workloads with backup enabled
   prod:
     environment: prod
     cost_center: ops
