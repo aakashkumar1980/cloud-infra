@@ -68,3 +68,10 @@ output "nat_gateway_public_ips" {
   value = module.nat_gateway.nat_gateway_public_ips
 }
 
+/**
+ * Outputs the Name tags of the created NAT Gateways.
+ */
+output "nat_gateway_names" {
+  value = module.nat_gateway.nat_gateway_names
+}
+
