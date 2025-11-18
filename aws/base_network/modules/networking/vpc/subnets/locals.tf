@@ -7,7 +7,7 @@
     "london" = {
       "vpc_c/public_zone_a" = {
         "vpc_name" = "vpc_c"
-        "name" = "subnet_public_zone_a-vpc_c"
+        "name" = public_zone_a"
         "az" = "eu-west-2a"
         "cidr" = "192.168.0.0/28"
       }
@@ -18,7 +18,7 @@
     "nvirginia" = {
       "vpc_a/public_zone_a" = {
         "vpc_name" = "vpc_a"
-        "name" = "subnet_public_zone_a-vpc_a"
+        "name" = "public_zone_a"
         "az" = "us-east-1a"
         "cidr" = "10.0.0.0/27"
       }
@@ -35,7 +35,7 @@ locals {
       for s in v.subnets :
       "${vpc_name}/${s.tier}_zone_${s.zone}" => {
         vpc_name = vpc_name
-        name     = "subnet_${s.tier}_zone_${s.zone}-${vpc_name}"
+        name     = "${s.tier}_zone_${s.zone}"
         cidr     = s.cidr
         az       = var.az_names[var.az_letter_to_ix[s.zone]]
       }
