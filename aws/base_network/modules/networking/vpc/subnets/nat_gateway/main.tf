@@ -21,35 +21,14 @@
  *   - Requires VPC and public subnets to be created first
  *   - Requires Elastic IP allocation
  *   - Used by private route tables for outbound internet access
+ *
+ * Local Variables:
+ *   See locals.tf for local variable definitions including:
+ *   - nat_gateway_vpcs: VPCs that need NAT gateways
+ *   - public_subnets: Flattened map of public subnets
+ *   - nat_gateway_subnets: First public subnet per VPC for NAT gateway placement
  * ============================================================================
  */
-
-/**
- * Local variables to identify VPCs that need NAT Gateways and their public subnets
- *
- * Creates a map of VPCs that should have NAT gateways (vpc_a and vpc_c)
- * and identifies the first public subnet in each VPC (alphabetically by zone).
- */
-locals {
-  // VPCs that need NAT gateways: vpc_a and vpc_c
-  nat_gateway_vpcs = toset(["vpc_a", "vpc_c"])
-
-  // Find the first public subnet for each VPC that needs a NAT gateway
-  // Format: { "vpc_a" = "vpc_a/public_zone_a", "vpc_c" = "vpc_c/public_zone_a" }
-  nat_gateway_subnets = {
-    for vpc_name in local.nat_gateway_vpcs :
-    vpc_name => [
-      for subnet_key, subnet in var.subnet_ids :
-      subnet_key
-      if startswith(subnet_key, "${vpc_name}/public_")
-    ][0]
-    if length([
-      for subnet_key, subnet in var.subnet_ids :
-      subnet_key
-      if startswith(subnet_key, "${vpc_name}/public_")
-    ]) > 0
-  }
-}
 
 /**
  * AWS Elastic IP Resource for NAT Gateway
