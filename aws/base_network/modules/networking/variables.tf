@@ -5,8 +5,8 @@
     vpc_a = {
       cidr = "10.0.0.0/24"
       subnets = [
-        { id="1", name="public-a",  tier="public",  cidr="10.0.0.32/27", az="a" },
-        { id="2", name="private-a", tier="private", cidr="10.0.0.96/27", az="a" }
+        { tier="public",  cidr="10.0.0.32/27", az="a" },
+        { tier="private", cidr="10.0.0.96/27", az="a" }
       ]
     }
   }

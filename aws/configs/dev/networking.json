@@ -6,11 +6,11 @@
         "vpc_a": {
           "cidr": "10.0.0.0/24",
           "subnets": [
-            {"id": "1", "tier": "public", "cidr": "10.0.0.0/27", "az": "a"},
-            {"id": "2", "tier": "public", "cidr": "10.0.0.32/27", "az": "b"},
-            {"id": "3", "tier": "private", "cidr": "10.0.0.64/27", "az": "a"},
-            {"id": "4", "tier": "private", "cidr": "10.0.0.96/27", "az": "b"},
-            {"id": "5", "tier": "private", "cidr": "10.0.0.128/27", "az": "c"}
+            {"tier": "public", "cidr": "10.0.0.0/27", "az": "a"},
+            {"tier": "public", "cidr": "10.0.0.32/27", "az": "b"},
+            {"tier": "private", "cidr": "10.0.0.64/27", "az": "a"},
+            {"tier": "private", "cidr": "10.0.0.96/27", "az": "b"},
+            {"tier": "private", "cidr": "10.0.0.128/27", "az": "c"}
           ],
           "free_cidrs": [
             "10.0.0.160/27",
@@ -21,8 +21,8 @@
         "vpc_b": {
           "cidr": "172.16.0.0/26",
           "subnets":[
-            {"id":"1", "tier":"public", "cidr":"172.16.0.0/28", "az":"a"},
-            {"id":"2", "tier":"private", "cidr":"172.16.0.16/28", "az":"b"}
+            {"tier":"public", "cidr":"172.16.0.0/28", "az":"a"},
+            {"tier":"private", "cidr":"172.16.0.16/28", "az":"b"}
           ],
           "free_cidrs": [
             "172.16.0.32/28",
@@ -36,8 +36,8 @@
         "vpc_c": {
           "cidr": "192.168.0.0/26",
           "subnets":[
-            {"id":"1", "tier":"public", "cidr":"192.168.0.0/28", "az":"a"},
-            {"id":"2", "tier":"private", "cidr":"192.168.0.16/28", "az":"b"}
+            {"tier":"public", "cidr":"192.168.0.0/28", "az":"a"},
+            {"tier":"private", "cidr":"192.168.0.16/28", "az":"b"}
           ],
           "free_cidrs": [
             "192.168.0.32/28",
