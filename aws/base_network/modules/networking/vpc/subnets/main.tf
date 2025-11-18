@@ -81,43 +81,6 @@ resource "aws_subnet" "this" {
 }
 
 /**
- * Public Route Tables Module
- *
- * Creates and configures route tables for public subnets, including default
- * routes to Internet Gateways. Public subnets require explicit routing to
- * IGWs to enable internet connectivity.
- *
- * Purpose:
- *   - Creates one route table per public subnet
- *   - Adds default route (0.0.0.0/0) pointing to Internet Gateway
- *   - Associates route tables with their respective public subnets
- *
- * Routing Logic:
- *   - Public subnets: 0.0.0.0/0 → Internet Gateway (internet access)
- *   - Private subnets: Not handled by this module (no IGW route)
- *
- * @source ./route_tables/public - Public route tables module path
- *
- * @param vpcs - VPC configurations to identify public subnets
- * @param vpc_ids - VPC IDs for route table association
- * @param igw_ids - Internet Gateway IDs for default route target
- * @param subnet_ids - Subnet IDs for route table associations
- * @param common_tags - Tags to apply to route table resources
- * @param region - Region identifier for resource naming
- *
- * @output route_table_ids - Map of public route table IDs
- */
-module "route_tables_public" {
-  source      = "./route_tables/public"
-  vpcs        = var.vpcs
-  vpc_ids     = var.vpc_ids
-  igw_ids     = var.igw_ids
-  subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
-  common_tags = var.common_tags
-  region      = var.region
-}
-
-/**
  * NAT Gateway Module
  *
  * Creates NAT Gateways to provide internet connectivity for resources in
@@ -158,4 +121,48 @@ module "nat_gateway" {
   igw_ids     = var.igw_ids
   common_tags = var.common_tags
   region      = var.region
+}
+
+/**
+ * Route Tables Module
+ *
+ * Creates and configures route tables for both public and private subnets.
+ * This module orchestrates routing configuration to enable internet connectivity
+ * through Internet Gateways (public) and NAT Gateways (private).
+ *
+ * Purpose:
+ *   - Manages routing for public subnets (via Internet Gateway)
+ *   - Manages routing for private subnets (via NAT Gateway)
+ *   - Provides unified interface for route table management
+ *
+ * Architecture:
+ *   - Public subnets: 0.0.0.0/0 → Internet Gateway (bidirectional internet access)
+ *   - Private subnets: 0.0.0.0/0 → NAT Gateway (outbound only)
+ *
+ * Sub-modules:
+ *   - route_tables_public: Creates route tables with IGW routes for public subnets
+ *   - route_tables_private: Creates route tables with NAT GW routes for private subnets
+ *
+ * @source ./route_tables - Route tables module path
+ *
+ * @param vpcs - VPC configurations to identify public and private subnets
+ * @param vpc_ids - VPC IDs for route table association
+ * @param igw_ids - Internet Gateway IDs for public subnet routing
+ * @param nat_gateway_ids - NAT Gateway IDs for private subnet routing
+ * @param subnet_ids - Subnet IDs for route table associations
+ * @param common_tags - Tags to apply to route table resources
+ * @param region - Region identifier for resource naming
+ *
+ * @output public_route_table_ids - Map of public route table IDs
+ * @output private_route_table_ids - Map of private route table IDs
+ */
+module "route_tables" {
+  source          = "./route_tables"
+  vpcs            = var.vpcs
+  vpc_ids         = var.vpc_ids
+  igw_ids         = var.igw_ids
+  nat_gateway_ids = module.nat_gateway.nat_gateway_ids
+  subnet_ids      = { for k, s in aws_subnet.this : k => s.id }
+  common_tags     = var.common_tags
+  region          = var.region
 }
