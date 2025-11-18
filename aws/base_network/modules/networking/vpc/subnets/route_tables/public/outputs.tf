@@ -15,14 +15,14 @@ output "route_table_names" {
 /**
  * Outputs the route information including source (implicit local route) and destinations.
  * For each route table, shows the destination CIDR and gateway (IGW Name tag).
+ * Uses route table name as key.
  */
 output "route_table_routes" {
   value = {
-    for k, v in aws_route_table.public : k => {
+    for k, v in aws_route_table.public : v.tags["Name"] => {
       routes = [
         {
           destination = "0.0.0.0/0"
-          target      = lookup(var.igw_ids, local.public_subnets[k].vpc_name, "")
           target_name = "igw-${local.public_subnets[k].vpc_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
           type        = "internet_gateway"
         }
