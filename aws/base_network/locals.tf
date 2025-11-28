@@ -16,8 +16,8 @@ locals {
   REGION_N_VIRGINIA = "nvirginia"
   REGION_LONDON     = "london"
   regions_cfg = {
-    local.REGION_N_VIRGINIA = "us-east-1"
-    local.REGION_LONDON     = "eu-west-2"
+    (local.REGION_N_VIRGINIA) = "us-east-1"
+    (local.REGION_LONDON)     = "eu-west-2"
   }
 
   config_dir = abspath("${path.module}/../configs")
