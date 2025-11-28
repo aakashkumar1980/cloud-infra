@@ -6,6 +6,7 @@
       "vpcs": {
         "vpc_a": {
           "cidr": "10.0.0.0/24",
+          "nat_gateway": true,
           "subnets": [
             {"tier": "public", "cidr": "10.0.0.0/27", "zone": "a"},
             {"tier": "private", "cidr": "10.0.0.32/27", "zone": "b"}
@@ -21,6 +22,7 @@
         },
         "vpc_b": {
           "cidr": "172.16.0.0/26",
+          "nat_gateway": false,
           "subnets":[
             {"tier":"private", "cidr":"172.16.0.0/28", "zone":"b"}
           ],
@@ -36,6 +38,7 @@
       "vpcs": {
         "vpc_c": {
           "cidr": "192.168.0.0/26",
+          "nat_gateway": true,
           "subnets":[
             {"tier":"public", "cidr":"192.168.0.0/28", "zone":"a"},
             {"tier":"private", "cidr":"192.168.0.16/28", "zone":"b"}
