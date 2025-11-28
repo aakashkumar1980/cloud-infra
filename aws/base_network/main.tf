@@ -8,7 +8,6 @@
  *   - NAT Gateways (for private subnet outbound access)
  *   - Route Tables (traffic routing rules)
  *
- * @param region          - Region identifier for resource naming
  * @param vpcs            - VPC configurations from networking.json
  * @param az_names        - Available availability zones in this region
  * @param az_letter_to_ix - Maps zone letters to indices
@@ -18,11 +17,10 @@ module "networking_nvirginia" {
   source    = "./modules/networking"
   providers = { aws = aws.nvirginia }
 
-  region          = "nvirginia"
   vpcs            = local.vpcs_nvirginia
   az_names        = data.aws_availability_zones.nvirginia.names
   az_letter_to_ix = local.az_letter_to_ix
-  common_tags     = local.tags_common
+  common_tags     = merge(local.tags_common, { "region" = local.REGION_N_VIRGINIA })
 }
 
 /**
@@ -35,7 +33,6 @@ module "networking_nvirginia" {
  *   - NAT Gateways (for private subnet outbound access)
  *   - Route Tables (traffic routing rules)
  *
- * @param region          - Region identifier for resource naming
  * @param vpcs            - VPC configurations from networking.json
  * @param az_names        - Available availability zones in this region
  * @param az_letter_to_ix - Maps zone letters to indices
@@ -45,9 +42,8 @@ module "networking_london" {
   source    = "./modules/networking"
   providers = { aws = aws.london }
 
-  region          = "london"
   vpcs            = local.vpcs_london
   az_names        = data.aws_availability_zones.london.names
   az_letter_to_ix = local.az_letter_to_ix
-  common_tags     = local.tags_common
+  common_tags     = merge(local.tags_common, { "region" = local.REGION_LONDON })
 }

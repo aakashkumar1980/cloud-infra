@@ -13,7 +13,6 @@
  * @param az_names        - List of availability zones in the region
  * @param az_letter_to_ix - Maps zone letters (a,b,c) to indices (0,1,2)
  * @param common_tags     - Tags to apply to all resources
- * @param region          - Region identifier for resource naming
  */
 module "vpc" {
   source          = "./vpc"
@@ -21,5 +20,4 @@ module "vpc" {
   az_names        = var.az_names
   az_letter_to_ix = var.az_letter_to_ix
   common_tags     = var.common_tags
-  region          = var.region
 }

@@ -13,12 +13,8 @@
  *
  * @var common_tags     - Tags applied to all resources
  *                        (e.g., { environment="dev", project="myapp" })
- *
- * @var region          - Region identifier used in resource naming
- *                        (e.g., "nvirginia", "london")
  */
 variable "vpcs"            { type = map(any) }
 variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
 variable "common_tags"     { type = map(string) }
-variable "region"          { type = string }

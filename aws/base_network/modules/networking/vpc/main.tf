@@ -28,7 +28,7 @@ resource "aws_vpc" "this" {
   cidr_block = each.value.cidr
 
   tags = merge(var.common_tags, {
-    Name = "${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "${each.key}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }
 
@@ -43,7 +43,6 @@ module "internet_gateway" {
   vpcs        = var.vpcs
   vpc_ids     = { for k, v in aws_vpc.this : k => v.id }
   common_tags = var.common_tags
-  region      = var.region
 }
 
 /**
@@ -62,5 +61,4 @@ module "subnets" {
   igw_ids         = module.internet_gateway.igw_ids
   igw_names       = module.internet_gateway.igw_names
   common_tags     = var.common_tags
-  region          = var.region
 }

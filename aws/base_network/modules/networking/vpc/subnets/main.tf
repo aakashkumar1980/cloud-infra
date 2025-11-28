@@ -34,7 +34,7 @@ resource "aws_subnet" "this" {
   availability_zone = each.value.az
 
   tags = merge(var.common_tags, {
-    Name = "subnet_${each.value.name}-${each.value.vpc_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "subnet_${each.value.name}-${each.value.vpc_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }
 
@@ -53,7 +53,6 @@ module "nat_gateway" {
   igw_ids     = var.igw_ids
   igw_names   = var.igw_names
   common_tags = var.common_tags
-  region      = var.region
 }
 
 /**
@@ -71,5 +70,4 @@ module "route_tables" {
   nat_gateway_ids = module.nat_gateway.nat_gateway_ids
   subnet_ids      = { for k, s in aws_subnet.this : k => s.id }
   common_tags     = var.common_tags
-  region          = var.region
 }

@@ -21,6 +21,6 @@ resource "aws_internet_gateway" "this" {
   vpc_id   = var.vpc_ids[each.key]
 
   tags = merge(var.common_tags, {
-    Name = "igw-${each.key}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "igw-${each.key}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }

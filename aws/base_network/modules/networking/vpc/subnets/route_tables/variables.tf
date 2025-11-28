@@ -22,8 +22,6 @@
  * @var common_tags     - Tags applied to all route table resources
  *                        Example: { environment = "dev", managed_by = "terraform" }
  *
- * @var region          - Region identifier for resource naming
- *                        Example: "nvirginia" or "london"
  */
 variable "vpcs"            { type = map(any) }
 variable "vpc_ids"         { type = map(string) }
@@ -31,4 +29,3 @@ variable "igw_ids"         { type = map(string) }
 variable "nat_gateway_ids" { type = map(string) }
 variable "subnet_ids"      { type = map(string) }
 variable "common_tags"     { type = map(string) }
-variable "region"          { type = string }

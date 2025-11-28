@@ -33,7 +33,7 @@ resource "aws_eip" "nat" {
   domain   = "vpc"
 
   tags = merge(var.common_tags, {
-    Name = "eip-natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "eip-natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 }
 
@@ -53,7 +53,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = var.subnet_ids[each.value]
 
   tags = merge(var.common_tags, {
-    Name = "natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.region}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
   })
 
   depends_on = [var.igw_ids]
