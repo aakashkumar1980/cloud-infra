@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Network Architecture - 3D Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #info h1 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #ff9900;
+        }
+        #info p {
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #ccc;
+        }
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #legend h3 {
+            margin-bottom: 10px;
+            color: #ff9900;
+            font-size: 1em;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 0.85em;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            pointer-events: none;
+            display: none;
+            border: 1px solid #ff9900;
+            max-width: 280px;
+        }
+        #tooltip h4 {
+            color: #ff9900;
+            margin-bottom: 5px;
+        }
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #controls h3 {
+            color: #ff9900;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        #controls p {
+            font-size: 0.8em;
+            color: #aaa;
+            margin: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <div id="info">
+        <h1>☁️ AWS Network Architecture</h1>
+        <p>Interactive 3D visualization of multi-region AWS infrastructure with 3 VPCs across 2 regions.</p>
+    </div>
+
+    <div id="controls">
+        <h3>🎮 Controls</h3>
+        <p>🖱️ Left Click + Drag: Rotate</p>
+        <p>🖱️ Right Click + Drag: Pan</p>
+        <p>🖱️ Scroll: Zoom</p>
+        <p>👆 Hover: View details</p>
+    </div>
+
+    <div id="legend">
+        <h3>📋 Legend</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #232f3e;"></div>
+            <span>AWS Region</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #1a73e8;"></div>
+            <span>VPC</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #34a853;"></div>
+            <span>Public Subnet</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ea4335;"></div>
+            <span>Private Subnet</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff9900;"></div>
+            <span>Internet Gateway</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9c27b0;"></div>
+            <span>NAT Gateway</span>
+        </div>
+    </div>
+
+    <div id="tooltip"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(25, 20, 25);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 10;
+        controls.maxDistance = 80;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(20, 30, 20);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xff9900, 0.5, 100);
+        pointLight.position.set(0, 15, 0);
+        scene.add(pointLight);
+
+        // Materials
+        const materials = {
+            region: new THREE.MeshPhongMaterial({ color: 0x232f3e, transparent: true, opacity: 0.3 }),
+            vpc: new THREE.MeshPhongMaterial({ color: 0x1a73e8, transparent: true, opacity: 0.5 }),
+            publicSubnet: new THREE.MeshPhongMaterial({ color: 0x34a853, transparent: true, opacity: 0.7 }),
+            privateSubnet: new THREE.MeshPhongMaterial({ color: 0xea4335, transparent: true, opacity: 0.7 }),
+            igw: new THREE.MeshPhongMaterial({ color: 0xff9900 }),
+            natgw: new THREE.MeshPhongMaterial({ color: 0x9c27b0 }),
+            internet: new THREE.MeshPhongMaterial({ color: 0x00bcd4 }),
+            isolated: new THREE.MeshPhongMaterial({ color: 0x607d8b, transparent: true, opacity: 0.6 })
+        };
+
+        // Store clickable objects
+        const clickableObjects = [];
+
+        // Helper function to create labeled box
+        function createBox(width, height, depth, material, position, userData) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(position.x, position.y, position.z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.userData = userData;
+            clickableObjects.push(mesh);
+            return mesh;
+        }
+
+        // Helper function to create sphere
+        function createSphere(radius, material, position, userData) {
+            const geometry = new THREE.SphereGeometry(radius, 32, 32);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(position.x, position.y, position.z);
+            mesh.castShadow = true;
+            mesh.userData = userData;
+            clickableObjects.push(mesh);
+            return mesh;
+        }
+
+        // Helper function to create cylinder (for gateways)
+        function createCylinder(radiusTop, radiusBottom, height, material, position, userData) {
+            const geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 32);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(position.x, position.y, position.z);
+            mesh.castShadow = true;
+            mesh.userData = userData;
+            clickableObjects.push(mesh);
+            return mesh;
+        }
+
+        // Create connection line
+        function createConnection(start, end, color) {
+            const material = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+            const points = [
+                new THREE.Vector3(start.x, start.y, start.z),
+                new THREE.Vector3(end.x, end.y, end.z)
+            ];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            return new THREE.Line(geometry, material);
+        }
+
+        // Create dashed connection line
+        function createDashedConnection(start, end, color) {
+            const material = new THREE.LineDashedMaterial({ color: color, dashSize: 0.5, gapSize: 0.3 });
+            const points = [
+                new THREE.Vector3(start.x, start.y, start.z),
+                new THREE.Vector3(end.x, end.y, end.z)
+            ];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            line.computeLineDistances();
+            return line;
+        }
+
+        // ==================== INTERNET ====================
+        const internet = createSphere(2, materials.internet, { x: 0, y: 18, z: 0 }, {
+            name: 'Internet',
+            type: 'Internet',
+            description: 'Global Internet - Entry point for all external traffic'
+        });
+        scene.add(internet);
+
+        // Internet glow effect
+        const internetGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(2.5, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0x00bcd4, transparent: true, opacity: 0.2 })
+        );
+        internetGlow.position.copy(internet.position);
+        scene.add(internetGlow);
+
+        // ==================== US-EAST-1 REGION ====================
+        const usEast1Region = createBox(22, 0.5, 18, materials.region, { x: -8, y: 0, z: 0 }, {
+            name: 'US-EAST-1 Region',
+            type: 'Region',
+            description: 'N. Virginia - Primary AWS Region\nContains VPC_A and VPC_B'
+        });
+        scene.add(usEast1Region);
+
+        // VPC_A (10.0.0.0/24)
+        const vpcA = createBox(9, 6, 7, materials.vpc, { x: -12, y: 3.5, z: 3 }, {
+            name: 'VPC_A',
+            type: 'VPC',
+            cidr: '10.0.0.0/24',
+            description: 'Primary VPC with full internet access\n256 IP addresses available'
+        });
+        scene.add(vpcA);
+
+        // VPC_A Public Subnet
+        const vpcAPublic = createBox(3.5, 3, 2.5, materials.publicSubnet, { x: -14, y: 2, z: 4 }, {
+            name: 'Public Subnet (VPC_A)',
+            type: 'Public Subnet',
+            cidr: '10.0.0.0/27',
+            az: 'us-east-1a',
+            description: 'Direct internet access via IGW\n32 IP addresses'
+        });
+        scene.add(vpcAPublic);
+
+        // VPC_A Private Subnet
+        const vpcAPrivate = createBox(3.5, 3, 2.5, materials.privateSubnet, { x: -10, y: 2, z: 4 }, {
+            name: 'Private Subnet (VPC_A)',
+            type: 'Private Subnet',
+            cidr: '10.0.0.32/27',
+            az: 'us-east-1b',
+            description: 'Outbound via NAT Gateway\n32 IP addresses\nFor App/DB servers'
+        });
+        scene.add(vpcAPrivate);
+
+        // VPC_A Internet Gateway
+        const vpcAIgw = createCylinder(0.6, 0.6, 1.5, materials.igw, { x: -14, y: 7.5, z: 3 }, {
+            name: 'Internet Gateway (VPC_A)',
+            type: 'Internet Gateway',
+            description: 'Enables internet connectivity for VPC_A\nRoutes: 0.0.0.0/0 → Internet'
+        });
+        scene.add(vpcAIgw);
+
+        // VPC_A NAT Gateway
+        const vpcANat = createCylinder(0.5, 0.5, 1.2, materials.natgw, { x: -14, y: 4.5, z: 5 }, {
+            name: 'NAT Gateway (VPC_A)',
+            type: 'NAT Gateway',
+            description: 'Elastic IP attached\nEnables outbound internet for private subnet'
+        });
+        scene.add(vpcANat);
+
+        // VPC_B (172.16.0.0/26) - Isolated
+        const vpcB = createBox(7, 5, 6, materials.isolated, { x: -5, y: 3, z: -4 }, {
+            name: 'VPC_B',
+            type: 'VPC (Isolated)',
+            cidr: '172.16.0.0/26',
+            description: 'Isolated VPC - NO internet access\n64 IP addresses\nFor internal backend services'
+        });
+        scene.add(vpcB);
+
+        // VPC_B Private Subnet
+        const vpcBPrivate = createBox(3, 2.5, 2.5, materials.privateSubnet, { x: -5, y: 2, z: -4 }, {
+            name: 'Private Subnet (VPC_B)',
+            type: 'Private Subnet (Isolated)',
+            cidr: '172.16.0.0/28',
+            az: 'us-east-1b',
+            description: 'Completely isolated\n16 IP addresses\nNo NAT, No IGW'
+        });
+        scene.add(vpcBPrivate);
+
+        // ==================== EU-WEST-2 REGION ====================
+        const euWest2Region = createBox(12, 0.5, 10, materials.region, { x: 12, y: 0, z: 0 }, {
+            name: 'EU-WEST-2 Region',
+            type: 'Region',
+            description: 'London - EU AWS Region\nContains VPC_C'
+        });
+        scene.add(euWest2Region);
+
+        // VPC_C (192.168.0.0/26)
+        const vpcC = createBox(9, 6, 7, materials.vpc, { x: 12, y: 3.5, z: 0 }, {
+            name: 'VPC_C',
+            type: 'VPC',
+            cidr: '192.168.0.0/26',
+            description: 'EU Region VPC with full internet access\n64 IP addresses available'
+        });
+        scene.add(vpcC);
+
+        // VPC_C Public Subnet
+        const vpcCPublic = createBox(3.5, 3, 2.5, materials.publicSubnet, { x: 10, y: 2, z: 1 }, {
+            name: 'Public Subnet (VPC_C)',
+            type: 'Public Subnet',
+            cidr: '192.168.0.0/28',
+            az: 'eu-west-2a',
+            description: 'Direct internet access via IGW\n16 IP addresses'
+        });
+        scene.add(vpcCPublic);
+
+        // VPC_C Private Subnet
+        const vpcCPrivate = createBox(3.5, 3, 2.5, materials.privateSubnet, { x: 14, y: 2, z: 1 }, {
+            name: 'Private Subnet (VPC_C)',
+            type: 'Private Subnet',
+            cidr: '192.168.0.16/28',
+            az: 'eu-west-2b',
+            description: 'Outbound via NAT Gateway\n16 IP addresses\nFor EU App/DB servers'
+        });
+        scene.add(vpcCPrivate);
+
+        // VPC_C Internet Gateway
+        const vpcCIgw = createCylinder(0.6, 0.6, 1.5, materials.igw, { x: 10, y: 7.5, z: 0 }, {
+            name: 'Internet Gateway (VPC_C)',
+            type: 'Internet Gateway',
+            description: 'Enables internet connectivity for VPC_C\nRoutes: 0.0.0.0/0 → Internet'
+        });
+        scene.add(vpcCIgw);
+
+        // VPC_C NAT Gateway
+        const vpcCNat = createCylinder(0.5, 0.5, 1.2, materials.natgw, { x: 10, y: 4.5, z: 2 }, {
+            name: 'NAT Gateway (VPC_C)',
+            type: 'NAT Gateway',
+            description: 'Elastic IP attached\nEnables outbound internet for private subnet'
+        });
+        scene.add(vpcCNat);
+
+        // ==================== CONNECTIONS ====================
+
+        // Internet to IGWs
+        scene.add(createConnection(
+            { x: 0, y: 16, z: 0 },
+            { x: -14, y: 8.5, z: 3 },
+            0xff9900
+        ));
+        scene.add(createConnection(
+            { x: 0, y: 16, z: 0 },
+            { x: 10, y: 8.5, z: 0 },
+            0xff9900
+        ));
+
+        // IGW to Public Subnets
+        scene.add(createConnection(
+            { x: -14, y: 6.5, z: 3 },
+            { x: -14, y: 3.5, z: 4 },
+            0x34a853
+        ));
+        scene.add(createConnection(
+            { x: 10, y: 6.5, z: 0 },
+            { x: 10, y: 3.5, z: 1 },
+            0x34a853
+        ));
+
+        // NAT to Private Subnets (dashed)
+        scene.add(createDashedConnection(
+            { x: -14, y: 4, z: 5 },
+            { x: -10, y: 3.5, z: 4 },
+            0x9c27b0
+        ));
+        scene.add(createDashedConnection(
+            { x: 10, y: 4, z: 2 },
+            { x: 14, y: 3.5, z: 1 },
+            0x9c27b0
+        ));
+
+        // ==================== GRID ====================
+        const gridHelper = new THREE.GridHelper(60, 30, 0x444444, 0x333333);
+        gridHelper.position.y = -0.5;
+        scene.add(gridHelper);
+
+        // ==================== LABELS (3D Text Sprites) ====================
+        function createTextSprite(text, position, fontSize = 24, color = '#ffffff') {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+
+            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            context.font = `bold ${fontSize}px Arial`;
+            context.fillStyle = color;
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(position.x, position.y, position.z);
+            sprite.scale.set(8, 2, 1);
+
+            return sprite;
+        }
+
+        // Region labels
+        scene.add(createTextSprite('US-EAST-1 (N. Virginia)', { x: -8, y: 9, z: 0 }, 28, '#ff9900'));
+        scene.add(createTextSprite('EU-WEST-2 (London)', { x: 12, y: 9, z: 0 }, 28, '#ff9900'));
+
+        // VPC labels
+        scene.add(createTextSprite('VPC_A: 10.0.0.0/24', { x: -12, y: 7, z: 3 }, 22, '#4fc3f7'));
+        scene.add(createTextSprite('VPC_B: 172.16.0.0/26', { x: -5, y: 6, z: -4 }, 20, '#90a4ae'));
+        scene.add(createTextSprite('VPC_C: 192.168.0.0/26', { x: 12, y: 7, z: 0 }, 22, '#4fc3f7'));
+
+        // Internet label
+        scene.add(createTextSprite('INTERNET', { x: 0, y: 21, z: 0 }, 32, '#00bcd4'));
+
+        // ==================== TOOLTIP & RAYCASTING ====================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const tooltip = document.getElementById('tooltip');
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(clickableObjects);
+
+            if (intersects.length > 0) {
+                const obj = intersects[0].object;
+                const data = obj.userData;
+
+                let html = `<h4>${data.name}</h4>`;
+                html += `<div><strong>Type:</strong> ${data.type}</div>`;
+                if (data.cidr) html += `<div><strong>CIDR:</strong> ${data.cidr}</div>`;
+                if (data.az) html += `<div><strong>AZ:</strong> ${data.az}</div>`;
+                html += `<div style="margin-top: 8px; color: #aaa;">${data.description.replace(/\n/g, '<br>')}</div>`;
+
+                tooltip.innerHTML = html;
+                tooltip.style.display = 'block';
+                tooltip.style.left = event.clientX + 15 + 'px';
+                tooltip.style.top = event.clientY + 15 + 'px';
+
+                document.body.style.cursor = 'pointer';
+            } else {
+                tooltip.style.display = 'none';
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        window.addEventListener('mousemove', onMouseMove);
+
+        // ==================== ANIMATION ====================
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate internet sphere slowly
+            internet.rotation.y += 0.005;
+            internetGlow.rotation.y -= 0.003;
+
+            // Pulse effect for gateways
+            const pulse = Math.sin(Date.now() * 0.003) * 0.1 + 1;
+            vpcAIgw.scale.set(pulse, 1, pulse);
+            vpcCIgw.scale.set(pulse, 1, pulse);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ==================== RESIZE HANDLER ====================
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+
+        console.log('AWS Network 3D Visualization loaded successfully!');
+        console.log('Drag to rotate, scroll to zoom, hover for details.');
+    </script>
+</body>
+</html>
