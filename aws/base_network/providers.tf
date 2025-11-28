@@ -7,8 +7,6 @@
  *
  * The profile variable selects which AWS credentials to use (dev, stage, prod).
  *
- * Usage:
- *   terraform plan -var="profile=dev"
  */
 terraform {
   required_version = ">= 1.6.0"
