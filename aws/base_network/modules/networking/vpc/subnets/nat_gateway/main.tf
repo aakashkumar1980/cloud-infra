@@ -33,7 +33,7 @@ resource "aws_eip" "nat" {
   domain   = "vpc"
 
   tags = merge(var.common_tags, {
-    Name = "eip-natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
+    Name = "eip-natgw-${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
   })
 }
 
@@ -53,7 +53,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = var.subnet_ids[each.value]
 
   tags = merge(var.common_tags, {
-    Name = "natgw-subnet_${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
+    Name = "natgw-${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
   })
 
   depends_on = [var.igw_ids]
