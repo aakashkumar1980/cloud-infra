@@ -4,15 +4,21 @@
  * Determines which VPCs need NAT Gateways and where to place them.
  *
  * Logic:
- *   1. nat_gateway_vpcs: List of VPCs that need NAT Gateways
+ *   1. nat_gateway_vpcs: Derived from config - VPCs where nat_gateway = true
  *   2. public_subnets: Find all public subnets across all VPCs
  *   3. nat_gateway_subnets: Select first public subnet per VPC for NAT Gateway placement
  *
  * Note: NAT Gateways must be placed in public subnets because they need
  *       a route to the Internet Gateway.
+ *
+ * Configuration:
+ *   Set "nat_gateway": true in networking.json for VPCs that need NAT Gateways.
  */
 locals {
-  nat_gateway_vpcs = toset(["vpc_a", "vpc_c"])
+  nat_gateway_vpcs = toset([
+    for vpc_name, vpc in var.vpcs : vpc_name
+    if try(vpc.nat_gateway, false) == true
+  ])
 
   public_subnets = merge([
     for vpc_name, v in var.vpcs : {
