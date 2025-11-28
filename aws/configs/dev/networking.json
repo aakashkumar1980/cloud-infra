@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "online_tool:": "https://www.davidc.net/sites/default/subnets/subnets.html",
   "regions": {
     "nvirginia": {
       "vpcs": {
