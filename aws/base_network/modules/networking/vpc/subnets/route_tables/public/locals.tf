@@ -1,24 +1,22 @@
 /**
-  Flattened map of all public subnets across all VPCs with
-  - keys as "vpc_name/tier_zone_z" and
-  - values containing subnet details as a map.
-
-  Only includes subnets where tier == "public"
-  Example:
-  {
-    "vpc_a/public_zone_a" = {
-      "vpc_name" = "vpc_a"
-      "subnet_key" = "vpc_a/public_zone_a"
-      "subnet_name" = "subnet_public_zone_a-vpc_a"
-      "tier" = "public"
-    }
-    "vpc_a/public_zone_b" = {
-      "vpc_name" = "vpc_a"
-      "subnet_key" = "vpc_a/public_zone_b"
-      "subnet_name" = "subnet_public_zone_b-vpc_a"
-      "tier" = "public"
-    }
-  }
+ * Local Values for Public Route Tables
+ *
+ * Filters the VPC configuration to extract only public subnets.
+ * Creates a flattened map that's easy to iterate over with for_each.
+ *
+ * @local public_subnets - Map of public subnet information
+ *        Key: "{vpc_name}/{tier}_zone_{zone}" (e.g., "vpc_a/public_zone_a")
+ *        Value: Object containing:
+ *          - vpc_name    : Name of the VPC (e.g., "vpc_a")
+ *          - subnet_key  : Key to look up subnet ID (same as map key)
+ *          - subnet_name : Human-readable name for tagging
+ *          - tier        : Always "public" for this module
+ *
+ * How the filter works:
+ *   1. Loop through each VPC in var.vpcs
+ *   2. Loop through each subnet in that VPC
+ *   3. Only include subnets where tier == "public"
+ *   4. Merge all results into a single flat map
  */
 locals {
   public_subnets = merge([

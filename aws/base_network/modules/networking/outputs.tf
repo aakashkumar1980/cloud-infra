@@ -1,82 +1,66 @@
 /**
- * Outputs the IDs of the created VPCs.
+ * Outputs
+ *
+ * Exposes all networking resource IDs and names from the VPC module.
+ * These outputs are used by the root module to display results.
  */
+
+/** VPC IDs and names */
 output "vpc_ids" {
-  value = module.vpc.vpc_ids
+  value       = module.vpc.vpc_ids
+  description = "Map of VPC names to VPC IDs"
 }
-
-/**
- * Outputs the Name tags of the created VPCs.
- */
 output "vpc_names" {
-  value = module.vpc.vpc_names
+  value       = module.vpc.vpc_names
+  description = "Map of VPC names to VPC Name tags"
 }
-/**
- * Outputs the IDs of the created Internet Gateways.
- */
+
+/** Internet Gateway IDs and names */
 output "igw_ids" {
-  value = module.vpc.igw_ids
+  value       = module.vpc.igw_ids
+  description = "Map of VPC names to Internet Gateway IDs"
 }
-
-/**
- * Outputs the Name tags of the created Internet Gateways.
- */
 output "igw_names" {
-  value = module.vpc.igw_names
+  value       = module.vpc.igw_names
+  description = "Map of VPC names to Internet Gateway Name tags"
 }
 
-/**
- * Outputs the IDs of the created subnets.
- */
+/** Subnet IDs and names */
 output "subnet_ids" {
-  value = module.vpc.subnet_ids
+  value       = module.vpc.subnet_ids
+  description = "Map of subnet keys to subnet IDs"
 }
-
-/**
- * Outputs the Name tags of the created subnets.
- */
 output "subnet_names" {
-  value = module.vpc.subnet_names
+  value       = module.vpc.subnet_names
+  description = "Map of subnet keys to subnet Name tags"
 }
-/**
- * Outputs the IDs of the created route tables for public subnets.
- */
+
+/** Public Route Table outputs */
 output "route_table_public_ids" {
-  value = module.vpc.route_table_public_ids
+  value       = module.vpc.route_table_public_ids
+  description = "Map of subnet keys to public route table IDs"
 }
-
-/**
- * Outputs the Name tags of the created route tables for public subnets.
- */
 output "route_table_public_names" {
-  value = module.vpc.route_table_public_names
+  value       = module.vpc.route_table_public_names
+  description = "Map of subnet keys to public route table Name tags"
 }
-
-/**
- * Outputs the route information for public route tables including destinations and targets.
- */
 output "route_table_public_routes" {
-  value = module.vpc.route_table_public_routes
+  value       = module.vpc.route_table_public_routes
+  description = "Public route table routing information"
 }
 
-/**
- * Outputs the IDs of the created NAT Gateways.
- */
+/** NAT Gateway IDs and names */
 output "nat_gateway_ids" {
-  value = module.vpc.nat_gateway_ids
+  value       = module.vpc.nat_gateway_ids
+  description = "Map of VPC names to NAT Gateway IDs"
 }
-
-/**
- * Outputs the Name tags of the created NAT Gateways.
- */
 output "nat_gateway_names" {
-  value = module.vpc.nat_gateway_names
+  value       = module.vpc.nat_gateway_names
+  description = "Map of VPC names to NAT Gateway Name tags"
 }
 
-/**
- * Outputs the route information for private route tables including destinations and targets.
- */
+/** Private Route Table outputs */
 output "route_table_private_routes" {
-  value = module.vpc.route_table_private_routes
+  value       = module.vpc.route_table_private_routes
+  description = "Private route table routing information"
 }
-

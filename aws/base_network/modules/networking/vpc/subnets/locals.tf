@@ -1,33 +1,20 @@
 /**
-  Flattened map of all subnets across all VPCs with
-  - keys as "vpc_name/tier_zone_z" and
-  - values containing subnet details as a map.
-  Example:
-  {
-    "london" = {
-      "vpc_c/public_zone_a" = {
-        "vpc_name" = "vpc_c"
-        "name" = public_zone_a"
-        "az" = "eu-west-2a"
-        "cidr" = "192.168.0.0/28"
-      }
-      "vpc_acopy/public_zone_a" = {
-        ...
-      }
-      ...
-    "nvirginia" = {
-      "vpc_a/public_zone_a" = {
-        "vpc_name" = "vpc_a"
-        "name" = "public_zone_a"
-        "az" = "us-east-1a"
-        "cidr" = "10.0.0.0/27"
-      }
-      "vpc_a/public_zone_b" = {
-        ...
-      }
-      ...
-    }
-  }
+ * Local Variables
+ *
+ * Flattens the nested subnet configuration from networking.json into
+ * a single map that can be used with for_each.
+ *
+ * Input (nested):
+ *   vpcs.vpc_a.subnets = [
+ *     { tier="public", cidr="10.0.0.0/27", zone="a" },
+ *     { tier="private", cidr="10.0.0.32/27", zone="b" }
+ *   ]
+ *
+ * Output (flat):
+ *   {
+ *     "vpc_a/public_zone_a"  = { vpc_name="vpc_a", name="public_zone_a", ... }
+ *     "vpc_a/private_zone_b" = { vpc_name="vpc_a", name="private_zone_b", ... }
+ *   }
  */
 locals {
   subnets_flat = merge([

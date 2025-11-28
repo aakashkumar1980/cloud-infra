@@ -1,23 +1,12 @@
 /**
- * A map of VPC configurations to create.
- * Each key is a unique identifier for the VPC, and the value is a map of VPC attributes.
+ * Input Variables
+ *
+ * @var vpcs        - Map of VPC configurations (used to determine how many IGWs to create)
+ * @var vpc_ids     - Map of VPC names to VPC IDs (for attaching IGW to VPC)
+ * @var common_tags - Tags applied to all resources
+ * @var region      - Region identifier for naming (e.g., "nvirginia")
  */
 variable "vpcs"        { type = map(any) }
-
-/**
- * A map of VPC IDs where Internet Gateways will be attached.
- * Each key is a unique identifier for the VPC, and the value is the corresponding VPC ID.
- */
 variable "vpc_ids"     { type = map(string) }
-
-/**
- * The common tags to apply to all resources.
- * Example: { "Environment" = "Production", "Owner" = "DevOps" }
- */
 variable "common_tags" { type = map(string) }
-
-/**
- * The AWS region where resources will be created.
- * Example: "us-west-2"
- */
 variable "region"      { type = string }

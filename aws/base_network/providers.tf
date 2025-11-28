@@ -1,13 +1,13 @@
 /**
- * Providers
+ * AWS Providers Configuration
  *
- * - Two AWS provider aliases for our two regions.
- *  alias "nvirginia" → AWS region us-east-1
- *  alias "london"    → AWS region eu-west-2
+ * Sets up two AWS providers to deploy resources in different regions:
+ *   - nvirginia: US East (N. Virginia) - us-east-1
+ *   - london: EU (London) - eu-west-2
  *
- * - The AWS CLI profile is injected via var.profile (e.g., "dev", "qa", "prod").
+ * The profile variable selects which AWS credentials to use (dev, stage, prod).
  *
- * Sample:
+ * Usage:
  *   terraform plan -var="profile=dev"
  */
 terraform {

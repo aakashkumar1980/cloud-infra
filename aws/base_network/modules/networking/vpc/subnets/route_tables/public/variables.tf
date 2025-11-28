@@ -1,35 +1,27 @@
 /**
- * A map of VPC configurations to create.
- * Each key is a unique identifier for the VPC, and the value is a map of VPC attributes.
+ * Input Variables for Public Route Tables
+ *
+ * @var vpcs        - VPC configurations containing subnet definitions
+ *                    Used to identify which subnets are public (tier = "public")
+ *
+ * @var vpc_ids     - Map of VPC names to their AWS resource IDs
+ *                    Route tables must be created within a specific VPC
+ *
+ * @var igw_ids     - Map of VPC names to Internet Gateway IDs
+ *                    Public route tables route 0.0.0.0/0 to these gateways
+ *
+ * @var subnet_ids  - Map of subnet keys to their AWS resource IDs
+ *                    Used to associate route tables with their subnets
+ *
+ * @var common_tags - Tags applied to all route table resources
+ *                    Includes environment, managed_by, and other standard tags
+ *
+ * @var region      - Region identifier for resource naming
+ *                    Example: "nvirginia" or "london"
  */
-variable "vpcs"            { type = map(any) }
-
-/**
- * A map of VPC IDs where route tables will be created.
- * Each key is a unique identifier for the VPC, and the value is the corresponding VPC ID.
- */
-variable "vpc_ids"         { type = map(string) }
-
-/**
- * A map of Internet Gateway IDs for routing internet traffic.
- * Each key is a unique identifier for the VPC, and the value is the corresponding IGW ID.
- */
-variable "igw_ids"         { type = map(string) }
-
-/**
- * A map of subnet IDs for route table associations.
- * Each key is in format "vpc_name/subnet_id", and the value is the corresponding subnet ID.
- */
-variable "subnet_ids"      { type = map(string) }
-
-/**
- * The common tags to apply to all resources.
- * Example: { "Environment" = "Production", "Owner" = "DevOps" }
- */
-variable "common_tags"     { type = map(string) }
-
-/**
- * The AWS region where resources will be created.
- * Example: "us-west-2"
- */
-variable "region"          { type = string }
+variable "vpcs"        { type = map(any) }
+variable "vpc_ids"     { type = map(string) }
+variable "igw_ids"     { type = map(string) }
+variable "subnet_ids"  { type = map(string) }
+variable "common_tags" { type = map(string) }
+variable "region"      { type = string }

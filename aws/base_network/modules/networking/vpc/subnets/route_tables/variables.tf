@@ -1,41 +1,34 @@
 /**
- * A map of VPC configurations to create.
- * Each key is a unique identifier for the VPC, and the value is a map of VPC attributes.
+ * Input Variables for Route Tables Module
+ *
+ * @var vpcs            - VPC configurations from networking.json
+ *                        Contains subnet definitions with tier (public/private)
+ *
+ * @var vpc_ids         - Map of VPC names to their AWS resource IDs
+ *                        Example: { "vpc_a" = "vpc-abc123" }
+ *
+ * @var igw_ids         - Map of VPC names to Internet Gateway IDs
+ *                        Used by public route tables for direct internet access
+ *                        Example: { "vpc_a" = "igw-xyz789" }
+ *
+ * @var nat_gateway_ids - Map of VPC names to NAT Gateway IDs
+ *                        Used by private route tables for outbound-only access
+ *                        Example: { "vpc_a" = "nat-def456" }
+ *
+ * @var subnet_ids      - Map of subnet keys to their AWS resource IDs
+ *                        Key format: "{vpc_name}/{tier}_zone_{zone}"
+ *                        Example: { "vpc_a/public_zone_a" = "subnet-111222" }
+ *
+ * @var common_tags     - Tags applied to all route table resources
+ *                        Example: { environment = "dev", managed_by = "terraform" }
+ *
+ * @var region          - Region identifier for resource naming
+ *                        Example: "nvirginia" or "london"
  */
 variable "vpcs"            { type = map(any) }
-
-/**
- * A map of VPC IDs where route tables will be created.
- * Each key is a unique identifier for the VPC, and the value is the corresponding VPC ID.
- */
 variable "vpc_ids"         { type = map(string) }
-
-/**
- * A map of Internet Gateway IDs for routing internet traffic from public subnets.
- * Each key is a unique identifier for the VPC, and the value is the corresponding IGW ID.
- */
 variable "igw_ids"         { type = map(string) }
-
-/**
- * A map of NAT Gateway IDs for routing internet traffic from private subnets.
- * Each key is a unique identifier for the VPC, and the value is the corresponding NAT Gateway ID.
- */
 variable "nat_gateway_ids" { type = map(string) }
-
-/**
- * A map of subnet IDs for route table associations.
- * Each key is in format "vpc_name/subnet_id", and the value is the corresponding subnet ID.
- */
 variable "subnet_ids"      { type = map(string) }
-
-/**
- * The common tags to apply to all resources.
- * Example: { "Environment" = "Production", "Owner" = "DevOps" }
- */
 variable "common_tags"     { type = map(string) }
-
-/**
- * The AWS region where resources will be created.
- * Example: "us-west-2"
- */
 variable "region"          { type = string }

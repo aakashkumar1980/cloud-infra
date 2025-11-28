@@ -1,35 +1,28 @@
 /**
- * A map of VPC configurations to create.
- * Each key is a unique identifier for the VPC, and the value is a map of VPC attributes.
+ * Input Variables for Private Route Tables
+ *
+ * @var vpcs            - VPC configurations containing subnet definitions
+ *                        Used to identify which subnets are private (tier = "private")
+ *
+ * @var vpc_ids         - Map of VPC names to their AWS resource IDs
+ *                        Route tables must be created within a specific VPC
+ *
+ * @var nat_gateway_ids - Map of VPC names to NAT Gateway IDs
+ *                        Private route tables route 0.0.0.0/0 to these gateways
+ *                        Only VPCs with NAT Gateways will have private route tables
+ *
+ * @var subnet_ids      - Map of subnet keys to their AWS resource IDs
+ *                        Used to associate route tables with their subnets
+ *
+ * @var common_tags     - Tags applied to all route table resources
+ *                        Includes environment, managed_by, and other standard tags
+ *
+ * @var region          - Region identifier for resource naming
+ *                        Example: "nvirginia" or "london"
  */
-variable "vpcs" { type = map(any) }
-
-/**
- * A map of VPC IDs where route tables will be created.
- * Each key is a unique identifier for the VPC, and the value is the corresponding VPC ID.
- */
-variable "vpc_ids" { type = map(string) }
-
-/**
- * A map of NAT Gateway IDs for routing internet-bound traffic.
- * Each key is a VPC name, and the value is the corresponding NAT Gateway ID.
- */
+variable "vpcs"            { type = map(any) }
+variable "vpc_ids"         { type = map(string) }
 variable "nat_gateway_ids" { type = map(string) }
-
-/**
- * A map of subnet IDs for route table associations.
- * Each key is the subnet identifier (e.g., "vpc_c/private_zone_b"), and the value is the subnet ID.
- */
-variable "subnet_ids" { type = map(string) }
-
-/**
- * The common tags to apply to all resources.
- * Example: { "Environment" = "Production", "Owner" = "DevOps" }
- */
-variable "common_tags" { type = map(string) }
-
-/**
- * The AWS region where resources will be created.
- * Example: "us-west-2"
- */
-variable "region" { type = string }
+variable "subnet_ids"      { type = map(string) }
+variable "common_tags"     { type = map(string) }
+variable "region"          { type = string }

@@ -1,34 +1,30 @@
 /**
- * Outputs the IDs of the created NAT Gateways.
- * Used by private route tables to route traffic to the internet.
+ * Outputs
+ *
+ * Exposes NAT Gateway IDs, public IPs, and names.
+ * Used by private route tables to route internet traffic.
  */
+
+/** NAT Gateway IDs - used by private route tables */
 output "nat_gateway_ids" {
-  value = { for k, v in aws_nat_gateway.this : k => v.id }
+  value       = { for k, v in aws_nat_gateway.this : k => v.id }
   description = "Map of VPC names to NAT Gateway IDs"
 }
 
-/**
- * Outputs the public IP addresses of the created NAT Gateways.
- * These are the Elastic IP addresses associated with each NAT Gateway.
- */
+/** NAT Gateway public IPs */
 output "nat_gateway_public_ips" {
-  value = { for k, v in aws_nat_gateway.this : k => v.public_ip }
-  description = "Map of VPC names to NAT Gateway public IP addresses"
+  value       = { for k, v in aws_nat_gateway.this : k => v.public_ip }
+  description = "Map of VPC names to NAT Gateway public IPs"
 }
 
-/**
- * Outputs the Name tags of the created NAT Gateways with Internet Gateway relationship.
- * Shows which Internet Gateway the NAT Gateway routes traffic through.
- */
+/** NAT Gateway names with IGW relationship */
 output "nat_gateway_names" {
-  value = { for k, v in aws_nat_gateway.this : k => "${v.tags["Name"]} -> ${var.igw_names[k]}" }
-  description = "Map of VPC names to NAT Gateway names with IGW routing information"
+  value       = { for k, v in aws_nat_gateway.this : k => "${v.tags["Name"]} -> ${var.igw_names[k]}" }
+  description = "Map of VPC names to NAT Gateway names showing routing path"
 }
 
-/**
- * Outputs the Elastic IP allocation IDs.
- */
+/** Elastic IP allocation IDs */
 output "eip_allocation_ids" {
-  value = { for k, v in aws_eip.nat : k => v.id }
+  value       = { for k, v in aws_eip.nat : k => v.id }
   description = "Map of VPC names to EIP allocation IDs"
 }

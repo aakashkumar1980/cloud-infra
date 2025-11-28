@@ -1,104 +1,77 @@
 /**
- * Outputs the IDs of the created VPCs.
+ * Outputs
+ *
+ * Exposes IDs and names of all networking resources created by this module.
  */
+
+/** VPC outputs */
 output "vpc_ids" {
-  value = { for k, v in aws_vpc.this : k => v.id }
+  value       = { for k, v in aws_vpc.this : k => v.id }
+  description = "Map of VPC names to VPC IDs"
 }
-
-/**
- * Outputs the Name tags of the created VPCs.
- */
 output "vpc_names" {
-  value = { for k, v in aws_vpc.this : k => v.tags["Name"] }
+  value       = { for k, v in aws_vpc.this : k => v.tags["Name"] }
+  description = "Map of VPC names to VPC Name tags"
 }
 
-/**
- * Outputs the IDs of the created Internet Gateways.
- */
+/** Internet Gateway outputs */
 output "igw_ids" {
-  value = module.internet_gateway.igw_ids
+  value       = module.internet_gateway.igw_ids
+  description = "Map of VPC names to Internet Gateway IDs"
 }
-
-/**
- * Outputs the Name tags of the created Internet Gateways.
- */
 output "igw_names" {
-  value = module.internet_gateway.igw_names
+  value       = module.internet_gateway.igw_names
+  description = "Map of VPC names to Internet Gateway Name tags"
 }
 
-/**
- * Outputs the IDs of the created subnets.
- */
+/** Subnet outputs */
 output "subnet_ids" {
-  value = module.subnets.subnet_ids
+  value       = module.subnets.subnet_ids
+  description = "Map of subnet keys to subnet IDs"
 }
-
-/**
- * Outputs the Name tags of the created subnets.
- */
 output "subnet_names" {
-  value = module.subnets.subnet_names
+  value       = module.subnets.subnet_names
+  description = "Map of subnet keys to subnet Name tags"
 }
 
-/**
- * Outputs the IDs of the created public route tables.
- */
+/** Public Route Table outputs */
 output "route_table_public_ids" {
-  value = module.subnets.route_table_public_ids
+  value       = module.subnets.route_table_public_ids
+  description = "Map of subnet keys to public route table IDs"
 }
-
-/**
- * Outputs the Name tags of the created public route tables.
- */
 output "route_table_public_names" {
-  value = module.subnets.route_table_public_names
+  value       = module.subnets.route_table_public_names
+  description = "Map of subnet keys to public route table Name tags"
 }
-
-/**
- * Outputs the route information for public route tables including destinations and targets.
- */
 output "route_table_public_routes" {
-  value = module.subnets.route_table_public_routes
+  value       = module.subnets.route_table_public_routes
+  description = "Public route table routing information"
 }
 
-/**
- * Outputs the IDs of the created NAT Gateways.
- */
+/** NAT Gateway outputs */
 output "nat_gateway_ids" {
-  value = module.subnets.nat_gateway_ids
+  value       = module.subnets.nat_gateway_ids
+  description = "Map of VPC names to NAT Gateway IDs"
 }
-
-/**
- * Outputs the public IP addresses of the created NAT Gateways.
- */
 output "nat_gateway_public_ips" {
-  value = module.subnets.nat_gateway_public_ips
+  value       = module.subnets.nat_gateway_public_ips
+  description = "Map of VPC names to NAT Gateway public IPs"
 }
-
-/**
- * Outputs the Name tags of the created NAT Gateways.
- */
 output "nat_gateway_names" {
-  value = module.subnets.nat_gateway_names
+  value       = module.subnets.nat_gateway_names
+  description = "Map of VPC names to NAT Gateway Name tags"
 }
 
-/**
- * Outputs the IDs of the created private route tables.
- */
+/** Private Route Table outputs */
 output "route_table_private_ids" {
-  value = module.subnets.route_table_private_ids
+  value       = module.subnets.route_table_private_ids
+  description = "Map of subnet keys to private route table IDs"
 }
-
-/**
- * Outputs the Name tags of the created private route tables.
- */
 output "route_table_private_names" {
-  value = module.subnets.route_table_private_names
+  value       = module.subnets.route_table_private_names
+  description = "Map of subnet keys to private route table Name tags"
 }
-
-/**
- * Outputs the route information for private route tables including destinations and targets.
- */
 output "route_table_private_routes" {
-  value = module.subnets.route_table_private_routes
+  value       = module.subnets.route_table_private_routes
+  description = "Private route table routing information"
 }

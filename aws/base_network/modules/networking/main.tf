@@ -1,41 +1,19 @@
 /**
- * ============================================================================
- * Networking Module - Main Configuration
- * ============================================================================
- * This module serves as the primary networking orchestrator, delegating VPC
- * creation, subnet configuration, and routing setup to specialized sub-modules.
+ * Networking Module
  *
- * Purpose:
- *   - Provides a unified interface for networking infrastructure
- *   - Delegates resource creation to focused sub-modules
- *   - Simplifies multi-region networking deployments
- *
- * Architecture:
- *   main.tf (this file) → vpc module → internet_gateway + subnets modules
- *
- * @module vpc - Creates VPCs and delegates to sub-modules
- * ============================================================================
- */
-
-/**
- * VPC Module Invocation
- *
- * Creates Virtual Private Clouds (VPCs) and orchestrates the creation of
- * related networking components including:
- *   - VPCs with specified CIDR blocks
+ * This is the main entry point for creating network infrastructure.
+ * It delegates all work to the VPC module, which creates:
+ *   - VPCs with custom CIDR blocks
  *   - Internet Gateways for public internet access
- *   - Subnets (public and private) across availability zones
- *   - Route tables for subnet routing configuration
+ *   - Subnets distributed across availability zones
+ *   - NAT Gateways for private subnet internet access
+ *   - Route Tables for traffic routing
  *
- * @source ./vpc - VPC module source path
- *
- * @param vpcs - Map of VPC configurations with CIDR blocks and subnet definitions
- * @param az_names - List of availability zone names for subnet placement
- * @param az_letter_to_ix - Mapping of AZ letters to indices for name resolution
- * @param common_tags - Tags to apply to all networking resources
- * @param region - AWS region identifier for resource naming
- *
- * @outputs vpc_ids, igw_ids, subnet_ids, route_table_public_ids
+ * @param vpcs            - VPC configurations from networking.json
+ * @param az_names        - List of availability zones in the region
+ * @param az_letter_to_ix - Maps zone letters (a,b,c) to indices (0,1,2)
+ * @param common_tags     - Tags to apply to all resources
+ * @param region          - Region identifier for resource naming
  */
 module "vpc" {
   source          = "./vpc"

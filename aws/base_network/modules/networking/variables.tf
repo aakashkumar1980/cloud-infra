@@ -1,38 +1,24 @@
 /**
- * VPC Definitions
-  Example:
-  {
-    vpc_a = {
-      cidr = "10.0.0.0/24"
-      subnets = [
-        { tier="public",  cidr="10.0.0.32/27", zone="a" },
-        { tier="private", cidr="10.0.0.96/27", zone="a" }
-      ]
-    }
-  }
+ * Input Variables
+ *
+ * @var vpcs            - Map of VPC configurations. Each VPC has a CIDR block
+ *                        and a list of subnets with their tier (public/private),
+ *                        CIDR, and availability zone.
+ *
+ * @var az_names        - List of availability zone names in the region
+ *                        (e.g., ["us-east-1a", "us-east-1b", "us-east-1c"])
+ *
+ * @var az_letter_to_ix - Maps zone letters to array indices
+ *                        (e.g., { a=0, b=1, c=2 })
+ *
+ * @var common_tags     - Tags applied to all resources
+ *                        (e.g., { environment="dev", project="myapp" })
+ *
+ * @var region          - Region identifier used in resource naming
+ *                        (e.g., "nvirginia", "london")
  */
-variable "vpcs" { type = map(any) }
-
-/**
- * Availability Zone Names
- * Example: ["a", "b", "c"]
- */
-variable "az_names" { type = list(string) }
-
-/**
- * Availability Zone Letter to Index Mapping
- * Example: { a=0, b=1, c=2 }
- */
+variable "vpcs"            { type = map(any) }
+variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
-
-/**
- * Common Tags
- * Example: { environment="prod", project="myapp" ... }
- */
-variable "common_tags" { type = map(string) }
-
-/**
- * AWS Region
- * Example: "us-east-1"
- */
-variable "region" { type = string }
+variable "common_tags"     { type = map(string) }
+variable "region"          { type = string }
