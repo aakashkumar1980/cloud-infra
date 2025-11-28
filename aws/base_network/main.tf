@@ -1,5 +1,19 @@
-# N. Virginia Region (us-east-1)
-# Creates VPCs, subnets, internet gateways, NAT gateways, and route tables
+/**
+ * Networking Module - N. Virginia Region (us-east-1)
+ *
+ * Creates the complete network infrastructure for the N. Virginia region:
+ *   - VPCs (Virtual Private Clouds)
+ *   - Subnets (public and private)
+ *   - Internet Gateways (for public internet access)
+ *   - NAT Gateways (for private subnet outbound access)
+ *   - Route Tables (traffic routing rules)
+ *
+ * @param region          - Region identifier for resource naming
+ * @param vpcs            - VPC configurations from networking.json
+ * @param az_names        - Available availability zones in this region
+ * @param az_letter_to_ix - Maps zone letters to indices
+ * @param common_tags     - Tags applied to all resources
+ */
 module "networking_nvirginia" {
   source    = "./modules/networking"
   providers = { aws = aws.nvirginia }
@@ -11,8 +25,22 @@ module "networking_nvirginia" {
   common_tags     = local.tags_common
 }
 
-# London Region (eu-west-2)
-# Creates VPCs, subnets, internet gateways, NAT gateways, and route tables
+/**
+ * Networking Module - London Region (eu-west-2)
+ *
+ * Creates the complete network infrastructure for the London region:
+ *   - VPCs (Virtual Private Clouds)
+ *   - Subnets (public and private)
+ *   - Internet Gateways (for public internet access)
+ *   - NAT Gateways (for private subnet outbound access)
+ *   - Route Tables (traffic routing rules)
+ *
+ * @param region          - Region identifier for resource naming
+ * @param vpcs            - VPC configurations from networking.json
+ * @param az_names        - Available availability zones in this region
+ * @param az_letter_to_ix - Maps zone letters to indices
+ * @param common_tags     - Tags applied to all resources
+ */
 module "networking_london" {
   source    = "./modules/networking"
   providers = { aws = aws.london }

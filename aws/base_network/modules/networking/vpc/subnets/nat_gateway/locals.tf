@@ -1,10 +1,19 @@
-# Determine which VPCs need NAT Gateways and where to place them
-
+/**
+ * Local Variables
+ *
+ * Determines which VPCs need NAT Gateways and where to place them.
+ *
+ * Logic:
+ *   1. nat_gateway_vpcs: List of VPCs that need NAT Gateways
+ *   2. public_subnets: Find all public subnets across all VPCs
+ *   3. nat_gateway_subnets: Select first public subnet per VPC for NAT Gateway placement
+ *
+ * Note: NAT Gateways must be placed in public subnets because they need
+ *       a route to the Internet Gateway.
+ */
 locals {
-  # VPCs that need NAT gateways (must have public subnets)
   nat_gateway_vpcs = toset(["vpc_a", "vpc_c"])
 
-  # Get all public subnets
   public_subnets = merge([
     for vpc_name, v in var.vpcs : {
       for s in v.subnets :
@@ -18,7 +27,6 @@ locals {
     }
   ]...)
 
-  # Select first public subnet per VPC for NAT Gateway placement
   nat_gateway_subnets = {
     for vpc_name in local.nat_gateway_vpcs :
     vpc_name => [

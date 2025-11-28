@@ -1,14 +1,32 @@
-# Subnets Module
-# Creates subnets across availability zones with NAT gateways and route tables
-#
-# Subnet types:
-#   - public: Has route to Internet Gateway (internet accessible)
-#   - private: Uses NAT Gateway for outbound-only internet access
-#
-# Naming: subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
-# Example: subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
+/**
+ * Subnets Module
+ *
+ * Creates subnets within VPCs and sets up networking for internet access.
+ *
+ * Subnet Types:
+ *   - public:  Can access internet directly via Internet Gateway
+ *   - private: Can only access internet outbound via NAT Gateway
+ *
+ * This module also creates:
+ *   - NAT Gateways (for private subnet internet access)
+ *   - Route Tables (for traffic routing)
+ *
+ * Naming Convention:
+ *   subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
+ *   Example: subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
+ */
 
-# Create subnets from flattened config
+/**
+ * Subnet Resource
+ *
+ * Creates subnets from the flattened configuration in locals.tf.
+ * Each subnet is placed in a specific availability zone.
+ *
+ * @for_each local.subnets_flat - Flattened map of all subnets
+ * @param vpc_id            - Parent VPC ID
+ * @param cidr_block        - IP address range for the subnet
+ * @param availability_zone - AZ where the subnet is created
+ */
 resource "aws_subnet" "this" {
   for_each          = local.subnets_flat
   vpc_id            = var.vpc_ids[each.value.vpc_name]
@@ -20,7 +38,13 @@ resource "aws_subnet" "this" {
   })
 }
 
-# Create NAT Gateways for private subnet internet access
+/**
+ * NAT Gateway Module
+ *
+ * Creates NAT Gateways for VPCs that have private subnets.
+ * NAT Gateways allow private subnet resources to access the internet
+ * for things like software updates, while remaining unreachable from outside.
+ */
 module "nat_gateway" {
   source      = "./nat_gateway"
   vpcs        = var.vpcs
@@ -32,7 +56,13 @@ module "nat_gateway" {
   region      = var.region
 }
 
-# Create route tables for public and private subnets
+/**
+ * Route Tables Module
+ *
+ * Creates route tables for both public and private subnets:
+ *   - Public route tables: Route 0.0.0.0/0 to Internet Gateway
+ *   - Private route tables: Route 0.0.0.0/0 to NAT Gateway
+ */
 module "route_tables" {
   source          = "./route_tables"
   vpcs            = var.vpcs

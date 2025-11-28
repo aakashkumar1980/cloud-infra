@@ -1,9 +1,15 @@
-# Two AWS providers for multi-region deployment:
-#   - nvirginia: US East (N. Virginia) - us-east-1
-#   - london: EU (London) - eu-west-2
-#
-# Usage: terraform plan -var="profile=dev"
-
+/**
+ * AWS Providers Configuration
+ *
+ * Sets up two AWS providers to deploy resources in different regions:
+ *   - nvirginia: US East (N. Virginia) - us-east-1
+ *   - london: EU (London) - eu-west-2
+ *
+ * The profile variable selects which AWS credentials to use (dev, stage, prod).
+ *
+ * Usage:
+ *   terraform plan -var="profile=dev"
+ */
 terraform {
   required_version = ">= 1.6.0"
   required_providers {
