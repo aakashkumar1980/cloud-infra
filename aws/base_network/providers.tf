@@ -20,12 +20,12 @@ terraform {
 
 provider "aws" {
   alias   = "nvirginia"
-  region  = local.regions_cfg["nvirginia"]
+  region  = local.regions_cfg[local.REGION_N_VIRGINIA]
   profile = var.profile
 }
 
 provider "aws" {
   alias   = "london"
-  region  = local.regions_cfg["london"]
+  region  = local.regions_cfg[local.REGION_LONDON]
   profile = var.profile
 }
