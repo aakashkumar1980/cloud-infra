@@ -17,7 +17,7 @@
  *   - aws_route_table_association: Links route table to subnet
  *
  * Naming Convention:
- *   routetable-{subnet_name}-{region}-{environment}-{managed_by}
+ *   routetable-{subnet_name}-{name_suffix}
  *   Example: routetable-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  */
 
@@ -27,7 +27,7 @@ resource "aws_route_table" "public" {
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
   tags = merge(var.common_tags, {
-    Name = "routetable-${each.value.subnet_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "routetable-${each.value.subnet_name}-${var.name_suffix}"
     Tier = each.value.tier
   })
 }

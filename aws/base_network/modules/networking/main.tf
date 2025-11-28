@@ -20,4 +20,5 @@ module "vpc" {
   az_names        = var.az_names
   az_letter_to_ix = var.az_letter_to_ix
   common_tags     = var.common_tags
+  name_suffix     = local.name_suffix
 }

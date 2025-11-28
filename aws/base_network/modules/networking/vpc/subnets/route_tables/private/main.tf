@@ -25,7 +25,7 @@
  * Note: Private route tables are only created for VPCs that have NAT Gateways.
  *
  * Naming Convention:
- *   routetable-{subnet_name}-{region}-{environment}-{managed_by}
+ *   routetable-{subnet_name}-{name_suffix}
  *   Example: routetable-subnet_private_zone_b-vpc_c-london-dev-terraform
  */
 
@@ -35,7 +35,7 @@ resource "aws_route_table" "private" {
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
   tags = merge(var.common_tags, {
-    Name = "routetable-${each.value.subnet_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "routetable-${each.value.subnet_name}-${var.name_suffix}"
     Tier = each.value.tier
   })
 }

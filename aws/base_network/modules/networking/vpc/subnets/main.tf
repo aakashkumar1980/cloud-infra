@@ -12,7 +12,7 @@
  *   - Route Tables (for traffic routing)
  *
  * Naming Convention:
- *   subnet_{tier}_zone_{zone}-{vpc_name}-{region}-{environment}-{managed_by}
+ *   subnet_{tier}_zone_{zone}-{vpc_name}-{name_suffix}
  *   Example: subnet_public_zone_a-vpc_a-nvirginia-dev-terraform
  */
 
@@ -34,7 +34,7 @@ resource "aws_subnet" "this" {
   availability_zone = each.value.az
 
   tags = merge(var.common_tags, {
-    Name = "subnet_${each.value.name}-${each.value.vpc_name}-${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"
+    Name = "subnet_${each.value.name}-${each.value.vpc_name}-${var.name_suffix}"
   })
 }
 
@@ -53,6 +53,7 @@ module "nat_gateway" {
   igw_ids     = var.igw_ids
   igw_names   = var.igw_names
   common_tags = var.common_tags
+  name_suffix = var.name_suffix
 }
 
 /**
@@ -70,4 +71,5 @@ module "route_tables" {
   nat_gateway_ids = module.nat_gateway.nat_gateway_ids
   subnet_ids      = { for k, s in aws_subnet.this : k => s.id }
   common_tags     = var.common_tags
+  name_suffix     = var.name_suffix
 }
