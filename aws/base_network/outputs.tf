@@ -1,6 +1,7 @@
-/**
- * Outputs the IDs of the created VPCs and subnets, internet_gateways for us-east-1 (N. Virginia).
- */
+# ============================================
+# N. Virginia Region (us-east-1) Outputs
+# ============================================
+
 output "aa_nvirginia_vpc_names" {
   value = values(module.networking_nvirginia.vpc_names)
 }
@@ -20,9 +21,10 @@ output "af_nvirginia_route_table_private_routes" {
   value = module.networking_nvirginia.route_table_private_routes
 }
 
-/**
- * Outputs the IDs of the created VPCs and subnets, internet_gateways for eu-west-2 (London).
- */
+# ============================================
+# London Region (eu-west-2) Outputs
+# ============================================
+
 output "ba_london_vpc_names" {
   value = values(module.networking_london.vpc_names)
 }

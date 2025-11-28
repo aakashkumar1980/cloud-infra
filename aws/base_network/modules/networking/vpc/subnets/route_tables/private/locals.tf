@@ -1,26 +1,5 @@
-/**
-  Flattened map of all private subnets across all VPCs with
-  - keys as "vpc_name/tier_zone_z" and
-  - values containing subnet details as a map.
+# Filter to get only private subnets in VPCs that have NAT Gateways
 
-  Only includes subnets where:
-  - tier == "private"
-  - VPC has a NAT Gateway (exists in var.nat_gateway_ids)
-
-  This ensures we only create NAT Gateway routes for private subnets
-  in VPCs that actually have NAT Gateways. VPCs without public subnets
-  (and therefore without NAT Gateways) are excluded.
-
-  Example:
-  {
-    "vpc_c/private_zone_b" = {
-      "vpc_name" = "vpc_c"
-      "subnet_key" = "vpc_c/private_zone_b"
-      "subnet_name" = "subnet_private_zone_b-vpc_c"
-      "tier" = "private"
-    }
-  }
- */
 locals {
   private_subnets = merge([
     for vpc_name, v in var.vpcs : {

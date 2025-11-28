@@ -1,24 +1,16 @@
-/**
- * Outputs the IDs of the created private route tables.
- */
+# Route table IDs
 output "route_table_ids" {
-  value = { for k, v in aws_route_table.private : k => v.id }
+  value       = { for k, v in aws_route_table.private : k => v.id }
   description = "Map of private subnet keys to route table IDs"
 }
 
-/**
- * Outputs the Name tags of the created private route tables.
- */
+# Route table names
 output "route_table_names" {
-  value = { for k, v in aws_route_table.private : k => v.tags["Name"] }
+  value       = { for k, v in aws_route_table.private : k => v.tags["Name"] }
   description = "Map of private subnet keys to route table names"
 }
 
-/**
- * Outputs the route information including source (implicit local route) and destinations.
- * For each route table, shows the destination CIDR and gateway (NAT Gateway Name tag).
- * Uses route table name as key.
- */
+# Route information (destination -> target)
 output "route_table_routes" {
   value = {
     for k, v in aws_route_table.private : v.tags["Name"] => {
@@ -29,7 +21,7 @@ output "route_table_routes" {
           type        = "nat_gateway"
         }
       ]
-      vpc_cidr = "local" # The VPC CIDR has an implicit local route
+      vpc_cidr = "local"
     }
   }
 }

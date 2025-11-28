@@ -1,34 +1,6 @@
-/**
-  Flattened map of all subnets across all VPCs with
-  - keys as "vpc_name/tier_zone_z" and
-  - values containing subnet details as a map.
-  Example:
-  {
-    "london" = {
-      "vpc_c/public_zone_a" = {
-        "vpc_name" = "vpc_c"
-        "name" = public_zone_a"
-        "az" = "eu-west-2a"
-        "cidr" = "192.168.0.0/28"
-      }
-      "vpc_acopy/public_zone_a" = {
-        ...
-      }
-      ...
-    "nvirginia" = {
-      "vpc_a/public_zone_a" = {
-        "vpc_name" = "vpc_a"
-        "name" = "public_zone_a"
-        "az" = "us-east-1a"
-        "cidr" = "10.0.0.0/27"
-      }
-      "vpc_a/public_zone_b" = {
-        ...
-      }
-      ...
-    }
-  }
- */
+# Flatten nested subnet configs into a single map
+# Key format: "vpc_name/tier_zone_letter" (e.g., "vpc_a/public_zone_a")
+
 locals {
   subnets_flat = merge([
     for vpc_name, v in var.vpcs : {

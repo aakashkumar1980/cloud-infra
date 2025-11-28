@@ -1,22 +1,14 @@
-/**
- * Outputs the IDs of the created route tables.
- */
+# Route table IDs
 output "route_table_ids" {
   value = { for k, v in aws_route_table.public : k => v.id }
 }
 
-/**
- * Outputs the Name tags of the created route tables.
- */
+# Route table names
 output "route_table_names" {
   value = { for k, v in aws_route_table.public : k => v.tags["Name"] }
 }
 
-/**
- * Outputs the route information including source (implicit local route) and destinations.
- * For each route table, shows the destination CIDR and gateway (IGW Name tag).
- * Uses route table name as key.
- */
+# Route information (destination -> target)
 output "route_table_routes" {
   value = {
     for k, v in aws_route_table.public : v.tags["Name"] => {
@@ -27,7 +19,7 @@ output "route_table_routes" {
           type        = "internet_gateway"
         }
       ]
-      vpc_cidr = "local" # The VPC CIDR has an implicit local route
+      vpc_cidr = "local"
     }
   }
 }

@@ -1,49 +1,23 @@
-/**
- * A map of VPC configurations to create.
- * Each key is a unique identifier for the VPC, and the value is a map of VPC attributes.
- */
-variable "vpcs"            { type = map(any) }
+# VPC configurations with subnet definitions
+variable "vpcs" { type = map(any) }
 
-/**
- * A map of VPC IDs where subnets will be created.
- * Each key is a unique identifier for the VPC, and the value is the corresponding VPC ID.
- */
-variable "vpc_ids"         { type = map(string) }
+# Map of VPC names to VPC IDs
+variable "vpc_ids" { type = map(string) }
 
-/**
- * A map of subnet configurations to create.
- * Each key is a unique identifier for the subnet, and the value is a map of subnet attributes.
- * Example: ["us-west-2a", "us-west-2b", "us-west-2c"]
- */
-variable "az_names"        { type = list(string) }
+# List of availability zone names (e.g., ["us-east-1a", "us-east-1b"])
+variable "az_names" { type = list(string) }
 
-/**
- * A map of subnet configurations to create.
- * Each key is a unique identifier for the subnet, and the value is a map of subnet attributes.
- * Example: { "a" = 0, "b" = 1, "c" = 2 }
- */
+# Maps zone letters to indices (e.g., { a=0, b=1, c=2 })
 variable "az_letter_to_ix" { type = map(number) }
 
-/**
- * A map of Internet Gateway IDs for routing internet traffic.
- * Each key is a unique identifier for the VPC, and the value is the corresponding IGW ID.
- */
+# Map of VPC names to Internet Gateway IDs
 variable "igw_ids" { type = map(string) }
 
-/**
- * A map of Internet Gateway names for reference in outputs.
- * Each key is a VPC name, and the value is the corresponding Internet Gateway name.
- */
+# Map of VPC names to Internet Gateway names
 variable "igw_names" { type = map(string) }
 
-/**
- * The common tags to apply to all resources.
- * Example: { "Environment" = "Production", "Owner" = "DevOps" ... }
- */
-variable "common_tags"     { type = map(string) }
+# Tags to apply to all resources
+variable "common_tags" { type = map(string) }
 
-/**
- * The AWS region where resources will be created.
- * Example: "us-west-2"
- */
-variable "region"          { type = string }
+# Region identifier for naming (e.g., "nvirginia")
+variable "region" { type = string }

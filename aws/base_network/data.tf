@@ -1,8 +1,5 @@
-/**
- * Data Sources
- *
- * - Pull available AZ names in each region to convert letter suffix (a/b/c) into AZ names.
- */
+# Get available availability zones for each region
+
 data "aws_availability_zones" "nvirginia" {
   provider = aws.nvirginia
   state    = "available"
