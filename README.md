@@ -1,4 +1,7 @@
 # AWS CIDR (Classless Inter-Domain Routing)
+
+---
+
 ## Format
 ```
 X.X.X.X/Y
@@ -33,12 +36,45 @@ e.g. xxxxxxxx . xxxxxxxx . xxxxxxxx . xxxxxxxx / Y
 
 ###  Dividing Networks
 https://www.davidc.net/sites/default/subnets/subnets.html
-
-  
-
+<br><br>
 
 
-# Miscellaneous
+
+# TERRAFORM LEARNING
+
+---
+
+## Terraform concepts:
+- **map** in terraform is a collection of key-value pairs.
+```hcl
+variable "example_map" {
+  type = map(string)
+  default = {
+    key1 = "value1"
+    key2 = "value2"
+    ...
+  }
+}
+```
+<br>
+
+## Terraform functions: `lookup()` and `merge()`
+`lookup(map, key, default)`
+- Returns the value for `key` from `map`.
+- If `key` is not present, returns `default`.
+
+`merge(map1, map2, ...)`
+- Returns a new map that combines the input maps.
+- Keys in later maps override earlier maps.
+- Merge is **shallow** (does not deep-merge nested maps).
+  NOTE: For deep merging, consider using `deepmerge()` from the `terraform` `stdlib` module.
+<br><br>
+
+
+
+# MISCELLANEOUS
+
+---
 ## Terraform Apply with Profile
 ```shell
 $ terraform apply -var="profile=dev" -auto-approve
