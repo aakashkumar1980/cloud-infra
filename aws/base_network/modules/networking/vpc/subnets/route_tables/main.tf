@@ -32,7 +32,7 @@ module "route_tables_public" {
   igw_ids     = var.igw_ids
   subnet_ids  = var.subnet_ids
   common_tags = var.common_tags
-  region      = var.region
+  name_suffix = var.name_suffix
 }
 
 /** Private subnets: 0.0.0.0/0 -> NAT Gateway */
@@ -43,5 +43,5 @@ module "route_tables_private" {
   nat_gateway_ids = var.nat_gateway_ids
   subnet_ids      = var.subnet_ids
   common_tags     = var.common_tags
-  region          = var.region
+  name_suffix     = var.name_suffix
 }
