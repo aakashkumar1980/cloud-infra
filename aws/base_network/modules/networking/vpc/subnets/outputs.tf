@@ -13,6 +13,10 @@ output "subnet_names" {
   value       = { for k, s in aws_subnet.this : k => s.tags["Name"] }
   description = "Map of subnet keys to subnet Name tags"
 }
+output "subnet_cidrs" {
+  value       = { for k, s in aws_subnet.this : k => s.cidr_block }
+  description = "Map of subnet keys to subnet CIDR blocks"
+}
 
 /** Public Route Table outputs */
 output "route_table_public_ids" {

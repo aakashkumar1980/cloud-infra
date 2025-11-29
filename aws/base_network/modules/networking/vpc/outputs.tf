@@ -13,6 +13,10 @@ output "vpc_names" {
   value       = { for k, v in aws_vpc.this : k => v.tags["Name"] }
   description = "Map of VPC names to VPC Name tags"
 }
+output "vpc_cidrs" {
+  value       = { for k, v in aws_vpc.this : k => v.cidr_block }
+  description = "Map of VPC names to VPC CIDR blocks"
+}
 
 /** Internet Gateway outputs */
 output "igw_ids" {
@@ -32,6 +36,10 @@ output "subnet_ids" {
 output "subnet_names" {
   value       = module.subnets.subnet_names
   description = "Map of subnet keys to subnet Name tags"
+}
+output "subnet_cidrs" {
+  value       = module.subnets.subnet_cidrs
+  description = "Map of subnet keys to subnet CIDR blocks"
 }
 
 /** Public Route Table outputs */
