@@ -14,6 +14,10 @@ output "vpc_names" {
   value       = module.vpc.vpc_names
   description = "Map of VPC names to VPC Name tags"
 }
+output "vpc_cidrs" {
+  value       = module.vpc.vpc_cidrs
+  description = "Map of VPC names to VPC CIDR blocks"
+}
 
 /** Internet Gateway IDs and names */
 output "igw_ids" {
@@ -33,6 +37,10 @@ output "subnet_ids" {
 output "subnet_names" {
   value       = module.vpc.subnet_names
   description = "Map of subnet keys to subnet Name tags"
+}
+output "subnet_cidrs" {
+  value       = module.vpc.subnet_cidrs
+  description = "Map of subnet keys to subnet CIDR blocks"
 }
 
 /** Public Route Table outputs */
