@@ -11,7 +11,7 @@
  *         Value: route table ID (e.g., "rtb-xyz789")
  */
 output "route_table_ids" {
-  value       = { for k, v in aws_route_table.private : k => v.id }
+  value       = { for k, v in aws_route_table.private_rt : k => v.id }
   description = "Map of private subnet keys to route table IDs"
 }
 
@@ -20,7 +20,7 @@ output "route_table_ids" {
  *         Useful for display in AWS Console and CLI output
  */
 output "route_table_names" {
-  value       = { for k, v in aws_route_table.private : k => v.tags["Name"] }
+  value       = { for k, v in aws_route_table.private_rt : k => v.tags["Name"] }
   description = "Map of private subnet keys to route table Name tags"
 }
 
@@ -34,7 +34,7 @@ output "route_table_names" {
  */
 output "route_table_routes" {
   value = {
-    for k, v in aws_route_table.private : v.tags["Name"] => {
+    for k, v in aws_route_table.private_rt : v.tags["Name"] => {
       routes = [
         {
           destination = "0.0.0.0/0"

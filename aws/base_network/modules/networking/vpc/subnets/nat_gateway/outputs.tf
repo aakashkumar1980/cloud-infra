@@ -25,6 +25,6 @@ output "nat_gateway_names" {
 
 /** Elastic IP allocation IDs */
 output "eip_allocation_ids" {
-  value       = { for k, v in aws_eip.nat : k => v.id }
+  value       = { for k, v in aws_eip.eip : k => v.id }
   description = "Map of VPC names to EIP allocation IDs"
 }

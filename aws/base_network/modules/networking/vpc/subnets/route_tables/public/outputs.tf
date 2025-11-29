@@ -11,7 +11,7 @@
  *         Value: route table ID (e.g., "rtb-abc123")
  */
 output "route_table_ids" {
-  value       = { for k, v in aws_route_table.public : k => v.id }
+  value       = { for k, v in aws_route_table.public_rt : k => v.id }
   description = "Map of public subnet keys to route table IDs"
 }
 
@@ -20,7 +20,7 @@ output "route_table_ids" {
  *         Useful for display in AWS Console and CLI output
  */
 output "route_table_names" {
-  value       = { for k, v in aws_route_table.public : k => v.tags["Name"] }
+  value       = { for k, v in aws_route_table.public_rt : k => v.tags["Name"] }
   description = "Map of public subnet keys to route table Name tags"
 }
 
@@ -34,7 +34,7 @@ output "route_table_names" {
  */
 output "route_table_routes" {
   value = {
-    for k, v in aws_route_table.public : v.tags["Name"] => {
+    for k, v in aws_route_table.public_rt : v.tags["Name"] => {
       routes = [
         {
           destination = "0.0.0.0/0"
