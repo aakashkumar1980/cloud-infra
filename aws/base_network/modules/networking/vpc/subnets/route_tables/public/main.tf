@@ -22,7 +22,7 @@
  */
 
 /** Create route table for each public subnet */
-resource "aws_route_table" "public" {
+resource "aws_route_table" "public_rt" {
   for_each = local.public_subnets
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
@@ -33,9 +33,9 @@ resource "aws_route_table" "public" {
 }
 
 /** Add default route to Internet Gateway for internet access */
-resource "aws_route" "public_internet" {
+resource "aws_route" "internet_route" {
   for_each               = local.public_subnets
-  route_table_id         = aws_route_table.public[each.key].id
+  route_table_id         = aws_route_table.public_rt[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = var.igw_ids[each.value.vpc_name]
 }
@@ -44,5 +44,5 @@ resource "aws_route" "public_internet" {
 resource "aws_route_table_association" "public" {
   for_each       = local.public_subnets
   subnet_id      = var.subnet_ids[each.value.subnet_key]
-  route_table_id = aws_route_table.public[each.key].id
+  route_table_id = aws_route_table.public_rt[each.key].id
 }

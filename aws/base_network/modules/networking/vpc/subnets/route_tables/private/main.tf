@@ -30,7 +30,7 @@
  */
 
 /** Create route table for each private subnet (only if VPC has NAT Gateway) */
-resource "aws_route_table" "private" {
+resource "aws_route_table" "private_rt" {
   for_each = local.private_subnets
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
@@ -41,9 +41,9 @@ resource "aws_route_table" "private" {
 }
 
 /** Add default route to NAT Gateway for outbound internet access */
-resource "aws_route" "private_internet" {
+resource "aws_route" "internet_route" {
   for_each               = local.private_subnets
-  route_table_id         = aws_route_table.private[each.key].id
+  route_table_id         = aws_route_table.private_rt[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = var.nat_gateway_ids[each.value.vpc_name]
 }
@@ -52,5 +52,5 @@ resource "aws_route" "private_internet" {
 resource "aws_route_table_association" "private" {
   for_each       = local.private_subnets
   subnet_id      = var.subnet_ids[each.value.subnet_key]
-  route_table_id = aws_route_table.private[each.key].id
+  route_table_id = aws_route_table.private_rt[each.key].id
 }

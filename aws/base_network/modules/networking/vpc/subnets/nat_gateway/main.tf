@@ -28,7 +28,7 @@
  *
  * @for_each local.nat_gateway_subnets - One EIP per NAT Gateway
  */
-resource "aws_eip" "nat" {
+resource "aws_eip" "eip" {
   for_each = local.nat_gateway_subnets
   domain   = "vpc"
 
@@ -49,7 +49,7 @@ resource "aws_eip" "nat" {
  */
 resource "aws_nat_gateway" "this" {
   for_each      = local.nat_gateway_subnets
-  allocation_id = aws_eip.nat[each.key].id
+  allocation_id = aws_eip.eip[each.key].id
   subnet_id     = var.subnet_ids[each.value]
 
   tags = merge(var.common_tags, {
