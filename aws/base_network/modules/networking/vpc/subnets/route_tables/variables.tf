@@ -9,11 +9,12 @@
  *
  * @var igw_ids         - Map of VPC names to Internet Gateway IDs
  *                        Used by public route tables for direct internet access
+ *                        Also passed to private module for NAT Gateway dependency
  *                        Example: { "vpc_a" = "igw-xyz789" }
  *
- * @var nat_gateway_ids - Map of VPC names to NAT Gateway IDs
- *                        Used by private route tables for outbound-only access
- *                        Example: { "vpc_a" = "nat-def456" }
+ * @var igw_names       - Map of VPC names to Internet Gateway Name tags
+ *                        Used by private module for NAT Gateway output display
+ *                        Example: { "vpc_a" = "igw-vpc_a-nvirginia-dev-terraform" }
  *
  * @var subnet_ids      - Map of subnet keys to their AWS resource IDs
  *                        Key format: "{vpc_name}/{tier}_zone_{zone}"
@@ -26,10 +27,10 @@
  *                        Format: {region}-{environment}-{managed_by}
  *                        Example: "nvirginia-dev-terraform"
  */
-variable "vpcs"            { type = map(any) }
-variable "vpc_ids"         { type = map(string) }
-variable "igw_ids"         { type = map(string) }
-variable "nat_gateway_ids" { type = map(string) }
-variable "subnet_ids"      { type = map(string) }
-variable "common_tags"     { type = map(string) }
-variable "name_suffix"     { type = string }
+variable "vpcs"        { type = map(any) }
+variable "vpc_ids"     { type = map(string) }
+variable "igw_ids"     { type = map(string) }
+variable "igw_names"   { type = map(string) }
+variable "subnet_ids"  { type = map(string) }
+variable "common_tags" { type = map(string) }
+variable "name_suffix" { type = string }

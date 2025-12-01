@@ -61,3 +61,32 @@ output "private_route_table_routes" {
   value       = module.route_tables_private.route_table_routes
   description = "Private route table routing rules (destination -> NAT Gateway)"
 }
+
+/** NAT Gateway Outputs (from private module) */
+
+/**
+ * @output nat_gateway_ids - AWS resource IDs for NAT Gateways
+ *         Used by other resources that need to reference the NAT Gateway
+ */
+output "nat_gateway_ids" {
+  value       = module.route_tables_private.nat_gateway_ids
+  description = "Map of VPC names to NAT Gateway IDs"
+}
+
+/**
+ * @output nat_gateway_public_ips - Public IP addresses of NAT Gateways
+ *         Useful for whitelisting in external services
+ */
+output "nat_gateway_public_ips" {
+  value       = module.route_tables_private.nat_gateway_public_ips
+  description = "Map of VPC names to NAT Gateway public IPs"
+}
+
+/**
+ * @output nat_gateway_names - Name tags showing NAT Gateway -> IGW relationship
+ *         Useful for display and understanding traffic flow
+ */
+output "nat_gateway_names" {
+  value       = module.route_tables_private.nat_gateway_names
+  description = "Map of VPC names to NAT Gateway Name tags"
+}

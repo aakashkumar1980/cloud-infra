@@ -46,16 +46,16 @@ output "route_table_private_routes" {
   description = "Private route table routing information"
 }
 
-/** NAT Gateway outputs */
+/** NAT Gateway outputs (from route_tables/private module) */
 output "nat_gateway_ids" {
-  value       = module.nat_gateway.nat_gateway_ids
+  value       = module.route_tables.nat_gateway_ids
   description = "Map of VPC names to NAT Gateway IDs"
 }
 output "nat_gateway_public_ips" {
-  value       = module.nat_gateway.nat_gateway_public_ips
+  value       = module.route_tables.nat_gateway_public_ips
   description = "Map of VPC names to NAT Gateway public IPs"
 }
 output "nat_gateway_names" {
-  value       = module.nat_gateway.nat_gateway_names
+  value       = module.route_tables.nat_gateway_names
   description = "Map of VPC names to NAT Gateway Name tags"
 }

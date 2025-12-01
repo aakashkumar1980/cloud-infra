@@ -7,12 +7,15 @@
  * @var vpc_ids         - Map of VPC names to their AWS resource IDs
  *                        Route tables must be created within a specific VPC
  *
- * @var nat_gateway_ids - Map of VPC names to NAT Gateway IDs
- *                        Private route tables route 0.0.0.0/0 to these gateways
- *                        Only VPCs with NAT Gateways will have private route tables
- *
  * @var subnet_ids      - Map of subnet keys to their AWS resource IDs
  *                        Used to associate route tables with their subnets
+ *                        Also used by NAT Gateway module to place NAT GW in public subnet
+ *
+ * @var igw_ids         - Map of VPC names to Internet Gateway IDs
+ *                        NAT Gateway depends on IGW being created first
+ *
+ * @var igw_names       - Map of VPC names to Internet Gateway Name tags
+ *                        Used for output display showing NAT GW -> IGW relationship
  *
  * @var common_tags     - Tags applied to all route table resources
  *                        Includes environment, managed_by, and other standard tags
@@ -21,9 +24,10 @@
  *                        Format: {region}-{environment}-{managed_by}
  *                        Example: "nvirginia-dev-terraform"
  */
-variable "vpcs"            { type = map(any) }
-variable "vpc_ids"         { type = map(string) }
-variable "nat_gateway_ids" { type = map(string) }
-variable "subnet_ids"      { type = map(string) }
-variable "common_tags"     { type = map(string) }
-variable "name_suffix"     { type = string }
+variable "vpcs"        { type = map(any) }
+variable "vpc_ids"     { type = map(string) }
+variable "subnet_ids"  { type = map(string) }
+variable "igw_ids"     { type = map(string) }
+variable "igw_names"   { type = map(string) }
+variable "common_tags" { type = map(string) }
+variable "name_suffix" { type = string }

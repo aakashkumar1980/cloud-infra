@@ -17,7 +17,7 @@
  *   2. Loop through each subnet in that VPC
  *   3. Only include subnets where:
  *      - tier == "private" AND
- *      - VPC has a NAT Gateway (exists in var.nat_gateway_ids)
+ *      - VPC has a NAT Gateway (exists in module.nat_gateway.nat_gateway_ids)
  *   4. Merge all results into a single flat map
  *
  * Why check for NAT Gateway?
@@ -34,7 +34,7 @@ locals {
         subnet_name = "subnet_${s.tier}_zone_${s.zone}-${vpc_name}"
         tier        = s.tier
       }
-      if s.tier == "private" && contains(keys(var.nat_gateway_ids), vpc_name)
+      if s.tier == "private" && contains(keys(module.nat_gateway.nat_gateway_ids), vpc_name)
     }
   ]...)
 }

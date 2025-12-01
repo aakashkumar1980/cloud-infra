@@ -8,8 +8,7 @@
  *   - private: Can only access internet outbound via NAT Gateway
  *
  * This module also creates:
- *   - NAT Gateways (for private subnet internet access)
- *   - Route Tables (for traffic routing)
+ *   - Route Tables (for traffic routing, includes NAT Gateway for private subnets)
  *
  * Naming Convention:
  *   subnet_{tier}_zone_{zone}-{vpc_name}-{name_suffix}
@@ -39,37 +38,19 @@ resource "aws_subnet" "this" {
 }
 
 /**
- * NAT Gateway Module
- *
- * Creates NAT Gateways for VPCs that have private subnets.
- * NAT Gateways allow private subnet resources to access the internet
- * for things like software updates, while remaining unreachable from outside.
- */
-module "nat_gateway" {
-  source      = "./nat_gateway"
-  vpcs        = var.vpcs
-  vpc_ids     = var.vpc_ids
-  subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
-  igw_ids     = var.igw_ids
-  igw_names   = var.igw_names
-  common_tags = var.common_tags
-  name_suffix = var.name_suffix
-}
-
-/**
  * Route Tables Module
  *
  * Creates route tables for both public and private subnets:
  *   - Public route tables: Route 0.0.0.0/0 to Internet Gateway
- *   - Private route tables: Route 0.0.0.0/0 to NAT Gateway
+ *   - Private route tables: Route 0.0.0.0/0 to NAT Gateway (includes NAT Gateway creation)
  */
 module "route_tables" {
-  source          = "./route_tables"
-  vpcs            = var.vpcs
-  vpc_ids         = var.vpc_ids
-  igw_ids         = var.igw_ids
-  nat_gateway_ids = module.nat_gateway.nat_gateway_ids
-  subnet_ids      = { for k, s in aws_subnet.this : k => s.id }
-  common_tags     = var.common_tags
-  name_suffix     = var.name_suffix
+  source      = "./route_tables"
+  vpcs        = var.vpcs
+  vpc_ids     = var.vpc_ids
+  igw_ids     = var.igw_ids
+  igw_names   = var.igw_names
+  subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
+  common_tags = var.common_tags
+  name_suffix = var.name_suffix
 }

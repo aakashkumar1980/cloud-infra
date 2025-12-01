@@ -29,6 +29,24 @@
  *   Example: routetable-subnet_private_zone_b-vpc_c-london-dev-terraform
  */
 
+/**
+ * NAT Gateway Module
+ *
+ * Creates NAT Gateways for VPCs that have private subnets.
+ * NAT Gateways allow private subnet resources to access the internet
+ * for things like software updates, while remaining unreachable from outside.
+ */
+module "nat_gateway" {
+  source      = "./nat_gateway"
+  vpcs        = var.vpcs
+  vpc_ids     = var.vpc_ids
+  subnet_ids  = var.subnet_ids
+  igw_ids     = var.igw_ids
+  igw_names   = var.igw_names
+  common_tags = var.common_tags
+  name_suffix = var.name_suffix
+}
+
 /** Create route table for each private subnet (only if VPC has NAT Gateway) */
 resource "aws_route_table" "private_rt" {
   for_each = local.private_subnets
@@ -45,7 +63,7 @@ resource "aws_route" "internet_route" {
   for_each               = local.private_subnets
   route_table_id         = aws_route_table.private_rt[each.key].id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = var.nat_gateway_ids[each.value.vpc_name]
+  nat_gateway_id         = module.nat_gateway.nat_gateway_ids[each.value.vpc_name]
 }
 
 /** Associate route table with its subnet */
