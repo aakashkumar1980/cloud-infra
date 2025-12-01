@@ -2,6 +2,7 @@
  * Data Sources for Test Module
  *
  * Looks up subnets and AMI for test EC2 instances.
+ * Uses exact Name tags from base_network for precise matching.
  */
 
 /** Get latest Amazon Linux 2023 AMI */
@@ -20,22 +21,18 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-/** Get public subnet in vpc_a */
+/** Get public subnet in vpc_a by exact Name tag */
 data "aws_subnet" "vpc_a_public" {
-  vpc_id = var.vpc_a_id
-
   filter {
     name   = "tag:Name"
-    values = ["*public*"]
+    values = [local.vpc_a_public_subnet_name]
   }
 }
 
-/** Get private subnet in vpc_b */
+/** Get private subnet in vpc_b by exact Name tag */
 data "aws_subnet" "vpc_b_private" {
-  vpc_id = var.vpc_b_id
-
   filter {
     name   = "tag:Name"
-    values = ["*private*"]
+    values = [local.vpc_b_private_subnet_name]
   }
 }
