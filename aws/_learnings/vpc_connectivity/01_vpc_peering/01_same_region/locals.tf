@@ -26,4 +26,16 @@ locals {
   # Derive Name tags using base_network naming convention: {vpc_name}-{name_suffix}
   vpc_a_name = "vpc_a-${var.name_suffix}"
   vpc_b_name = "vpc_b-${var.name_suffix}"
+
+  # Derive route table Name tags from networking.json
+  # Pattern: routetable-subnet_{tier}_zone_{zone}-{vpc_name}-{name_suffix}
+  vpc_a_route_table_names = [
+    for subnet in local.vpcs_nvirginia.vpc_a.subnets :
+    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${var.name_suffix}"
+  ]
+
+  vpc_b_route_table_names = [
+    for subnet in local.vpcs_nvirginia.vpc_b.subnets :
+    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_b-${var.name_suffix}"
+  ]
 }
