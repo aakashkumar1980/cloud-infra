@@ -47,3 +47,19 @@ output "route_table_routes" {
   }
   description = "Private route table routing rules showing destination and target NAT Gateway"
 }
+
+/** NAT Gateway outputs - exposed for parent modules */
+output "nat_gateway_ids" {
+  value       = module.nat_gateway.nat_gateway_ids
+  description = "Map of VPC names to NAT Gateway IDs"
+}
+
+output "nat_gateway_public_ips" {
+  value       = module.nat_gateway.nat_gateway_public_ips
+  description = "Map of VPC names to NAT Gateway public IPs"
+}
+
+output "nat_gateway_names" {
+  value       = module.nat_gateway.nat_gateway_names
+  description = "Map of VPC names to NAT Gateway Name tags"
+}
