@@ -16,19 +16,6 @@ variable "name_suffix" {
   default     = "nvirginia-dev-terraform"
 }
 
-/** VPC names to look up from base_network */
-variable "vpc_a_name" {
-  type        = string
-  description = "Name tag of vpc_a (requester VPC)"
-  default     = "vpc_a-nvirginia-dev-terraform"
-}
-
-variable "vpc_b_name" {
-  type        = string
-  description = "Name tag of vpc_b (accepter VPC)"
-  default     = "vpc_b-nvirginia-dev-terraform"
-}
-
 /** Test Module Configuration */
 variable "enable_test" {
   type        = bool

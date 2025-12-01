@@ -9,7 +9,7 @@
 data "aws_vpc" "vpc_a" {
   filter {
     name   = "tag:Name"
-    values = [var.vpc_a_name]
+    values = [local.vpc_a_name]
   }
 }
 
@@ -17,7 +17,7 @@ data "aws_vpc" "vpc_a" {
 data "aws_vpc" "vpc_b" {
   filter {
     name   = "tag:Name"
-    values = [var.vpc_b_name]
+    values = [local.vpc_b_name]
   }
 }
 
