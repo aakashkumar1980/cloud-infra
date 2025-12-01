@@ -25,48 +25,33 @@
  */
 
 /**
- * VPC Peering Connection
+ * Peering Connection Module
  *
- * Creates the peering connection between vpc_a (requester) and vpc_b (accepter).
- * Since both VPCs are in the same account and region, we can auto-accept.
+ * Creates the VPC peering connection between vpc_a (requester) and vpc_b (accepter).
  */
-resource "aws_vpc_peering_connection" "vpc_a_to_vpc_b" {
-  vpc_id      = data.aws_vpc.vpc_a.id  # Requester VPC
-  peer_vpc_id = data.aws_vpc.vpc_b.id  # Accepter VPC
-  auto_accept = true                    # Auto-accept since same account
+module "peering_connection" {
+  source = "./peering_connection"
 
-  tags = {
-    Name = "peering-vpc_a-to-vpc_b-${var.name_suffix}"
-    Side = "Requester"
-  }
+  vpc_a_id    = data.aws_vpc.vpc_a.id
+  vpc_b_id    = data.aws_vpc.vpc_b.id
+  common_tags = local.tags_common
+  name_suffix = var.name_suffix
 }
 
 /**
- * Routes in vpc_a -> vpc_b
+ * Routes Module
  *
- * Add route to vpc_b's CIDR in all vpc_a route tables.
- * This tells vpc_a: "To reach 172.16.0.0/26, use the peering connection"
+ * Creates bidirectional routes in both VPCs to enable traffic flow
+ * through the peering connection.
  */
-resource "aws_route" "vpc_a_to_vpc_b" {
-  for_each = toset(data.aws_route_tables.vpc_a.ids)
+module "routes" {
+  source = "./routes"
 
-  route_table_id            = each.value
-  destination_cidr_block    = data.aws_vpc.vpc_b.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.vpc_a_to_vpc_b.id
-}
-
-/**
- * Routes in vpc_b -> vpc_a
- *
- * Add route to vpc_a's CIDR in all vpc_b route tables.
- * This tells vpc_b: "To reach 10.0.0.0/24, use the peering connection"
- */
-resource "aws_route" "vpc_b_to_vpc_a" {
-  for_each = toset(data.aws_route_tables.vpc_b.ids)
-
-  route_table_id            = each.value
-  destination_cidr_block    = data.aws_vpc.vpc_a.cidr_block
-  vpc_peering_connection_id = aws_vpc_peering_connection.vpc_a_to_vpc_b.id
+  vpc_a_cidr            = data.aws_vpc.vpc_a.cidr_block
+  vpc_b_cidr            = data.aws_vpc.vpc_b.cidr_block
+  vpc_a_route_table_ids = data.aws_route_tables.vpc_a.ids
+  vpc_b_route_table_ids = data.aws_route_tables.vpc_b.ids
+  peering_connection_id = module.peering_connection.peering_connection_id
 }
 
 /**
@@ -87,8 +72,5 @@ module "test" {
   key_name    = var.key_name
   my_ip       = var.my_ip
 
-  depends_on = [
-    aws_route.vpc_a_to_vpc_b,
-    aws_route.vpc_b_to_vpc_a
-  ]
+  depends_on = [module.routes]
 }
