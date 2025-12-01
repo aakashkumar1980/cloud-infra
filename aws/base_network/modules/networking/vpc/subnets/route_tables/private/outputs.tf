@@ -38,7 +38,7 @@ output "route_table_routes" {
       routes = [
         {
           destination = "0.0.0.0/0"
-          target_name = "natgw-${local.private_subnets[k].vpc_name}-${var.name_suffix}"
+          target_name = module.nat_gateway.nat_gateway_name_tags[local.private_subnets[k].vpc_name]
           type        = "nat_gateway"
         }
       ]
