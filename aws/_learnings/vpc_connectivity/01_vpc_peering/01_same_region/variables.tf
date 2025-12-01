@@ -4,9 +4,9 @@
  * Configuration for VPC peering between vpc_a and vpc_b in N. Virginia.
  */
 
-variable "environment" {
+variable "profile" {
   type        = string
-  description = "Environment name (e.g., dev, staging, prod)"
+  description = "Environment profile for loading configs (dev, stage, prod)"
   default     = "dev"
 }
 
