@@ -1,14 +1,11 @@
 /**
- * VPC Peering - Same Region
+ * AWS Provider Configuration
  *
- * AWS Provider configuration for N. Virginia region.
- * This chapter demonstrates VPC peering between vpc_a and vpc_b
- * within the same region (us-east-1).
+ * Sets up AWS provider for N. Virginia region (us-east-1).
+ * Uses the same pattern as base_network for consistency.
  */
-
 terraform {
-  required_version = ">= 1.0.0"
-
+  required_version = ">= 1.6.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -18,13 +15,6 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
-
-  default_tags {
-    tags = {
-      environment = var.environment
-      managed_by  = "terraform"
-      project     = "vpc-peering-learning"
-    }
-  }
+  region  = "us-east-1"
+  profile = var.profile
 }
