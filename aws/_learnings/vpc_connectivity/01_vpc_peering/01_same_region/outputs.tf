@@ -18,7 +18,7 @@ output "vpc_a_info" {
   value = {
     id         = data.aws_vpc.vpc_a.id
     cidr_block = data.aws_vpc.vpc_a.cidr_block
-    name       = var.vpc_a_name
+    name       = local.vpc_a_name
   }
   description = "VPC A (requester) information"
 }
@@ -27,7 +27,7 @@ output "vpc_b_info" {
   value = {
     id         = data.aws_vpc.vpc_b.id
     cidr_block = data.aws_vpc.vpc_b.cidr_block
-    name       = var.vpc_b_name
+    name       = local.vpc_b_name
   }
   description = "VPC B (accepter) information"
 }

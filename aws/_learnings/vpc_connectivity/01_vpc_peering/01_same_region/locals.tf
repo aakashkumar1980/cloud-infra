@@ -22,4 +22,8 @@ locals {
 
   # VPC configurations from networking.json
   vpcs_nvirginia = try(local.networking.regions["nvirginia"].vpcs, {})
+
+  # Derive Name tags using base_network naming convention: {vpc_name}-{name_suffix}
+  vpc_a_name = "vpc_a-${var.name_suffix}"
+  vpc_b_name = "vpc_b-${var.name_suffix}"
 }
