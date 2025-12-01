@@ -54,7 +54,6 @@ resource "aws_route_table" "private_rt" {
 
   tags = merge(var.common_tags, {
     Name = "routetable-${each.value.subnet_name}-${var.name_suffix}"
-    Tier = each.value.tier
   })
 }
 
