@@ -17,6 +17,12 @@ output "nat_gateway_public_ips" {
   description = "Map of VPC names to NAT Gateway public IPs"
 }
 
+/** NAT Gateway name tags - just the Name tag value */
+output "nat_gateway_name_tags" {
+  value       = { for k, v in aws_nat_gateway.this : k => v.tags["Name"] }
+  description = "Map of VPC names to NAT Gateway Name tags"
+}
+
 /** NAT Gateway names with IGW relationship */
 output "nat_gateway_names" {
   value       = { for k, v in aws_nat_gateway.this : k => "${v.tags["Name"]} -> ${var.igw_names[k]}" }
