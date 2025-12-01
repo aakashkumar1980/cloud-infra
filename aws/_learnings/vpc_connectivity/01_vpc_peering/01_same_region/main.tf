@@ -49,8 +49,8 @@ module "routes" {
 
   vpc_a_cidr            = data.aws_vpc.vpc_a.cidr_block
   vpc_b_cidr            = data.aws_vpc.vpc_b.cidr_block
-  vpc_a_route_table_ids = data.aws_route_tables.vpc_a.ids
-  vpc_b_route_table_ids = data.aws_route_tables.vpc_b.ids
+  vpc_a_route_table_ids = [for rt in data.aws_route_table.vpc_a : rt.id]
+  vpc_b_route_table_ids = [for rt in data.aws_route_table.vpc_b : rt.id]
   peering_connection_id = module.peering_connection.peering_connection_id
 }
 

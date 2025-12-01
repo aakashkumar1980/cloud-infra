@@ -21,12 +21,22 @@ data "aws_vpc" "vpc_b" {
   }
 }
 
-/** Get all route tables in vpc_a */
-data "aws_route_tables" "vpc_a" {
-  vpc_id = data.aws_vpc.vpc_a.id
+/** Get route tables in vpc_a by Name tag */
+data "aws_route_table" "vpc_a" {
+  for_each = toset(local.vpc_a_route_table_names)
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value]
+  }
 }
 
-/** Get all route tables in vpc_b */
-data "aws_route_tables" "vpc_b" {
-  vpc_id = data.aws_vpc.vpc_b.id
+/** Get route tables in vpc_b by Name tag */
+data "aws_route_table" "vpc_b" {
+  for_each = toset(local.vpc_b_route_table_names)
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value]
+  }
 }
