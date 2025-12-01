@@ -37,14 +37,14 @@
  * for things like software updates, while remaining unreachable from outside.
  */
 module "nat_gateway" {
-  source      = "./nat_gateway"
-  vpcs        = var.vpcs
-  vpc_ids     = var.vpc_ids
-  subnet_ids  = var.subnet_ids
-  igw_ids     = var.igw_ids
-  igw_names   = var.igw_names
-  common_tags = var.common_tags
-  name_suffix = var.name_suffix
+  source            = "./nat_gateway"
+  vpcs              = var.vpcs
+  vpc_ids           = var.vpc_ids
+  public_subnet_ids = var.public_subnet_ids
+  igw_ids           = var.igw_ids
+  igw_names         = var.igw_names
+  common_tags       = var.common_tags
+  name_suffix       = var.name_suffix
 }
 
 /** Create route table for each private subnet (only if VPC has NAT Gateway) */
@@ -69,6 +69,6 @@ resource "aws_route" "internet_route" {
 /** Associate route table with its subnet */
 resource "aws_route_table_association" "private" {
   for_each       = local.private_subnets
-  subnet_id      = var.subnet_ids[each.value.subnet_key]
+  subnet_id      = var.private_subnet_ids[each.value.subnet_key]
   route_table_id = aws_route_table.private_rt[each.key].id
 }

@@ -4,18 +4,28 @@
  * Exposes subnet, route table, and NAT Gateway information.
  */
 
-/** Subnet outputs */
+/** Subnet outputs - all subnets */
 output "subnet_ids" {
   value       = { for k, s in aws_subnet.this : k => s.id }
-  description = "Map of subnet keys to subnet IDs"
+  description = "Map of all subnet keys to subnet IDs"
 }
 output "subnet_names" {
   value       = { for k, s in aws_subnet.this : k => s.tags["Name"] }
-  description = "Map of subnet keys to subnet Name tags"
+  description = "Map of all subnet keys to subnet Name tags"
 }
 output "subnet_cidrs" {
   value       = { for k, s in aws_subnet.this : k => s.cidr_block }
-  description = "Map of subnet keys to subnet CIDR blocks"
+  description = "Map of all subnet keys to subnet CIDR blocks"
+}
+
+/** Subnet outputs - by type */
+output "public_subnet_ids" {
+  value       = { for k, s in aws_subnet.this : k => s.id if contains(local.public_subnet_keys, k) }
+  description = "Map of public subnet keys to subnet IDs"
+}
+output "private_subnet_ids" {
+  value       = { for k, s in aws_subnet.this : k => s.id if contains(local.private_subnet_keys, k) }
+  description = "Map of private subnet keys to subnet IDs"
 }
 
 /** Public Route Table outputs */

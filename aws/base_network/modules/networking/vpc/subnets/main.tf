@@ -45,12 +45,13 @@ resource "aws_subnet" "this" {
  *   - Private route tables: Route 0.0.0.0/0 to NAT Gateway (includes NAT Gateway creation)
  */
 module "route_tables" {
-  source      = "./route_tables"
-  vpcs        = var.vpcs
-  vpc_ids     = var.vpc_ids
-  igw_ids     = var.igw_ids
-  igw_names   = var.igw_names
-  subnet_ids  = { for k, s in aws_subnet.this : k => s.id }
-  common_tags = var.common_tags
-  name_suffix = var.name_suffix
+  source             = "./route_tables"
+  vpcs               = var.vpcs
+  vpc_ids            = var.vpc_ids
+  igw_ids            = var.igw_ids
+  igw_names          = var.igw_names
+  public_subnet_ids  = { for k, s in aws_subnet.this : k => s.id if contains(local.public_subnet_keys, k) }
+  private_subnet_ids = { for k, s in aws_subnet.this : k => s.id if contains(local.private_subnet_keys, k) }
+  common_tags        = var.common_tags
+  name_suffix        = var.name_suffix
 }
