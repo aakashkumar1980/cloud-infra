@@ -38,5 +38,5 @@ variable "key_name" {
 variable "my_ip" {
   type        = string
   description = "Your IP address for SSH access (CIDR format, e.g., 1.2.3.4/32)"
-  default     = "0.0.0.0/0"  # WARNING: Opens SSH to all - use your IP in production
+  default     = "0.0.0.0/0"
 }

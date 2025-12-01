@@ -62,7 +62,7 @@ module "routes" {
  */
 module "test" {
   count  = var.enable_test ? 1 : 0
-  source = "./test"
+  source = "./_test"
 
   vpc_a_id    = data.aws_vpc.vpc_a.id
   vpc_b_id    = data.aws_vpc.vpc_b.id
