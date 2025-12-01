@@ -43,6 +43,6 @@ resource "aws_route" "internet_route" {
 /** Associate route table with its subnet */
 resource "aws_route_table_association" "public" {
   for_each       = local.public_subnets
-  subnet_id      = var.subnet_ids[each.value.subnet_key]
+  subnet_id      = var.public_subnet_ids[each.value.subnet_key]
   route_table_id = aws_route_table.public_rt[each.key].id
 }

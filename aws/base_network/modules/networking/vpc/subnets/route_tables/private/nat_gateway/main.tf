@@ -50,7 +50,7 @@ resource "aws_eip" "eip" {
 resource "aws_nat_gateway" "this" {
   for_each      = local.nat_gateway_subnets
   allocation_id = aws_eip.eip[each.key].id
-  subnet_id     = var.subnet_ids[each.value]
+  subnet_id     = var.public_subnet_ids[each.value]
 
   tags = merge(var.common_tags, {
     Name = "natgw-${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"

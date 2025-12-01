@@ -29,18 +29,28 @@ output "igw_names" {
   description = "Map of VPC names to Internet Gateway Name tags"
 }
 
-/** Subnet IDs and names */
+/** Subnet IDs and names - all subnets */
 output "subnet_ids" {
   value       = module.vpc.subnet_ids
-  description = "Map of subnet keys to subnet IDs"
+  description = "Map of all subnet keys to subnet IDs"
 }
 output "subnet_names" {
   value       = module.vpc.subnet_names
-  description = "Map of subnet keys to subnet Name tags"
+  description = "Map of all subnet keys to subnet Name tags"
 }
 output "subnet_cidrs" {
   value       = module.vpc.subnet_cidrs
-  description = "Map of subnet keys to subnet CIDR blocks"
+  description = "Map of all subnet keys to subnet CIDR blocks"
+}
+
+/** Subnet IDs - by type */
+output "public_subnet_ids" {
+  value       = module.vpc.public_subnet_ids
+  description = "Map of public subnet keys to subnet IDs"
+}
+output "private_subnet_ids" {
+  value       = module.vpc.private_subnet_ids
+  description = "Map of private subnet keys to subnet IDs"
 }
 
 /** Public Route Table outputs */

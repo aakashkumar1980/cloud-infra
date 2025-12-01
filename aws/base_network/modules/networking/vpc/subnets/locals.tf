@@ -12,8 +12,8 @@
  *
  * Output (flat):
  *   {
- *     "vpc_a/public_zone_a"  = { vpc_name="vpc_a", name="public_zone_a", ... }
- *     "vpc_a/private_zone_b" = { vpc_name="vpc_a", name="private_zone_b", ... }
+ *     "vpc_a/public_zone_a"  = { vpc_name="vpc_a", name="public_zone_a", tier="public", ... }
+ *     "vpc_a/private_zone_b" = { vpc_name="vpc_a", name="private_zone_b", tier="private", ... }
  *   }
  */
 locals {
@@ -23,9 +23,22 @@ locals {
       "${vpc_name}/${s.tier}_zone_${s.zone}" => {
         vpc_name = vpc_name
         name     = "${s.tier}_zone_${s.zone}"
+        tier     = s.tier
         cidr     = s.cidr
         az       = var.az_names[var.az_letter_to_ix[s.zone]]
       }
     }
   ]...)
+
+  /** Public subnet keys - for filtering subnet IDs by type */
+  public_subnet_keys = toset([
+    for k, v in local.subnets_flat : k
+    if v.tier == "public"
+  ])
+
+  /** Private subnet keys - for filtering subnet IDs by type */
+  private_subnet_keys = toset([
+    for k, v in local.subnets_flat : k
+    if v.tier == "private"
+  ])
 }
