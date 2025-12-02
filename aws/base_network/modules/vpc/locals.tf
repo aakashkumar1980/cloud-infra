@@ -9,7 +9,7 @@
  *
  * Usage:
  *   Instead of each module building its own suffix, they receive name_suffix
- *   and simply append it: "vpc_a-${var.name_suffix}" -> "vpc_a-nvirginia-dev-terraform"
+ *   and simply append it: "vpc_a-${local.name_suffix}" -> "vpc_a-nvirginia-dev-terraform"
  */
 locals {
   name_suffix = "${var.common_tags["region"]}-${var.common_tags["environment"]}-${var.common_tags["managed_by"]}"

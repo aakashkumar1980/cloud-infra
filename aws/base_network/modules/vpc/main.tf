@@ -28,7 +28,7 @@ resource "aws_vpc" "this" {
   cidr_block = each.value.cidr
 
   tags = merge(var.common_tags, {
-    Name = "${each.key}-${var.name_suffix}"
+    Name = "${each.key}-${local.name_suffix}"
   })
 }
 
@@ -43,7 +43,7 @@ module "internet_gateway" {
   vpcs        = var.vpcs
   vpc_ids     = { for k, v in aws_vpc.this : k => v.id }
   common_tags = var.common_tags
-  name_suffix = var.name_suffix
+  name_suffix = local.name_suffix
 }
 
 /**

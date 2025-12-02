@@ -12,13 +12,8 @@
  *                        (e.g., { a=0, b=1, c=2 })
  *
  * @var common_tags     - Tags applied to all resources
- *
- * @var name_suffix     - Standard suffix for resource naming
- *                        Format: {region}-{environment}-{managed_by}
- *                        Example: "nvirginia-dev-terraform"
  */
 variable "vpcs"            { type = map(any) }
 variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
 variable "common_tags"     { type = map(string) }
-variable "name_suffix"     { type = string }

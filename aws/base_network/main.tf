@@ -1,5 +1,5 @@
 /**
- * Networking Module - N. Virginia Region (us-east-1)
+ * VPC Module - N. Virginia Region (us-east-1)
  *
  * Creates the complete network infrastructure for the N. Virginia region:
  *   - VPCs (Virtual Private Clouds)
@@ -13,8 +13,8 @@
  * @param az_letter_to_ix - Maps zone letters to indices
  * @param common_tags     - Tags applied to all resources
  */
-module "networking_nvirginia" {
-  source    = "./modules/networking"
+module "vpc_nvirginia" {
+  source    = "./modules/vpc"
   providers = { aws = aws.nvirginia }
 
   vpcs            = local.vpcs_nvirginia
@@ -24,7 +24,7 @@ module "networking_nvirginia" {
 }
 
 /**
- * Networking Module - London Region (eu-west-2)
+ * VPC Module - London Region (eu-west-2)
  *
  * Creates the complete network infrastructure for the London region:
  *   - VPCs (Virtual Private Clouds)
@@ -38,8 +38,8 @@ module "networking_nvirginia" {
  * @param az_letter_to_ix - Maps zone letters to indices
  * @param common_tags     - Tags applied to all resources
  */
-module "networking_london" {
-  source    = "./modules/networking"
+module "vpc_london" {
+  source    = "./modules/vpc"
   providers = { aws = aws.london }
 
   vpcs            = local.vpcs_london
