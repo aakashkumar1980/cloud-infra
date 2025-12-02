@@ -62,5 +62,5 @@ module "subnets" {
   igw_ids         = module.internet_gateway.igw_ids
   igw_names       = module.internet_gateway.igw_names
   common_tags     = var.common_tags
-  name_suffix     = var.name_suffix
+  name_suffix     = local.name_suffix
 }
