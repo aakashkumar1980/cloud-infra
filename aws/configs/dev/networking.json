@@ -9,7 +9,7 @@
           "nat_gateway": true,
           "subnets": [
             {"tier": "public", "cidr": "10.0.0.0/27", "zone": "a"},
-            {"tier": "private", "cidr": "10.0.0.32/27", "zone": "b"}
+            {"tier": "private", "cidr": "10.0.0.32/27", "zone": "a"}
           ],
           "free_cidrs": [
             "10.0.0.64/27",
@@ -22,12 +22,12 @@
         },
         "vpc_b": {
           "cidr": "172.16.0.0/26",
-          "nat_gateway": false,
+          "nat_gateway": true,
           "subnets":[
-            {"tier":"private", "cidr":"172.16.0.0/28", "zone":"b"}
+            {"tier":"public", "cidr":"172.16.0.0/28", "zone": "b"},
+            {"tier":"private", "cidr":"172.16.0.16/28", "zone":"b"}
           ],
           "free_cidrs": [
-            "172.16.0.16/28",
             "172.16.0.32/28",
             "172.16.0.48/28"
           ]
@@ -40,8 +40,8 @@
           "cidr": "192.168.0.0/26",
           "nat_gateway": true,
           "subnets":[
-            {"tier":"public", "cidr":"192.168.0.0/28", "zone":"a"},
-            {"tier":"private", "cidr":"192.168.0.16/28", "zone":"b"}
+            {"tier":"public", "cidr":"192.168.0.0/28", "zone":"c"},
+            {"tier":"private", "cidr":"192.168.0.16/28", "zone":"c"}
           ],
           "free_cidrs": [
             "192.168.0.32/28",
