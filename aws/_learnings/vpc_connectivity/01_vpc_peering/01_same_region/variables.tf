@@ -10,12 +10,6 @@ variable "profile" {
   default     = "dev"
 }
 
-variable "name_suffix" {
-  type        = string
-  description = "Suffix for resource naming (should match base_network)"
-  default     = "nvirginia-dev-terraform"
-}
-
 /** Test Module Configuration */
 variable "enable_test" {
   type        = bool
