@@ -35,7 +35,7 @@ module "peering_connection" {
   vpc_a_id    = data.aws_vpc.vpc_a.id
   vpc_b_id    = data.aws_vpc.vpc_b.id
   common_tags = local.tags_common
-  name_suffix = var.name_suffix
+  name_suffix = local.name_suffix_nvirginia
 }
 
 /**
@@ -68,7 +68,7 @@ module "test" {
   vpc_b_id    = data.aws_vpc.vpc_b.id
   vpc_a_cidr  = data.aws_vpc.vpc_a.cidr_block
   vpc_b_cidr  = data.aws_vpc.vpc_b.cidr_block
-  name_suffix = var.name_suffix
+  name_suffix = local.name_suffix_nvirginia
   key_name    = var.key_name
   my_ip       = var.my_ip
 
