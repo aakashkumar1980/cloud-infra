@@ -7,24 +7,42 @@ variable "ami_id" {
   description = "AMI ID for EC2 instances"
 }
 
-variable "instance_a_subnet_id" {
+variable "instance_type" {
   type        = string
-  description = "Subnet ID for instance A (vpc_a public subnet)"
+  description = "EC2 instance type"
+  default     = "t3a.nano"
 }
 
-variable "instance_b_subnet_id" {
+/** Subnet IDs */
+variable "bastion_subnet_id" {
   type        = string
-  description = "Subnet ID for instance B (vpc_b private subnet)"
+  description = "Subnet ID for bastion (vpc_a public subnet)"
 }
 
-variable "instance_a_sg_id" {
+variable "vpc_a_private_subnet_id" {
   type        = string
-  description = "Security group ID for instance A"
+  description = "Subnet ID for vpc_a private instance"
 }
 
-variable "instance_b_sg_id" {
+variable "vpc_b_private_subnet_id" {
   type        = string
-  description = "Security group ID for instance B"
+  description = "Subnet ID for vpc_b private instance"
+}
+
+/** Security Group IDs */
+variable "bastion_sg_id" {
+  type        = string
+  description = "Security group ID for bastion"
+}
+
+variable "vpc_a_private_sg_id" {
+  type        = string
+  description = "Security group ID for vpc_a private instance"
+}
+
+variable "vpc_b_private_sg_id" {
+  type        = string
+  description = "Security group ID for vpc_b private instance"
 }
 
 variable "key_name" {
