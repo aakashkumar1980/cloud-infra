@@ -43,7 +43,7 @@ output "test_instructions" {
     ╔═══════════════════════════════════════════════════════════════════════╗
     ║                    VPC PEERING CONNECTIVITY TEST                      ║
     ╠═══════════════════════════════════════════════════════════════════════╣
-    ║                                                                       ║
+    ║  $ terraform output -raw test_private_key_pem > _test\${module.key_pair.key_name}.pem ║
     ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i bastion-key.pem ec2-user@${module.instances.bastion_public_ip} ║

@@ -208,8 +208,10 @@
       "Condition": {
         "StringNotEqualsIfExists": {
           "ec2:InstanceType": [
-            "t3a.nano",
-            "t4g.micro"
+            "t3a.micro",
+            "t3a.small",
+            "t4g.micro",
+            "t4g.small"
           ]
         }
       }
