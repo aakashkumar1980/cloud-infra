@@ -77,5 +77,5 @@ variable "example_map" {
 ---
 ## Terraform Apply with Profile
 ```shell
-$ terraform apply -var="profile=dev" -auto-approve
+$ terraform apply -var="profile=dev" -var="enable_test=true" -auto-approve
 ```
