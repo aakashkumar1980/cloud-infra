@@ -43,11 +43,13 @@ output "test_instructions" {
     ╔═══════════════════════════════════════════════════════════════════════╗
     ║                    VPC PEERING CONNECTIVITY TEST                      ║
     ╠═══════════════════════════════════════════════════════════════════════╣
-    ║  $ terraform output -raw test_private_key_pem > _test\${module.key_pair.key_name}.pem ║
-    ║  $ chmod 400 _test\${module.key_pair.key_name}.pem (linux only)       ║
+    ║  terraform output -raw test_private_key_pem > _test\${module.key_pair.key_name}.pem ║
+    ║  chmod 400 _test\${module.key_pair.key_name}.pem (linux only)       ║
     ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test\${module.key_pair.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
+    ║    ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
+    ║    ssh ec2-user@${module.instances.vpc_b_private_ip} (to connect to VPC B private instance) ║
     ║                                                                       ║
     ║  Step 2: Run the automated connectivity test                          ║
     ║  ────────────────────────────────────────────────                     ║
