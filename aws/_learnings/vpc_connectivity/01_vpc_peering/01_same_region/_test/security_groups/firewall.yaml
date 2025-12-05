@@ -28,7 +28,7 @@ bastion:
 # ----------------------------------------------------------------------------
 # VPC A Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows ICMP from both VPCs for connectivity testing
+# Allows ICMP and iperf3 from both VPCs for connectivity and bandwidth testing
 # ----------------------------------------------------------------------------
 vpc_a_private:
   ingress:
@@ -44,6 +44,12 @@ vpc_a_private:
       to_port: -1
       # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
 
+    - description: iperf3_from_vpc_a
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
   egress:
     - description: all_outbound
       protocol: "-1"
@@ -52,7 +58,7 @@ vpc_a_private:
 # ----------------------------------------------------------------------------
 # VPC B Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows ICMP from VPC A for cross-VPC peering test
+# Allows ICMP and iperf3 from VPC A for cross-VPC peering test
 # ----------------------------------------------------------------------------
 vpc_b_private:
   ingress:
@@ -60,6 +66,12 @@ vpc_b_private:
       protocol: icmp
       from_port: -1
       to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: iperf3_from_vpc_a_via_peering
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
   egress:
