@@ -34,6 +34,7 @@
 # ----------------------------------------------------------------------------
 ingress:
   # All traffic rule - Allow everything (use with caution, typically for testing)
+  # Note: protocol "-1" means all protocols, no ports should be specified
   all_traffic:
     - description: all_traffic
       protocol: "-1"
