@@ -16,9 +16,3 @@ variable "enable_test" {
   description = "Whether to create test EC2 instances for connectivity validation"
   default     = false
 }
-
-variable "key_name" {
-  type        = string
-  description = "EC2 key pair name for SSH access to test instances"
-  default     = ""
-}

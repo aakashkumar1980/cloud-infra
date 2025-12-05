@@ -56,7 +56,7 @@ ec2:
     type: centos9
     instance_type: t3a.nano
     amis:
-      # N. Virginia CentOS 9 AMI
-      nvirginia: ami-05a66f32ae901754c
-      # London CentOS 9 AMI
-      london: ami-0d55375e7a00f3332
+      # N. Virginia CentOS 9 Stream AMI
+      nvirginia: ami-0e0416d387552f0b1
+      # London CentOS 9 Stream AMI
+      london: ami-057af8b831eb1d2df

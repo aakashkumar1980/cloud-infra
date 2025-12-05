@@ -73,7 +73,6 @@ module "test" {
   vpc_a_cidr  = data.aws_vpc.vpc_a.cidr_block
   vpc_b_cidr  = data.aws_vpc.vpc_b.cidr_block
   name_suffix = local.name_suffix_nvirginia
-  key_name    = var.key_name
 
   # Configuration paths
   config_path          = "${local.env_dir}/amis.yaml"

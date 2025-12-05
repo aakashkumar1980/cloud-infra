@@ -72,7 +72,7 @@ module "instances" {
   vpc_a_private_sg_id = module.security_groups.vpc_a_private_sg_id
   vpc_b_private_sg_id = module.security_groups.vpc_b_private_sg_id
 
-  # SSH access - use provided key or auto-generated key
-  key_name    = var.key_name != "" ? var.key_name : module.key_pair.key_name
+  # SSH access - use auto-generated key
+  key_name    = module.key_pair.key_name
   name_suffix = var.name_suffix
 }

@@ -29,12 +29,6 @@ variable "name_suffix" {
   description = "Suffix for resource naming"
 }
 
-variable "key_name" {
-  type        = string
-  description = "EC2 key pair name for SSH access"
-  default     = ""
-}
-
 variable "config_path" {
   type        = string
   description = "Path to amis.yaml configuration file"
