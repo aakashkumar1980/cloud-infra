@@ -74,11 +74,11 @@ module "test" {
   vpc_b_cidr  = data.aws_vpc.vpc_b.cidr_block
   name_suffix = local.name_suffix_nvirginia
   key_name    = var.key_name
-  my_ip       = var.my_ip
 
-  # AMI configuration path
-  config_path = "${local.env_dir}/amis.yaml"
-  region      = local.REGION_N_VIRGINIA
+  # Configuration paths
+  config_path          = "${local.env_dir}/amis.yaml"
+  common_firewall_path = "${local.config_dir}/firewall.yaml"
+  region               = local.REGION_N_VIRGINIA
 
   depends_on = [module.routes]
 }

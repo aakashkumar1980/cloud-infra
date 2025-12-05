@@ -1,0 +1,74 @@
+# ============================================================================
+# VPC Peering Test - Custom Firewall Rules
+# ============================================================================
+# This file defines security group rules specific to the VPC peering
+# connectivity test module.
+#
+# Architecture:
+#   - Bastion (vpc_a public): Jump host with all ingress for testing
+#   - VPC A Private: Target instance in same VPC
+#   - VPC B Private: Target instance in peered VPC
+#
+# Note: These rules use dynamic CIDR blocks that are passed as variables
+# (vpc_a_cidr, vpc_b_cidr, my_ip) at runtime.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Bastion Security Group Rules
+# ----------------------------------------------------------------------------
+# The bastion uses all_traffic from common firewall.yaml for ingress
+# Custom egress defined here
+# ----------------------------------------------------------------------------
+bastion:
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      from_port: 0
+      to_port: 0
+      cidr_ipv4: 0.0.0.0/0
+
+# ----------------------------------------------------------------------------
+# VPC A Private Instance Security Group Rules
+# ----------------------------------------------------------------------------
+# Allows ICMP from both VPCs for connectivity testing
+# ----------------------------------------------------------------------------
+vpc_a_private:
+  ingress:
+    - description: icmp_from_vpc_a
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: icmp_from_vpc_b
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
+
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      from_port: 0
+      to_port: 0
+      cidr_ipv4: 0.0.0.0/0
+
+# ----------------------------------------------------------------------------
+# VPC B Private Instance Security Group Rules
+# ----------------------------------------------------------------------------
+# Allows ICMP from VPC A for cross-VPC peering test
+# ----------------------------------------------------------------------------
+vpc_b_private:
+  ingress:
+    - description: icmp_from_vpc_a_via_peering
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      from_port: 0
+      to_port: 0
+      cidr_ipv4: 0.0.0.0/0

@@ -35,15 +35,14 @@ variable "key_name" {
   default     = ""
 }
 
-variable "my_ip" {
-  type        = string
-  description = "Your IP address for SSH access (CIDR format, e.g., 1.2.3.4/32)"
-  default     = "0.0.0.0/0"
-}
-
 variable "config_path" {
   type        = string
   description = "Path to amis.yaml configuration file"
+}
+
+variable "common_firewall_path" {
+  type        = string
+  description = "Path to common firewall.yaml configuration file"
 }
 
 variable "region" {
