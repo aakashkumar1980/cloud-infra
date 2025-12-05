@@ -54,3 +54,25 @@ output "vpc_b_private_subnet_id" {
   value       = aws_instance.vpc_b_private_ec2.subnet_id
   description = "Subnet ID of VPC B private instance"
 }
+
+/** Instance Details with Tag Names */
+output "instance_details" {
+  value = {
+    bastion = {
+      name       = aws_instance.bastion_ec2.tags["Name"]
+      private_ip = aws_instance.bastion_ec2.private_ip
+      public_ip  = aws_instance.bastion_ec2.public_ip
+    }
+    vpc_a_private = {
+      name       = aws_instance.vpc_a_private_ec2.tags["Name"]
+      private_ip = aws_instance.vpc_a_private_ec2.private_ip
+      public_ip  = null
+    }
+    vpc_b_private = {
+      name       = aws_instance.vpc_b_private_ec2.tags["Name"]
+      private_ip = aws_instance.vpc_b_private_ec2.private_ip
+      public_ip  = null
+    }
+  }
+  description = "Instance details with tag names and IPs"
+}

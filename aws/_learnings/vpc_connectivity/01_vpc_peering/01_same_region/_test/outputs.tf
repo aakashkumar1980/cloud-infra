@@ -67,12 +67,6 @@ output "test_instructions" {
     ║  If peering is NOT working, you'll see:                               ║
     ║  ping: connect: Network is unreachable                                ║
     ║  (or timeout with no response)                                        ║
-    ║                                                                       ║
-    ╠═══════════════════════════════════════════════════════════════════════╣
-    ║  Instance Details:                                                    ║
-    ║  • Bastion:         ${module.instances.bastion_private_ip} (vpc_a public subnet) ║
-    ║  • VPC A Private:   ${module.instances.vpc_a_private_ip} (vpc_a private subnet) ║
-    ║  • VPC B Private:   ${module.instances.vpc_b_private_ip} (vpc_b private subnet) ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
@@ -81,35 +75,9 @@ output "test_instructions" {
 
 output "test_summary" {
   value = {
-    bastion = {
-      id         = module.instances.bastion_id
-      public_ip  = module.instances.bastion_public_ip
-      private_ip = module.instances.bastion_private_ip
-      subnet_id  = module.instances.bastion_subnet_id
-      vpc        = "vpc_a"
-      role       = "jump-host"
-    }
-    vpc_a_private = {
-      id         = module.instances.vpc_a_private_id
-      public_ip  = "N/A (private subnet)"
-      private_ip = module.instances.vpc_a_private_ip
-      subnet_id  = module.instances.vpc_a_private_subnet_id
-      vpc        = "vpc_a"
-      role       = "target-same-vpc"
-    }
-    vpc_b_private = {
-      id         = module.instances.vpc_b_private_id
-      public_ip  = "N/A (private subnet)"
-      private_ip = module.instances.vpc_b_private_ip
-      subnet_id  = module.instances.vpc_b_private_subnet_id
-      vpc        = "vpc_b"
-      role       = "target-cross-vpc"
-    }
-    test_commands = {
-      same_vpc  = "ping ${module.instances.vpc_a_private_ip}"
-      cross_vpc = "ping ${module.instances.vpc_b_private_ip}"
-      automated = "./test_connectivity.sh"
-    }
+    security_groups = module.security_groups.security_group_details
+    key_pair        = module.key_pair.key_name
+    instances       = module.instances.instance_details
   }
-  description = "Summary of test instances"
+  description = "Summary of test resources: security groups with egress rules, key pair, and EC2 instances"
 }

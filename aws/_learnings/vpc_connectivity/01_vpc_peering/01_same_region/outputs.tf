@@ -4,81 +4,105 @@
  * Exposes VPC peering connection details and routing information.
  */
 
-output "peering_connection_id" {
-  value       = module.peering_connection.peering_connection_id
-  description = "VPC Peering Connection ID"
+locals {
+  peering_tag_name = "test_peering-vpc_a-to-vpc_b-${local.name_suffix_nvirginia}"
 }
 
-output "peering_connection_status" {
-  value       = module.peering_connection.peering_connection_status
-  description = "VPC Peering Connection status (should be 'active')"
-}
-
-output "vpc_a_info" {
+/**
+ * 1. VPC Peering Connection Details
+ */
+output "vpc_peering" {
   value = {
-    id         = data.aws_vpc.vpc_a.id
-    cidr_block = data.aws_vpc.vpc_a.cidr_block
-    name       = local.vpc_a_name
+    name   = local.peering_tag_name
+    status = module.peering_connection.peering_connection_status
+    vpc_a = {
+      name = local.vpc_a_name
+      cidr = data.aws_vpc.vpc_a.cidr_block
+    }
+    vpc_b = {
+      name = local.vpc_b_name
+      cidr = data.aws_vpc.vpc_b.cidr_block
+    }
   }
-  description = "VPC A (requester) information"
+  description = "VPC Peering Connection: name, status, and connected VPCs"
 }
 
-output "vpc_b_info" {
+/**
+ * 2. Route Table Details with New Routes
+ */
+output "route_tables" {
   value = {
-    id         = data.aws_vpc.vpc_b.id
-    cidr_block = data.aws_vpc.vpc_b.cidr_block
-    name       = local.vpc_b_name
+    vpc_a = {
+      for name, rt in data.aws_route_table.vpc_a : name => {
+        name = name
+        routes = concat(
+          # Existing routes (not managed by this module)
+          [
+            for route in rt.routes : {
+              cidr        = route.cidr_block
+              destination = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
+              new         = false
+            }
+            if route.cidr_block != data.aws_vpc.vpc_b.cidr_block
+          ],
+          # New peering route (marked with *)
+          [
+            {
+              cidr        = data.aws_vpc.vpc_b.cidr_block
+              destination = "${local.peering_tag_name} *"
+              new         = true
+            }
+          ]
+        )
+      }
+    }
+    vpc_b = {
+      for name, rt in data.aws_route_table.vpc_b : name => {
+        name = name
+        routes = concat(
+          # Existing routes (not managed by this module)
+          [
+            for route in rt.routes : {
+              cidr        = route.cidr_block
+              destination = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
+              new         = false
+            }
+            if route.cidr_block != data.aws_vpc.vpc_a.cidr_block
+          ],
+          # New peering route (marked with *)
+          [
+            {
+              cidr        = data.aws_vpc.vpc_a.cidr_block
+              destination = "${local.peering_tag_name} *"
+              new         = true
+            }
+          ]
+        )
+      }
+    }
   }
-  description = "VPC B (accepter) information"
+  description = "Route tables with existing and new routes (* marks new peering routes)"
 }
 
-output "routes_added" {
-  value = {
-    vpc_a_routes = module.routes.vpc_a_routes
-    vpc_b_routes = module.routes.vpc_b_routes
-  }
-  description = "Routes added to each VPC's route tables"
-}
-
-output "peering_summary" {
-  value = <<-EOT
-
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║                    VPC PEERING CONNECTION                        ║
-    ╠══════════════════════════════════════════════════════════════════╣
-    ║                                                                  ║
-    ║   vpc_a (${data.aws_vpc.vpc_a.cidr_block})                                      ║
-    ║      │                                                           ║
-    ║      │  Peering: ${module.peering_connection.peering_connection_id}               ║
-    ║      │                                                           ║
-    ║      ▼                                                           ║
-    ║   vpc_b (${data.aws_vpc.vpc_b.cidr_block})                                    ║
-    ║                                                                  ║
-    ╠══════════════════════════════════════════════════════════════════╣
-    ║   Status: ${module.peering_connection.peering_connection_status}                                              ║
-    ╚══════════════════════════════════════════════════════════════════╝
-
-  EOT
-  description = "Visual summary of the peering connection"
-}
-
-/** Test Module Outputs */
-output "test_key_name" {
-  value       = var.enable_test ? module.test[0].key_name : null
-  description = "SSH key pair name (null if tests disabled)"
-}
-
-output "test_private_key_pem" {
-  value       = var.enable_test ? module.test[0].private_key_pem : null
-  sensitive   = true
-}
-
+/**
+ * 3. Test Instructions
+ */
 output "test_instructions" {
   value       = var.enable_test ? module.test[0].test_instructions : "Test disabled. Set enable_test = true to create test instances."
   description = "Instructions for testing VPC peering connectivity"
 }
 
+/**
+ * 4. Test Summary
+ */
 output "test_summary" {
   value       = var.enable_test ? module.test[0].test_summary : null
-  description = "Summary of test instances (null if tests disabled)"
+  description = "Test summary: security groups with egress rules, key pair, and EC2 instances"
+}
+
+/** Private Key Output (sensitive) */
+output "test_private_key_pem" {
+  value       = var.enable_test ? module.test[0].private_key_pem : null
+  sensitive   = true
+  description = "Private key PEM for SSH access"
 }
