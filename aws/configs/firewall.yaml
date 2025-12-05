@@ -34,11 +34,10 @@
 # ----------------------------------------------------------------------------
 ingress:
   # All traffic rule - Allow everything (use with caution, typically for testing)
+  # Note: protocol "-1" means all protocols, no ports should be specified
   all_traffic:
     - description: all_traffic
       protocol: "-1"
-      from_port: 0
-      to_port: 0
       cidr_ipv4: 0.0.0.0/0
 
   standard_rules:
@@ -90,7 +89,8 @@ ingress:
 egress:
   # Allow all outbound traffic
   # This is a permissive rule suitable for most use cases
-  - protocol: all
-    from_port: -1
-    to_port: -1
-    cidr_ipv4: 0.0.0.0/0
+  # Note: protocol "-1" means all protocols, no ports should be specified
+  all_outbound:
+    - description: all_outbound
+      protocol: "-1"
+      cidr_ipv4: 0.0.0.0/0
