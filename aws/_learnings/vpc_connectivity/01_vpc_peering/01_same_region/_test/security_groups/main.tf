@@ -2,11 +2,13 @@
  * Security Groups Module
  *
  * Creates security groups for test instances in vpc_a and vpc_b.
+ * Rules are loaded from YAML configuration files:
+ *   - Common rules: aws/configs/firewall.yaml
+ *   - Custom rules: ./firewall.yaml
  *
  * Architecture:
  *   Bastion (vpc_a public):
- *     - SSH from your IP (for access)
- *     - ICMP from both VPCs (for ping responses)
+ *     - All ingress (for testing purposes)
  *     - All outbound
  *
  *   VPC A Private Instance:
@@ -19,55 +21,50 @@
  *     - All outbound
  */
 
+locals {
+  # Load firewall configurations
+  common_firewall = yamldecode(file(var.common_firewall_path))
+  custom_firewall = yamldecode(file("${path.module}/firewall.yaml"))
+}
+
 /**
  * Security Group for Bastion Instance (vpc_a public subnet)
  *
  * Jump host for SSH access and connectivity testing.
+ * Uses all_traffic rule from common firewall config for testing purposes.
  */
 resource "aws_security_group" "sg_bastion" {
   name        = "sg-test-bastion-${var.name_suffix}"
   description = "Security group for bastion/jump host in vpc_a public subnet"
   vpc_id      = var.vpc_a_id
 
-  # SSH from your IP
-  ingress {
-    description = "SSH from allowed IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.my_ip]
-  }
-
-  # ICMP from vpc_a (for internal ping responses)
-  ingress {
-    description = "ICMP from vpc_a"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_a_cidr]
-  }
-
-  # ICMP from vpc_b (for cross-VPC ping responses)
-  ingress {
-    description = "ICMP from vpc_b"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_b_cidr]
-  }
-
-  # All outbound
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "sg-test-bastion-${var.name_suffix}"
   }
+}
+
+# Bastion ingress - All traffic (from common firewall.yaml)
+resource "aws_vpc_security_group_ingress_rule" "bastion_all_ingress" {
+  for_each = { for idx, rule in local.common_firewall.ingress.all_traffic : idx => rule }
+
+  security_group_id = aws_security_group.sg_bastion.id
+  description       = each.value.description
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  cidr_ipv4         = each.value.cidr_ipv4
+}
+
+# Bastion egress - All outbound (from custom firewall.yaml)
+resource "aws_vpc_security_group_egress_rule" "bastion_all_egress" {
+  for_each = { for idx, rule in local.custom_firewall.bastion.egress : idx => rule }
+
+  security_group_id = aws_security_group.sg_bastion.id
+  description       = each.value.description
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  cidr_ipv4         = each.value.cidr_ipv4
 }
 
 /**
@@ -80,36 +77,41 @@ resource "aws_security_group" "sg_vpc_a_private" {
   description = "Security group for test instance in vpc_a private subnet"
   vpc_id      = var.vpc_a_id
 
-  # ICMP from vpc_a (from bastion)
-  ingress {
-    description = "ICMP from vpc_a"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_a_cidr]
-  }
-
-  # ICMP from vpc_b (for cross-VPC testing)
-  ingress {
-    description = "ICMP from vpc_b"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_b_cidr]
-  }
-
-  # All outbound
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "sg-test-vpc-a-private-${var.name_suffix}"
   }
+}
+
+# VPC A Private - ICMP from vpc_a (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_a" {
+  security_group_id = aws_security_group.sg_vpc_a_private.id
+  description       = local.custom_firewall.vpc_a_private.ingress[0].description
+  ip_protocol       = local.custom_firewall.vpc_a_private.ingress[0].protocol
+  from_port         = local.custom_firewall.vpc_a_private.ingress[0].from_port
+  to_port           = local.custom_firewall.vpc_a_private.ingress[0].to_port
+  cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
+}
+
+# VPC A Private - ICMP from vpc_b (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_b" {
+  security_group_id = aws_security_group.sg_vpc_a_private.id
+  description       = local.custom_firewall.vpc_a_private.ingress[1].description
+  ip_protocol       = local.custom_firewall.vpc_a_private.ingress[1].protocol
+  from_port         = local.custom_firewall.vpc_a_private.ingress[1].from_port
+  to_port           = local.custom_firewall.vpc_a_private.ingress[1].to_port
+  cidr_ipv4         = var.vpc_b_cidr # Dynamic CIDR
+}
+
+# VPC A Private - All egress
+resource "aws_vpc_security_group_egress_rule" "vpc_a_private_all_egress" {
+  for_each = { for idx, rule in local.custom_firewall.vpc_a_private.egress : idx => rule }
+
+  security_group_id = aws_security_group.sg_vpc_a_private.id
+  description       = each.value.description
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  cidr_ipv4         = each.value.cidr_ipv4
 }
 
 /**
@@ -122,25 +124,29 @@ resource "aws_security_group" "sg_vpc_b_private" {
   description = "Security group for test instance in vpc_b private subnet"
   vpc_id      = var.vpc_b_id
 
-  # ICMP from vpc_a (from bastion via peering)
-  ingress {
-    description = "ICMP from vpc_a via peering"
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_a_cidr]
-  }
-
-  # All outbound
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "sg-test-vpc-b-private-${var.name_suffix}"
   }
+}
+
+# VPC B Private - ICMP from vpc_a via peering (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_icmp_from_vpc_a" {
+  security_group_id = aws_security_group.sg_vpc_b_private.id
+  description       = local.custom_firewall.vpc_b_private.ingress[0].description
+  ip_protocol       = local.custom_firewall.vpc_b_private.ingress[0].protocol
+  from_port         = local.custom_firewall.vpc_b_private.ingress[0].from_port
+  to_port           = local.custom_firewall.vpc_b_private.ingress[0].to_port
+  cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
+}
+
+# VPC B Private - All egress
+resource "aws_vpc_security_group_egress_rule" "vpc_b_private_all_egress" {
+  for_each = { for idx, rule in local.custom_firewall.vpc_b_private.egress : idx => rule }
+
+  security_group_id = aws_security_group.sg_vpc_b_private.id
+  description       = each.value.description
+  ip_protocol       = each.value.protocol
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  cidr_ipv4         = each.value.cidr_ipv4
 }

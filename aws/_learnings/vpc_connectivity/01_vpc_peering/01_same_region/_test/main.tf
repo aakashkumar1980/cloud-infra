@@ -22,16 +22,17 @@
  * Security Groups Module
  *
  * Creates security groups for test instances in both VPCs.
+ * Rules are loaded from YAML configuration files.
  */
 module "security_groups" {
   source = "./security_groups"
 
-  vpc_a_id    = var.vpc_a_id
-  vpc_b_id    = var.vpc_b_id
-  vpc_a_cidr  = var.vpc_a_cidr
-  vpc_b_cidr  = var.vpc_b_cidr
-  my_ip       = var.my_ip
-  name_suffix = var.name_suffix
+  vpc_a_id             = var.vpc_a_id
+  vpc_b_id             = var.vpc_b_id
+  vpc_a_cidr           = var.vpc_a_cidr
+  vpc_b_cidr           = var.vpc_b_cidr
+  name_suffix          = var.name_suffix
+  common_firewall_path = var.common_firewall_path
 }
 
 /**

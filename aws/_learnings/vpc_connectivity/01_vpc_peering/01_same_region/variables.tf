@@ -22,9 +22,3 @@ variable "key_name" {
   description = "EC2 key pair name for SSH access to test instances"
   default     = ""
 }
-
-variable "my_ip" {
-  type        = string
-  description = "Your IP address for SSH access (CIDR format, e.g., 1.2.3.4/32)"
-  default     = "0.0.0.0/0"
-}

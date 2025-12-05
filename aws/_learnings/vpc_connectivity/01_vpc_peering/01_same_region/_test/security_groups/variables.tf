@@ -22,12 +22,12 @@ variable "vpc_b_cidr" {
   description = "VPC B CIDR block (for ICMP rules)"
 }
 
-variable "my_ip" {
-  type        = string
-  description = "Your IP address for SSH access (CIDR format)"
-}
-
 variable "name_suffix" {
   type        = string
   description = "Suffix for resource naming"
+}
+
+variable "common_firewall_path" {
+  type        = string
+  description = "Path to common firewall.yaml configuration file"
 }

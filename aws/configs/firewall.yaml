@@ -30,8 +30,17 @@
 # Each rule specifies protocol, port range, and source CIDR blocks.
 #
 # @field standard_rules - Common inbound rules applied to most resources
+# @field all_traffic - Allow all inbound traffic (use with caution)
 # ----------------------------------------------------------------------------
 ingress:
+  # All traffic rule - Allow everything (use with caution, typically for testing)
+  all_traffic:
+    - description: all_traffic
+      protocol: "-1"
+      from_port: 0
+      to_port: 0
+      cidr_ipv4: 0.0.0.0/0
+
   standard_rules:
     # ICMP Rule - Allow ping for network diagnostics
     # Protocol: ICMP, Ports: All (-1), Source: Anywhere
