@@ -40,3 +40,14 @@ variable "my_ip" {
   description = "Your IP address for SSH access (CIDR format, e.g., 1.2.3.4/32)"
   default     = "0.0.0.0/0"
 }
+
+variable "config_path" {
+  type        = string
+  description = "Path to amis.yaml configuration file"
+}
+
+variable "region" {
+  type        = string
+  description = "Region key for AMI lookup (e.g., nvirginia, london)"
+  default     = "nvirginia"
+}

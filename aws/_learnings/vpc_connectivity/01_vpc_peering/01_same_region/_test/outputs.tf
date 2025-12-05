@@ -4,19 +4,24 @@
  * Provides information needed to run connectivity tests.
  */
 
-output "instance_a_public_ip" {
-  value       = module.instances.instance_a_public_ip
-  description = "Public IP of Test Instance A (SSH target)"
+output "bastion_public_ip" {
+  value       = module.instances.bastion_public_ip
+  description = "Public IP of Bastion (SSH target)"
 }
 
-output "instance_a_private_ip" {
-  value       = module.instances.instance_a_private_ip
-  description = "Private IP of Test Instance A"
+output "bastion_private_ip" {
+  value       = module.instances.bastion_private_ip
+  description = "Private IP of Bastion"
 }
 
-output "instance_b_private_ip" {
-  value       = module.instances.instance_b_private_ip
-  description = "Private IP of Test Instance B (ping target)"
+output "vpc_a_private_ip" {
+  value       = module.instances.vpc_a_private_ip
+  description = "Private IP of VPC A private instance (same VPC target)"
+}
+
+output "vpc_b_private_ip" {
+  value       = module.instances.vpc_b_private_ip
+  description = "Private IP of VPC B private instance (cross-VPC target)"
 }
 
 output "test_instructions" {
@@ -26,19 +31,24 @@ output "test_instructions" {
     ║                    VPC PEERING CONNECTIVITY TEST                      ║
     ╠══════════════════════════════════════════════════════════════════════╣
     ║                                                                       ║
-    ║  Step 1: SSH into Test Instance A (in vpc_a)                          ║
-    ║  ─────────────────────────────────────────────                        ║
-    ║  ssh -i <your-key.pem> ec2-user@${module.instances.instance_a_public_ip}
+    ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
+    ║  ──────────────────────────────────────────────────                   ║
+    ║  ssh -i <your-key.pem> ec2-user@${module.instances.bastion_public_ip}
     ║                                                                       ║
-    ║  Step 2: Ping Test Instance B (in vpc_b)                              ║
-    ║  ─────────────────────────────────────────                            ║
-    ║  ping ${module.instances.instance_b_private_ip}
+    ║  Step 2: Run the automated connectivity test                          ║
+    ║  ────────────────────────────────────────────────                     ║
+    ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
-    ║  Expected Result:                                                     ║
-    ║  ────────────────                                                     ║
-    ║  If VPC peering is working, you should see:                           ║
-    ║  PING ${module.instances.instance_b_private_ip} 56(84) bytes of data.
-    ║  64 bytes from ${module.instances.instance_b_private_ip}: icmp_seq=1 ttl=255 time=0.5 ms
+    ║  Or manually test each target:                                        ║
+    ║  ─────────────────────────────                                        ║
+    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC)
+    ║  ping ${module.instances.vpc_b_private_ip}    # VPC B private (via peering)
+    ║                                                                       ║
+    ╠══════════════════════════════════════════════════════════════════════╣
+    ║  Expected Results:                                                    ║
+    ║  ─────────────────                                                    ║
+    ║  • Bastion -> VPC A Private: SUCCESS (same VPC routing)               ║
+    ║  • Bastion -> VPC B Private: SUCCESS (via VPC peering)                ║
     ║                                                                       ║
     ║  If peering is NOT working, you'll see:                               ║
     ║  ping: connect: Network is unreachable                                ║
@@ -46,8 +56,9 @@ output "test_instructions" {
     ║                                                                       ║
     ╠══════════════════════════════════════════════════════════════════════╣
     ║  Instance Details:                                                    ║
-    ║  • Instance A: ${module.instances.instance_a_private_ip} (vpc_a public subnet)
-    ║  • Instance B: ${module.instances.instance_b_private_ip} (vpc_b private subnet)
+    ║  • Bastion:         ${module.instances.bastion_private_ip} (vpc_a public subnet)
+    ║  • VPC A Private:   ${module.instances.vpc_a_private_ip} (vpc_a private subnet)
+    ║  • VPC B Private:   ${module.instances.vpc_b_private_ip} (vpc_b private subnet)
     ╚══════════════════════════════════════════════════════════════════════╝
 
   EOT
@@ -56,21 +67,35 @@ output "test_instructions" {
 
 output "test_summary" {
   value = {
-    instance_a = {
-      id         = module.instances.instance_a_id
-      public_ip  = module.instances.instance_a_public_ip
-      private_ip = module.instances.instance_a_private_ip
-      subnet_id  = module.instances.instance_a_subnet_id
+    bastion = {
+      id         = module.instances.bastion_id
+      public_ip  = module.instances.bastion_public_ip
+      private_ip = module.instances.bastion_private_ip
+      subnet_id  = module.instances.bastion_subnet_id
       vpc        = "vpc_a"
+      role       = "jump-host"
     }
-    instance_b = {
-      id         = module.instances.instance_b_id
+    vpc_a_private = {
+      id         = module.instances.vpc_a_private_id
       public_ip  = "N/A (private subnet)"
-      private_ip = module.instances.instance_b_private_ip
-      subnet_id  = module.instances.instance_b_subnet_id
-      vpc        = "vpc_b"
+      private_ip = module.instances.vpc_a_private_ip
+      subnet_id  = module.instances.vpc_a_private_subnet_id
+      vpc        = "vpc_a"
+      role       = "target-same-vpc"
     }
-    test_command = "ping ${module.instances.instance_b_private_ip}"
+    vpc_b_private = {
+      id         = module.instances.vpc_b_private_id
+      public_ip  = "N/A (private subnet)"
+      private_ip = module.instances.vpc_b_private_ip
+      subnet_id  = module.instances.vpc_b_private_subnet_id
+      vpc        = "vpc_b"
+      role       = "target-cross-vpc"
+    }
+    test_commands = {
+      same_vpc  = "ping ${module.instances.vpc_a_private_ip}"
+      cross_vpc = "ping ${module.instances.vpc_b_private_ip}"
+      automated = "./test_connectivity.sh"
+    }
   }
   description = "Summary of test instances"
 }

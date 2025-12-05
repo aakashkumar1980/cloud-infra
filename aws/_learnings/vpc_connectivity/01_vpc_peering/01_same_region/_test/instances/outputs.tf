@@ -2,37 +2,55 @@
  * Instances Module - Outputs
  */
 
-output "instance_a_id" {
-  value       = aws_instance.instance_a.id
-  description = "Instance A ID"
+/** Bastion Instance Outputs */
+output "bastion_id" {
+  value       = aws_instance.bastion.id
+  description = "Bastion instance ID"
 }
 
-output "instance_a_public_ip" {
-  value       = aws_instance.instance_a.public_ip
-  description = "Public IP of Instance A (SSH target)"
+output "bastion_public_ip" {
+  value       = aws_instance.bastion.public_ip
+  description = "Public IP of bastion (SSH target)"
 }
 
-output "instance_a_private_ip" {
-  value       = aws_instance.instance_a.private_ip
-  description = "Private IP of Instance A"
+output "bastion_private_ip" {
+  value       = aws_instance.bastion.private_ip
+  description = "Private IP of bastion"
 }
 
-output "instance_a_subnet_id" {
-  value       = aws_instance.instance_a.subnet_id
-  description = "Subnet ID of Instance A"
+output "bastion_subnet_id" {
+  value       = aws_instance.bastion.subnet_id
+  description = "Subnet ID of bastion"
 }
 
-output "instance_b_id" {
-  value       = aws_instance.instance_b.id
-  description = "Instance B ID"
+/** VPC A Private Instance Outputs */
+output "vpc_a_private_id" {
+  value       = aws_instance.vpc_a_private.id
+  description = "VPC A private instance ID"
 }
 
-output "instance_b_private_ip" {
-  value       = aws_instance.instance_b.private_ip
-  description = "Private IP of Instance B (ping target)"
+output "vpc_a_private_ip" {
+  value       = aws_instance.vpc_a_private.private_ip
+  description = "Private IP of VPC A private instance (ping target)"
 }
 
-output "instance_b_subnet_id" {
-  value       = aws_instance.instance_b.subnet_id
-  description = "Subnet ID of Instance B"
+output "vpc_a_private_subnet_id" {
+  value       = aws_instance.vpc_a_private.subnet_id
+  description = "Subnet ID of VPC A private instance"
+}
+
+/** VPC B Private Instance Outputs */
+output "vpc_b_private_id" {
+  value       = aws_instance.vpc_b_private.id
+  description = "VPC B private instance ID"
+}
+
+output "vpc_b_private_ip" {
+  value       = aws_instance.vpc_b_private.private_ip
+  description = "Private IP of VPC B private instance (cross-VPC ping target)"
+}
+
+output "vpc_b_private_subnet_id" {
+  value       = aws_instance.vpc_b_private.subnet_id
+  description = "Subnet ID of VPC B private instance"
 }

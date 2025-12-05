@@ -57,7 +57,11 @@ module "routes" {
 /**
  * Test Module (Optional)
  *
- * Creates EC2 instances to validate VPC peering connectivity.
+ * Creates 3 EC2 instances to validate VPC peering connectivity:
+ *   1. Bastion (vpc_a public subnet) - Jump host with public IP
+ *   2. VPC A Private Instance        - Target in same VPC
+ *   3. VPC B Private Instance        - Target in peered VPC
+ *
  * Set enable_test = true to create test resources.
  */
 module "test" {
@@ -71,6 +75,10 @@ module "test" {
   name_suffix = local.name_suffix_nvirginia
   key_name    = var.key_name
   my_ip       = var.my_ip
+
+  # AMI configuration path
+  config_path = "${local.env_dir}/amis.yaml"
+  region      = local.REGION_N_VIRGINIA
 
   depends_on = [module.routes]
 }
