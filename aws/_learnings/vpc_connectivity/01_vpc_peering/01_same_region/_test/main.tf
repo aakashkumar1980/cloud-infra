@@ -72,7 +72,8 @@ module "instances" {
   vpc_a_private_sg_id = module.security_groups.vpc_a_private_sg_id
   vpc_b_private_sg_id = module.security_groups.vpc_b_private_sg_id
 
-  # SSH access - use auto-generated key
-  key_name    = module.key_pair.key_name
-  name_suffix = var.name_suffix
+  # SSH access - use auto-generated key and copy to bastion for private instance access
+  key_name        = module.key_pair.key_name
+  private_key_pem = module.key_pair.private_key_pem
+  name_suffix     = var.name_suffix
 }

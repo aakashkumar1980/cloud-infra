@@ -51,6 +51,13 @@ variable "key_name" {
   default     = ""
 }
 
+variable "private_key_pem" {
+  type        = string
+  description = "Private key PEM for SSH access to private instances"
+  default     = ""
+  sensitive   = true
+}
+
 variable "name_suffix" {
   type        = string
   description = "Suffix for resource naming"
