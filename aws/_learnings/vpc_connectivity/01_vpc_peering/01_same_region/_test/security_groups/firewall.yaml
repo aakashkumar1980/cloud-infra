@@ -28,10 +28,16 @@ bastion:
 # ----------------------------------------------------------------------------
 # VPC A Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows ICMP and iperf3 from both VPCs for connectivity and bandwidth testing
+# Allows SSH, ICMP and iperf3 from VPC A for connectivity and bandwidth testing
 # ----------------------------------------------------------------------------
 vpc_a_private:
   ingress:
+    - description: ssh_from_vpc_a
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
     - description: icmp_from_vpc_a
       protocol: icmp
       from_port: -1
@@ -58,10 +64,16 @@ vpc_a_private:
 # ----------------------------------------------------------------------------
 # VPC B Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows ICMP and iperf3 from VPC A for cross-VPC peering test
+# Allows SSH, ICMP and iperf3 from VPC A for cross-VPC peering test
 # ----------------------------------------------------------------------------
 vpc_b_private:
   ingress:
+    - description: ssh_from_vpc_a_via_peering
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
     - description: icmp_from_vpc_a_via_peering
       protocol: icmp
       from_port: -1

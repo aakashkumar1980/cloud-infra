@@ -55,6 +55,7 @@ resource "aws_instance" "vpc_a_private_ec2" {
   instance_type          = var.instance_type
   subnet_id              = var.vpc_a_private_subnet_id
   vpc_security_group_ids = [var.vpc_a_private_sg_id]
+  key_name               = var.key_name != "" ? var.key_name : null
 
   user_data = <<-EOF
     #!/bin/bash
@@ -100,6 +101,7 @@ resource "aws_instance" "vpc_b_private_ec2" {
   instance_type          = var.instance_type
   subnet_id              = var.vpc_b_private_subnet_id
   vpc_security_group_ids = [var.vpc_b_private_sg_id]
+  key_name               = var.key_name != "" ? var.key_name : null
 
   user_data = <<-EOF
     #!/bin/bash
@@ -161,6 +163,15 @@ resource "aws_instance" "bastion_ec2" {
     # Install iperf3 for bandwidth testing (client mode)
     yum install -y iperf3
 
+    # Copy private key for SSH access to private instances
+    %{ if var.private_key_pem != "" }
+    cat > /home/ec2-user/.ssh/id_rsa << 'PRIVATEKEY'
+    ${var.private_key_pem}
+    PRIVATEKEY
+    chmod 600 /home/ec2-user/.ssh/id_rsa
+    chown ec2-user:ec2-user /home/ec2-user/.ssh/id_rsa
+    %{ endif }
+
     # Create connectivity test script with pre-configured IPs
     cat > /home/ec2-user/test_connectivity.sh << 'SCRIPT'
     ${templatefile("${path.module}/test_connectivity.sh", {
@@ -185,6 +196,10 @@ resource "aws_instance" "bastion_ec2" {
       ./test_connectivity.sh          # Run ping + bandwidth tests
       ./test_connectivity.sh ping     # Run ping test only
       ./test_connectivity.sh speed    # Run bandwidth test only
+
+    SSH to private instances:
+      ssh ec2-user@${aws_instance.vpc_a_private_ec2.private_ip}   # VPC A Private
+      ssh ec2-user@${aws_instance.vpc_b_private_ec2.private_ip}   # VPC B Private (via peering)
 
     Manual iperf3 commands:
       iperf3 -c ${aws_instance.vpc_a_private_ec2.private_ip}   # Test to VPC A

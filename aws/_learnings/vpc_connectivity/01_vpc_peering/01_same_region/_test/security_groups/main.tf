@@ -84,8 +84,8 @@ resource "aws_security_group" "sg_vpc_a_private" {
   }
 }
 
-# VPC A Private - ICMP from vpc_a (dynamic CIDR)
-resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_a" {
+# VPC A Private - SSH from vpc_a (dynamic CIDR) - for bastion access
+resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_ssh_from_vpc_a" {
   security_group_id = aws_security_group.sg_vpc_a_private.id
   description       = local.custom_firewall.vpc_a_private.ingress[0].description
   ip_protocol       = local.custom_firewall.vpc_a_private.ingress[0].protocol
@@ -94,23 +94,33 @@ resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_a" {
   cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
 }
 
-# VPC A Private - ICMP from vpc_b (dynamic CIDR)
-resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_b" {
+# VPC A Private - ICMP from vpc_a (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_a" {
   security_group_id = aws_security_group.sg_vpc_a_private.id
   description       = local.custom_firewall.vpc_a_private.ingress[1].description
   ip_protocol       = local.custom_firewall.vpc_a_private.ingress[1].protocol
   from_port         = local.custom_firewall.vpc_a_private.ingress[1].from_port
   to_port           = local.custom_firewall.vpc_a_private.ingress[1].to_port
+  cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
+}
+
+# VPC A Private - ICMP from vpc_b (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_icmp_from_vpc_b" {
+  security_group_id = aws_security_group.sg_vpc_a_private.id
+  description       = local.custom_firewall.vpc_a_private.ingress[2].description
+  ip_protocol       = local.custom_firewall.vpc_a_private.ingress[2].protocol
+  from_port         = local.custom_firewall.vpc_a_private.ingress[2].from_port
+  to_port           = local.custom_firewall.vpc_a_private.ingress[2].to_port
   cidr_ipv4         = var.vpc_b_cidr # Dynamic CIDR
 }
 
 # VPC A Private - iperf3 from vpc_a (dynamic CIDR) - for bandwidth testing
 resource "aws_vpc_security_group_ingress_rule" "vpc_a_private_iperf3_from_vpc_a" {
   security_group_id = aws_security_group.sg_vpc_a_private.id
-  description       = local.custom_firewall.vpc_a_private.ingress[2].description
-  ip_protocol       = local.custom_firewall.vpc_a_private.ingress[2].protocol
-  from_port         = local.custom_firewall.vpc_a_private.ingress[2].from_port
-  to_port           = local.custom_firewall.vpc_a_private.ingress[2].to_port
+  description       = local.custom_firewall.vpc_a_private.ingress[3].description
+  ip_protocol       = local.custom_firewall.vpc_a_private.ingress[3].protocol
+  from_port         = local.custom_firewall.vpc_a_private.ingress[3].from_port
+  to_port           = local.custom_firewall.vpc_a_private.ingress[3].to_port
   cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
 }
 
@@ -142,8 +152,8 @@ resource "aws_security_group" "sg_vpc_b_private" {
   }
 }
 
-# VPC B Private - ICMP from vpc_a via peering (dynamic CIDR)
-resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_icmp_from_vpc_a" {
+# VPC B Private - SSH from vpc_a via peering (dynamic CIDR) - for bastion access
+resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_ssh_from_vpc_a" {
   security_group_id = aws_security_group.sg_vpc_b_private.id
   description       = local.custom_firewall.vpc_b_private.ingress[0].description
   ip_protocol       = local.custom_firewall.vpc_b_private.ingress[0].protocol
@@ -152,13 +162,23 @@ resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_icmp_from_vpc_a" {
   cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
 }
 
-# VPC B Private - iperf3 from vpc_a via peering (dynamic CIDR) - for bandwidth testing
-resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_iperf3_from_vpc_a" {
+# VPC B Private - ICMP from vpc_a via peering (dynamic CIDR)
+resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_icmp_from_vpc_a" {
   security_group_id = aws_security_group.sg_vpc_b_private.id
   description       = local.custom_firewall.vpc_b_private.ingress[1].description
   ip_protocol       = local.custom_firewall.vpc_b_private.ingress[1].protocol
   from_port         = local.custom_firewall.vpc_b_private.ingress[1].from_port
   to_port           = local.custom_firewall.vpc_b_private.ingress[1].to_port
+  cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
+}
+
+# VPC B Private - iperf3 from vpc_a via peering (dynamic CIDR) - for bandwidth testing
+resource "aws_vpc_security_group_ingress_rule" "vpc_b_private_iperf3_from_vpc_a" {
+  security_group_id = aws_security_group.sg_vpc_b_private.id
+  description       = local.custom_firewall.vpc_b_private.ingress[2].description
+  ip_protocol       = local.custom_firewall.vpc_b_private.ingress[2].protocol
+  from_port         = local.custom_firewall.vpc_b_private.ingress[2].from_port
+  to_port           = local.custom_firewall.vpc_b_private.ingress[2].to_port
   cidr_ipv4         = var.vpc_a_cidr # Dynamic CIDR
 }
 
