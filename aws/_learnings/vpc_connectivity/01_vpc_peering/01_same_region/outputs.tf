@@ -70,7 +70,6 @@ output "test_key_name" {
 
 output "test_private_key_pem" {
   value       = var.enable_test ? module.test[0].private_key_pem : null
-  description = "Private key PEM - save with: terraform output -raw test_private_key_pem > bastion-key.pem && chmod 400 key.pem && ssh -i bastion-key.pem ec2-user@<bastion-public-ip>"
   sensitive   = true
 }
 

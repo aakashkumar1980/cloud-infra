@@ -41,3 +41,4 @@ exported_car-sales.csv
 /aws/base_network/.terraform.lock.hcl
 /aws/_learnings/vpc_connectivity/01_vpc_peering/01_same_region/bastion-key.pem
 /aws/_learnings/vpc_connectivity/01_vpc_peering/01_same_region/_test/key-nvirginia-dev-terraform.pem
+/aws/_learnings/vpc_connectivity/01_vpc_peering/01_same_region/_test/test_key-nvirginia-dev-terraform.pem
