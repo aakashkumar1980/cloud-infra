@@ -48,12 +48,39 @@
  *
  * This instance validates internal VPC routing.
  * No public IP (private subnet).
+ * Runs iperf3 server for bandwidth testing.
  */
 resource "aws_instance" "vpc_a_private_ec2" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = var.vpc_a_private_subnet_id
   vpc_security_group_ids = [var.vpc_a_private_sg_id]
+
+  user_data = <<-EOF
+    #!/bin/bash
+    # Install iperf3 for bandwidth testing
+    yum install -y iperf3
+
+    # Start iperf3 server (runs on port 5201)
+    # Run as a systemd service for persistence
+    cat > /etc/systemd/system/iperf3.service << 'SERVICE'
+    [Unit]
+    Description=iperf3 server
+    After=network.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/bin/iperf3 -s
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    SERVICE
+
+    systemctl daemon-reload
+    systemctl enable iperf3
+    systemctl start iperf3
+  EOF
 
   tags = {
     Name = "test-vpc-a-private-ec2-${var.name_suffix}"
@@ -66,12 +93,39 @@ resource "aws_instance" "vpc_a_private_ec2" {
  *
  * This instance validates cross-VPC connectivity via peering.
  * No public IP (private subnet in different VPC).
+ * Runs iperf3 server for bandwidth testing.
  */
 resource "aws_instance" "vpc_b_private_ec2" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   subnet_id              = var.vpc_b_private_subnet_id
   vpc_security_group_ids = [var.vpc_b_private_sg_id]
+
+  user_data = <<-EOF
+    #!/bin/bash
+    # Install iperf3 for bandwidth testing
+    yum install -y iperf3
+
+    # Start iperf3 server (runs on port 5201)
+    # Run as a systemd service for persistence
+    cat > /etc/systemd/system/iperf3.service << 'SERVICE'
+    [Unit]
+    Description=iperf3 server
+    After=network.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/bin/iperf3 -s
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    SERVICE
+
+    systemctl daemon-reload
+    systemctl enable iperf3
+    systemctl start iperf3
+  EOF
 
   tags = {
     Name = "test-vpc-b-private-ec2-${var.name_suffix}"
@@ -104,6 +158,9 @@ resource "aws_instance" "bastion_ec2" {
     #!/bin/bash
     echo "=== VPC Peering Connectivity Test Bastion ===" > /etc/motd
 
+    # Install iperf3 for bandwidth testing (client mode)
+    yum install -y iperf3
+
     # Create connectivity test script with pre-configured IPs
     cat > /home/ec2-user/test_connectivity.sh << 'SCRIPT'
     ${templatefile("${path.module}/test_connectivity.sh", {
@@ -124,8 +181,14 @@ resource "aws_instance" "bastion_ec2" {
       - VPC A Private: ${aws_instance.vpc_a_private_ec2.private_ip}
       - VPC B Private: ${aws_instance.vpc_b_private_ec2.private_ip}
 
-    To run the test:
-      ./test_connectivity.sh
+    Commands:
+      ./test_connectivity.sh          # Run ping + bandwidth tests
+      ./test_connectivity.sh ping     # Run ping test only
+      ./test_connectivity.sh speed    # Run bandwidth test only
+
+    Manual iperf3 commands:
+      iperf3 -c ${aws_instance.vpc_a_private_ec2.private_ip}   # Test to VPC A
+      iperf3 -c ${aws_instance.vpc_b_private_ec2.private_ip}   # Test to VPC B
 
     README
     chown ec2-user:ec2-user /home/ec2-user/README.txt
