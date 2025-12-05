@@ -34,12 +34,12 @@ locals {
  * Uses all_traffic rule from common firewall config for testing purposes.
  */
 resource "aws_security_group" "sg_bastion" {
-  name        = "sg_test_bastion-${var.name_suffix}"
+  name        = "test_sg_bastion-${var.name_suffix}"
   description = "Security group for bastion/jump host in vpc_a public subnet"
   vpc_id      = var.vpc_a_id
 
   tags = {
-    Name = "sg-test-bastion-${var.name_suffix}"
+    Name = "test_sg-bastion-${var.name_suffix}"
   }
 }
 
@@ -75,12 +75,12 @@ resource "aws_vpc_security_group_egress_rule" "bastion_all_egress" {
  * Target instance in vpc_a private subnet.
  */
 resource "aws_security_group" "sg_vpc_a_private" {
-  name        = "sg_test_vpc_a_private-${var.name_suffix}"
+  name        = "test_sg_vpc_a_private-${var.name_suffix}"
   description = "Security group for test instance in vpc_a private subnet"
   vpc_id      = var.vpc_a_id
 
   tags = {
-    Name = "sg-test-vpc-a-private-${var.name_suffix}"
+    Name = "test_sg-vpc-a-private-${var.name_suffix}"
   }
 }
 
@@ -123,12 +123,12 @@ resource "aws_vpc_security_group_egress_rule" "vpc_a_private_all_egress" {
  * Target instance in vpc_b private subnet (cross-VPC target).
  */
 resource "aws_security_group" "sg_vpc_b_private" {
-  name        = "sg_test_vpc_b_private-${var.name_suffix}"
+  name        = "test_sg_vpc_b_private-${var.name_suffix}"
   description = "Security group for test instance in vpc_b private subnet"
   vpc_id      = var.vpc_b_id
 
   tags = {
-    Name = "sg-test-vpc-b-private-${var.name_suffix}"
+    Name = "test_sg-vpc-b-private-${var.name_suffix}"
   }
 }
 

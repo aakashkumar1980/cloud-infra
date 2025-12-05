@@ -27,10 +27,10 @@ resource "tls_private_key" "ssh_key" {
  * Registers the public key with AWS for EC2 instance access.
  */
 resource "aws_key_pair" "generated_key" {
-  key_name   = "key-${var.name_suffix}"
+  key_name   = "test_key-${var.name_suffix}"
   public_key = tls_private_key.ssh_key.public_key_openssh
 
   tags = {
-    Name = "key-${var.name_suffix}"
+    Name = "test_key-${var.name_suffix}"
   }
 }

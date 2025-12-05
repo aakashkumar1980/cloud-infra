@@ -56,7 +56,7 @@ resource "aws_instance" "vpc_a_private_ec2" {
   vpc_security_group_ids = [var.vpc_a_private_sg_id]
 
   tags = {
-    Name = "test-vpc-a-private-ec2-${var.name_suffix}"
+    Name = "test_vpc-a-private-ec2-${var.name_suffix}"
     Role = "target-same-vpc"
   }
 }
@@ -74,7 +74,7 @@ resource "aws_instance" "vpc_b_private_ec2" {
   vpc_security_group_ids = [var.vpc_b_private_sg_id]
 
   tags = {
-    Name = "test-vpc-b-private-ec2-${var.name_suffix}"
+    Name = "test_vpc-b-private-ec2-${var.name_suffix}"
     Role = "target-cross-vpc"
   }
 }
@@ -132,7 +132,7 @@ resource "aws_instance" "bastion_ec2" {
   EOF
 
   tags = {
-    Name = "test-bastion-ec2-${var.name_suffix}"
+    Name = "test_bastion-vpc-a-public-ec2-${var.name_suffix}"
     Role = "bastion"
   }
 }
