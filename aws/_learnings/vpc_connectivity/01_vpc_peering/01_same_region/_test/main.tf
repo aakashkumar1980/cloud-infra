@@ -19,6 +19,18 @@
  */
 
 /**
+ * Key Pair Module
+ *
+ * Generates an SSH key pair for EC2 instance access.
+ * The private key is output for saving to a local file.
+ */
+module "key_pair" {
+  source = "./key_pair"
+
+  name_suffix = var.name_suffix
+}
+
+/**
  * Security Groups Module
  *
  * Creates security groups for test instances in both VPCs.
@@ -60,7 +72,7 @@ module "instances" {
   vpc_a_private_sg_id = module.security_groups.vpc_a_private_sg_id
   vpc_b_private_sg_id = module.security_groups.vpc_b_private_sg_id
 
-  # SSH access
-  key_name    = var.key_name
+  # SSH access - use provided key or auto-generated key
+  key_name    = var.key_name != "" ? var.key_name : module.key_pair.key_name
   name_suffix = var.name_suffix
 }

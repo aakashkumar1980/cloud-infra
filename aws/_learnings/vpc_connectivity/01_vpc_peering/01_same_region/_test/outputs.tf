@@ -4,6 +4,19 @@
  * Provides information needed to run connectivity tests.
  */
 
+/** Key Pair Outputs */
+output "key_name" {
+  value       = module.key_pair.key_name
+  description = "Name of the SSH key pair"
+}
+
+output "private_key_pem" {
+  value       = module.key_pair.private_key_pem
+  description = "Private key in PEM format - save to file: terraform output -raw private_key_pem > key.pem && chmod 400 key.pem"
+  sensitive   = true
+}
+
+/** Instance Outputs */
 output "bastion_public_ip" {
   value       = module.instances.bastion_public_ip
   description = "Public IP of Bastion (SSH target)"

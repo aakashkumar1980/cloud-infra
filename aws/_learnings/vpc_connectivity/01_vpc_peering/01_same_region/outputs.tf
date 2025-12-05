@@ -63,6 +63,17 @@ output "peering_summary" {
 }
 
 /** Test Module Outputs */
+output "test_key_name" {
+  value       = var.enable_test ? module.test[0].key_name : null
+  description = "SSH key pair name (null if tests disabled)"
+}
+
+output "test_private_key_pem" {
+  value       = var.enable_test ? module.test[0].private_key_pem : null
+  description = "Private key PEM - save with: terraform output -raw test_private_key_pem > key.pem && chmod 400 key.pem"
+  sensitive   = true
+}
+
 output "test_instructions" {
   value       = var.enable_test ? module.test[0].test_instructions : "Test disabled. Set enable_test = true to create test instances."
   description = "Instructions for testing VPC peering connectivity"
