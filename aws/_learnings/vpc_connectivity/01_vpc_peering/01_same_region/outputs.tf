@@ -39,18 +39,18 @@ output "route_tables" {
           # Existing routes (not managed by this module)
           [
             for route in rt.routes : {
-              cidr        = route.cidr_block
-              destination = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
-              new         = false
+              destination = route.cidr_block
+              target_name = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
+              type        = route.gateway_id != "" ? "internet_gateway" : (route.nat_gateway_id != "" ? "nat_gateway" : "local")
             }
             if route.cidr_block != data.aws_vpc.vpc_b.cidr_block
           ],
           # New peering route (marked with *)
           [
             {
-              cidr        = data.aws_vpc.vpc_b.cidr_block
-              destination = "${local.peering_tag_name} *"
-              new         = true
+              destination = data.aws_vpc.vpc_b.cidr_block
+              target_name = "${local.peering_tag_name} *"
+              type        = "vpc_peering_connection"
             }
           ]
         )
@@ -63,18 +63,18 @@ output "route_tables" {
           # Existing routes (not managed by this module)
           [
             for route in rt.routes : {
-              cidr        = route.cidr_block
-              destination = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
-              new         = false
+              destination = route.cidr_block
+              target_name = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
+              type        = route.gateway_id != "" ? "internet_gateway" : (route.nat_gateway_id != "" ? "nat_gateway" : "local")
             }
             if route.cidr_block != data.aws_vpc.vpc_a.cidr_block
           ],
           # New peering route (marked with *)
           [
             {
-              cidr        = data.aws_vpc.vpc_a.cidr_block
-              destination = "${local.peering_tag_name} *"
-              new         = true
+              destination = data.aws_vpc.vpc_a.cidr_block
+              target_name = "${local.peering_tag_name} *"
+              type        = "vpc_peering_connection"
             }
           ]
         )
@@ -97,7 +97,7 @@ output "test_instructions" {
  */
 output "test_summary" {
   value       = var.enable_test ? module.test[0].test_summary : null
-  description = "Test summary: security groups with egress rules, key pair, and EC2 instances"
+  description = "Test summary: security groups with ingress rules, key pair, and EC2 instances"
 }
 
 /** Private Key Output (sensitive) */

@@ -79,5 +79,5 @@ output "test_summary" {
     key_pair        = module.key_pair.key_name
     instances       = module.instances.instance_details
   }
-  description = "Summary of test resources: security groups with egress rules, key pair, and EC2 instances"
+  description = "Summary of test resources: security groups with ingress rules, key pair, and EC2 instances"
 }
