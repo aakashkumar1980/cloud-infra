@@ -40,13 +40,13 @@ output "vpc_b_private_ip" {
 output "test_instructions" {
   value = <<-EOT
 
-    ╔══════════════════════════════════════════════════════════════════════╗
+    ╔═══════════════════════════════════════════════════════════════════════╗
     ║                    VPC PEERING CONNECTIVITY TEST                      ║
-    ╠══════════════════════════════════════════════════════════════════════╣
+    ╠═══════════════════════════════════════════════════════════════════════╣
     ║                                                                       ║
     ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
     ║  ──────────────────────────────────────────────────                   ║
-    ║  ssh -i <your-key.pem> ec2-user@${module.instances.bastion_public_ip}
+    ║  ssh -i bastion-key.pem ec2-user@${module.instances.bastion_public_ip} ║
     ║                                                                       ║
     ║  Step 2: Run the automated connectivity test                          ║
     ║  ────────────────────────────────────────────────                     ║
@@ -54,10 +54,10 @@ output "test_instructions" {
     ║                                                                       ║
     ║  Or manually test each target:                                        ║
     ║  ─────────────────────────────                                        ║
-    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC)
-    ║  ping ${module.instances.vpc_b_private_ip}    # VPC B private (via peering)
+    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC) ║
+    ║  ping ${module.instances.vpc_b_private_ip}    # VPC B private (via peering) ║
     ║                                                                       ║
-    ╠══════════════════════════════════════════════════════════════════════╣
+    ╠═══════════════════════════════════════════════════════════════════════╣
     ║  Expected Results:                                                    ║
     ║  ─────────────────                                                    ║
     ║  • Bastion -> VPC A Private: SUCCESS (same VPC routing)               ║
@@ -67,12 +67,12 @@ output "test_instructions" {
     ║  ping: connect: Network is unreachable                                ║
     ║  (or timeout with no response)                                        ║
     ║                                                                       ║
-    ╠══════════════════════════════════════════════════════════════════════╣
+    ╠═══════════════════════════════════════════════════════════════════════╣
     ║  Instance Details:                                                    ║
-    ║  • Bastion:         ${module.instances.bastion_private_ip} (vpc_a public subnet)
-    ║  • VPC A Private:   ${module.instances.vpc_a_private_ip} (vpc_a private subnet)
-    ║  • VPC B Private:   ${module.instances.vpc_b_private_ip} (vpc_b private subnet)
-    ╚══════════════════════════════════════════════════════════════════════╝
+    ║  • Bastion:         ${module.instances.bastion_private_ip} (vpc_a public subnet) ║
+    ║  • VPC A Private:   ${module.instances.vpc_a_private_ip} (vpc_a private subnet) ║
+    ║  • VPC B Private:   ${module.instances.vpc_b_private_ip} (vpc_b private subnet) ║
+    ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
   description = "Instructions for testing VPC peering connectivity"
