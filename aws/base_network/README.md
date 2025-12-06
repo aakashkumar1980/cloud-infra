@@ -1,43 +1,5 @@
 # AWS Base Network Module
 
-## Cost Estimation
-
-### Fixed Monthly Costs (per NAT Gateway)
-
-| Item | Calculation | Monthly Cost |
-|------|-------------|--------------|
-| NAT Gateway | $0.045 × 730 hours | ~$32.85 |
-| Elastic IP (associated) | Free when attached to NAT GW | $0.00 |
-| **Subtotal per NAT GW** | | **~$32.85** |
-
-**Current Configuration:**
-
-| Region | VPCs | NAT Gateways | Monthly Cost |
-|--------|------|--------------|--------------|
-| N. Virginia (us-east-1) | vpc_a, vpc_b | 2 | ~$65.70 |
-| London (eu-west-2) | vpc_c | 1 | ~$32.85 |
-| **Total** | **3 VPCs** | **3 NAT GWs** | **~$98.55/month** |
-
-### Variable Costs
-
-| Item | Rate | Notes |
-|------|------|-------|
-| NAT Gateway Data Processing | $0.045/GB | Charged for all data processed through NAT GW |
-| Data Transfer Out to Internet | $0.09/GB | First 10TB/month (standard AWS data transfer) |
-| Cross-Region Data Transfer | $0.02/GB | Between us-east-1 and eu-west-2 |
-
-**Example Monthly Cost (100GB data processing per NAT Gateway):**
-
-| Component | Calculation | Cost |
-|-----------|-------------|------|
-| Fixed NAT Gateway costs | 3 NAT GWs × $32.85 | $98.55 |
-| Data processing | 3 × 100GB × $0.045 | $13.50 |
-| **Estimated Total** | | **~$112.05/month** |
-
-> **Note**: Prices shown are approximate for us-east-1 and eu-west-2 regions. Refer to [AWS VPC Pricing](https://aws.amazon.com/vpc/pricing/) for current rates.
-
----
-
 ## Exam Questions
 
 ### Associate

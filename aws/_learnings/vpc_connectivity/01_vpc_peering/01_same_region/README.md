@@ -1,36 +1,5 @@
 # VPC Peering - Same Region
 
-## Cost Estimation
-
-### Fixed Monthly Costs
-
-| Item | Pricing | Monthly Cost |
-|------|---------|--------------|
-| VPC Peering Connection | Free | $0.00 |
-| Routes (aws_route) | Free | $0.00 |
-| **Total Fixed Cost** | | **$0.00** |
-
-> **Note**: VPC Peering itself has no hourly or monthly charges. Costs are purely based on data transfer.
-
-### Variable Costs
-
-| Item | Rate | Notes |
-|------|------|-------|
-| Data Transfer (Same Region) | Free | No charge for data transfer within same region over peering |
-| Data Transfer (Cross-Region) | $0.01/GB | Each direction charged separately |
-
-**Example: Same Region Peering (This Module)**
-
-| Component | Rate | Cost |
-|-----------|------|------|
-| VPC Peering Connection | Free | $0.00 |
-| Data Transfer (100GB/month) | Free (same region) | $0.00 |
-| **Total** | | **$0.00** |
-
-> **Key Insight**: Same-region VPC peering is completely free. This makes it an excellent choice for connecting VPCs within a region without incurring additional costs.
-
----
-
 ## Exam Questions
 
 ### Associate
