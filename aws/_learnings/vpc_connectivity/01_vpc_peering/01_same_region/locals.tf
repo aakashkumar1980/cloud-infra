@@ -28,12 +28,30 @@ locals {
   vpc_b_name = "vpc_b-${local.name_suffix_nvirginia}"
 
   vpcs_nvirginia = try(local.networking.regions[local.REGION_N_VIRGINIA].vpcs, {})
-  vpc_a_route_table_names = [
+
+  # Subnet configuration (keyed by subnet identifier for lookups)
+  vpc_a_subnets = {
     for subnet in local.vpcs_nvirginia.vpc_a.subnets :
-    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
-  ]
-  vpc_b_route_table_names = [
+    "${subnet.tier}_zone_${subnet.zone}" => {
+      name    = "subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
+      cidr    = subnet.cidr
+      tier    = subnet.tier
+      zone    = subnet.zone
+      rt_name = "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
+    }
+  }
+  vpc_b_subnets = {
     for subnet in local.vpcs_nvirginia.vpc_b.subnets :
-    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_b-${local.name_suffix_nvirginia}"
-  ]
+    "${subnet.tier}_zone_${subnet.zone}" => {
+      name    = "subnet_${subnet.tier}_zone_${subnet.zone}-vpc_b-${local.name_suffix_nvirginia}"
+      cidr    = subnet.cidr
+      tier    = subnet.tier
+      zone    = subnet.zone
+      rt_name = "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_b-${local.name_suffix_nvirginia}"
+    }
+  }
+
+  # Route table names (for data source lookups)
+  vpc_a_route_table_names = [for s in local.vpc_a_subnets : s.rt_name]
+  vpc_b_route_table_names = [for s in local.vpc_b_subnets : s.rt_name]
 }

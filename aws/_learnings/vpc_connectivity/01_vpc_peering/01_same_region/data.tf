@@ -21,22 +21,42 @@ data "aws_vpc" "vpc_b" {
   }
 }
 
-/** Get route tables in vpc_a by Name tag */
-data "aws_route_table" "vpc_a" {
-  for_each = toset(local.vpc_a_route_table_names)
+/** Get subnets in vpc_a by Name tag */
+data "aws_subnet" "vpc_a" {
+  for_each = local.vpc_a_subnets
 
   filter {
     name   = "tag:Name"
-    values = [each.value]
+    values = [each.value.name]
+  }
+}
+
+/** Get subnets in vpc_b by Name tag */
+data "aws_subnet" "vpc_b" {
+  for_each = local.vpc_b_subnets
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value.name]
+  }
+}
+
+/** Get route tables in vpc_a by Name tag */
+data "aws_route_table" "vpc_a" {
+  for_each = local.vpc_a_subnets
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value.rt_name]
   }
 }
 
 /** Get route tables in vpc_b by Name tag */
 data "aws_route_table" "vpc_b" {
-  for_each = toset(local.vpc_b_route_table_names)
+  for_each = local.vpc_b_subnets
 
   filter {
     name   = "tag:Name"
-    values = [each.value]
+    values = [each.value.rt_name]
   }
 }
