@@ -13,12 +13,12 @@ output "key_pair_id" {
 }
 
 output "private_key_pem" {
-  value       = var.public_key_openssh == null ? tls_private_key.ssh_key[0].private_key_pem : null
-  description = "Private key in PEM format (save to file for SSH access). Null if using existing public key."
+  value       = tls_private_key.ssh_key.private_key_pem
+  description = "Private key in PEM format (save to file for SSH access)"
   sensitive   = true
 }
 
 output "public_key_openssh" {
-  value       = var.public_key_openssh != null ? var.public_key_openssh : tls_private_key.ssh_key[0].public_key_openssh
+  value       = tls_private_key.ssh_key.public_key_openssh
   description = "Public key in OpenSSH format"
 }
