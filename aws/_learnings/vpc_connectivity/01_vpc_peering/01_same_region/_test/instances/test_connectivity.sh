@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # VPC Peering Connectivity Test Script
-# Tests connectivity (ping) and bandwidth (iperf3) from bastion to private instances
+# Tests connectivity (ping) and bandwidth (iperf3) from VPC A private to VPC B private
 #
 # Usage:
 #   ./test_connectivity.sh          # Run all tests (ping + bandwidth)
@@ -18,8 +18,7 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Pre-configured target IPs (injected by Terraform)
-VPC_A_PRIVATE_IP="${vpc_a_private_ip}"
+# Pre-configured target IP (injected by Terraform)
 VPC_B_PRIVATE_IP="${vpc_b_private_ip}"
 
 # Test mode (default: all)
@@ -58,10 +57,6 @@ test_bandwidth() {
     exit_code=$?
 
     if [ $exit_code -eq 0 ]; then
-        # Extract and display bandwidth results
-        sender=$(echo "$result" | grep -A1 "sender" | tail -1 | awk '{print $7, $8}')
-        receiver=$(echo "$result" | grep -A1 "receiver" | tail -1 | awk '{print $7, $8}')
-
         # Get the summary line
         bandwidth=$(echo "$result" | grep "sender" | tail -1 | awk '{print $7, $8}')
 
@@ -80,10 +75,10 @@ test_bandwidth() {
 print_header() {
     echo "╔══════════════════════════════════════════════════════════════════╗"
     echo "║           VPC PEERING CONNECTIVITY TEST                          ║"
+    echo "║        (VPC A Private -> VPC B Private via Peering)              ║"
     echo "╚══════════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "Target IPs (pre-configured by Terraform):"
-    echo "  - VPC A Private: $VPC_A_PRIVATE_IP"
+    echo "Target IP (pre-configured by Terraform):"
     echo "  - VPC B Private: $VPC_B_PRIVATE_IP"
     echo ""
     echo "Test mode: $TEST_MODE"
@@ -92,31 +87,23 @@ print_header() {
 
 run_ping_tests() {
     echo "┌──────────────────────────────────────────────────────────────────┐"
-    echo "│ PING TESTS                                                       │"
+    echo "│ PING TEST                                                        │"
     echo "└──────────────────────────────────────────────────────────────────┘"
     echo ""
-    echo "  Test 1: Same VPC (Bastion -> VPC A Private)"
-    test_ping "$VPC_A_PRIVATE_IP" "VPC A Private Instance"
-    PING1_RESULT=$?
-    echo ""
-    echo "  Test 2: Cross-VPC via Peering (Bastion -> VPC B Private)"
+    echo "  Cross-VPC via Peering (VPC A Private -> VPC B Private)"
     test_ping "$VPC_B_PRIVATE_IP" "VPC B Private Instance"
-    PING2_RESULT=$?
+    PING_RESULT=$?
     echo ""
 }
 
 run_bandwidth_tests() {
     echo "┌──────────────────────────────────────────────────────────────────┐"
-    echo "│ BANDWIDTH TESTS (iperf3)                                         │"
+    echo "│ BANDWIDTH TEST (iperf3)                                          │"
     echo "└──────────────────────────────────────────────────────────────────┘"
     echo ""
-    echo "  Test 1: Same VPC Bandwidth (Bastion -> VPC A Private)"
-    test_bandwidth "$VPC_A_PRIVATE_IP" "VPC A Private Instance"
-    BW1_RESULT=$?
-
-    echo "  Test 2: Cross-VPC Bandwidth via Peering (Bastion -> VPC B Private)"
+    echo "  Cross-VPC Bandwidth via Peering (VPC A Private -> VPC B Private)"
     test_bandwidth "$VPC_B_PRIVATE_IP" "VPC B Private Instance"
-    BW2_RESULT=$?
+    BW_RESULT=$?
 }
 
 print_summary() {
@@ -127,19 +114,19 @@ print_summary() {
     local all_passed=true
 
     if [ "$TEST_MODE" = "all" ] || [ "$TEST_MODE" = "ping" ]; then
-        if [ $PING1_RESULT -eq 0 ] && [ $PING2_RESULT -eq 0 ]; then
-            echo -e "║  Ping Tests:      $${GREEN}PASSED$${NC}                                       ║"
+        if [ $PING_RESULT -eq 0 ]; then
+            echo -e "║  Ping Test:       $${GREEN}PASSED$${NC}                                       ║"
         else
-            echo -e "║  Ping Tests:      $${RED}FAILED$${NC}                                       ║"
+            echo -e "║  Ping Test:       $${RED}FAILED$${NC}                                       ║"
             all_passed=false
         fi
     fi
 
     if [ "$TEST_MODE" = "all" ] || [ "$TEST_MODE" = "speed" ]; then
-        if [ $BW1_RESULT -eq 0 ] && [ $BW2_RESULT -eq 0 ]; then
-            echo -e "║  Bandwidth Tests: $${GREEN}PASSED$${NC}                                       ║"
+        if [ $BW_RESULT -eq 0 ]; then
+            echo -e "║  Bandwidth Test:  $${GREEN}PASSED$${NC}                                       ║"
         else
-            echo -e "║  Bandwidth Tests: $${RED}FAILED$${NC}                                       ║"
+            echo -e "║  Bandwidth Test:  $${RED}FAILED$${NC}                                       ║"
             all_passed=false
         fi
     fi
@@ -158,10 +145,8 @@ print_summary() {
 }
 
 # Initialize result variables
-PING1_RESULT=0
-PING2_RESULT=0
-BW1_RESULT=0
-BW2_RESULT=0
+PING_RESULT=0
+BW_RESULT=0
 FINAL_RESULT=0
 
 # Main execution
