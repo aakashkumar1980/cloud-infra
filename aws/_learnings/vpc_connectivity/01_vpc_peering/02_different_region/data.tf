@@ -50,7 +50,7 @@ data "aws_subnet" "vpc_c" {
   }
 }
 
-/** Get route tables in vpc_a (N. Virginia) by Name tag */
+/** Get route tables in vpc_a (N. Virginia) by Name tag (depends on routes to show peering) */
 data "aws_route_table" "vpc_a" {
   provider = aws.nvirginia
   for_each = local.vpc_a_subnets
@@ -59,9 +59,11 @@ data "aws_route_table" "vpc_a" {
     name   = "tag:Name"
     values = [each.value.rt_name]
   }
+
+  depends_on = [module.routes]
 }
 
-/** Get route tables in vpc_c (London) by Name tag */
+/** Get route tables in vpc_c (London) by Name tag (depends on routes to show peering) */
 data "aws_route_table" "vpc_c" {
   provider = aws.london
   for_each = local.vpc_c_subnets
@@ -70,4 +72,6 @@ data "aws_route_table" "vpc_c" {
     name   = "tag:Name"
     values = [each.value.rt_name]
   }
+
+  depends_on = [module.routes]
 }
