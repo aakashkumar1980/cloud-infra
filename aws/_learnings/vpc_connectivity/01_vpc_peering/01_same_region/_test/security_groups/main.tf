@@ -21,11 +21,6 @@
  *     - All outbound
  */
 
-locals {
-  # Load firewall configurations
-  common_firewall = yamldecode(file(var.common_firewall_path))
-  custom_firewall = yamldecode(file("${path.module}/firewall.yaml"))
-}
 
 /**
  * Security Group for Bastion Instance (vpc_a public subnet)
@@ -39,7 +34,7 @@ resource "aws_security_group" "sg_bastion" {
   vpc_id      = var.vpc_a_id
 
   tags = {
-    Name = "test_sg-bastion-${var.name_suffix}"
+    Name = "test_sg_bastion-vpc-a-public-${var.name_suffix}"
   }
 }
 
