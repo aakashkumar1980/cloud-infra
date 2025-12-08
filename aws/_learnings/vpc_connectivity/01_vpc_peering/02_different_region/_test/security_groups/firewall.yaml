@@ -1,0 +1,93 @@
+# ============================================================================
+# Cross-Region VPC Peering Test - Custom Firewall Rules
+# ============================================================================
+# This file defines security group rules specific to the cross-region VPC
+# peering connectivity test module.
+#
+# Architecture:
+#   - Bastion (vpc_a public, N. Virginia): Jump host with all ingress for testing
+#   - VPC A Private (N. Virginia): Target instance in same VPC
+#   - VPC C Private (London): Target instance in peered VPC (different region)
+#
+# Note: These rules use dynamic CIDR blocks that are passed as variables
+# (vpc_a_cidr, vpc_c_cidr) at runtime.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Bastion Security Group Rules (N. Virginia)
+# ----------------------------------------------------------------------------
+# The bastion uses all_traffic from common firewall.yaml for ingress
+# Custom egress defined here
+# ----------------------------------------------------------------------------
+bastion:
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      cidr_ipv4: 0.0.0.0/0
+
+# ----------------------------------------------------------------------------
+# VPC A Private Instance Security Group Rules (N. Virginia)
+# ----------------------------------------------------------------------------
+# Allows SSH, ICMP and iperf3 from VPC A for connectivity and bandwidth testing
+# Also allows ICMP from VPC C for cross-region testing
+# ----------------------------------------------------------------------------
+vpc_a_private:
+  ingress:
+    - description: ssh_from_vpc_a
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: icmp_from_vpc_a
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: icmp_from_vpc_c_cross_region
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
+
+    - description: iperf3_from_vpc_a
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      cidr_ipv4: 0.0.0.0/0
+
+# ----------------------------------------------------------------------------
+# VPC C Private Instance Security Group Rules (London)
+# ----------------------------------------------------------------------------
+# Allows SSH, ICMP and iperf3 from VPC A for cross-region peering test
+# ----------------------------------------------------------------------------
+vpc_c_private:
+  ingress:
+    - description: ssh_from_vpc_a_via_cross_region_peering
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: icmp_from_vpc_a_via_cross_region_peering
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: iperf3_from_vpc_a_via_cross_region_peering
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+  egress:
+    - description: all_outbound
+      protocol: "-1"
+      cidr_ipv4: 0.0.0.0/0
