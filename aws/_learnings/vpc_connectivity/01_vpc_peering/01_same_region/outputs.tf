@@ -6,7 +6,7 @@
  */
 
 locals {
-  peering_tag_name = "test_peering-vpc_a-to-vpc_b-${local.name_suffix_nvirginia}"
+  peering_tag_name = "peering-vpc_a-to-vpc_b-${local.name_suffix_nvirginia}"
 }
 
 /**
