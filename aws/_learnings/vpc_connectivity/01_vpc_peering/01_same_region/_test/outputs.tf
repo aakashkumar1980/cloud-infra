@@ -45,6 +45,7 @@ output "test_instructions" {
     ╠═══════════════════════════════════════════════════════════════════════╣
     ║  terraform output -raw test_private_key_pem > _test\${module.key_pair.key_name}.pem ║
     ║  chmod 400 _test\${module.key_pair.key_name}.pem (linux only)       ║
+    ║                                                                       ║
     ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test\${module.key_pair.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
