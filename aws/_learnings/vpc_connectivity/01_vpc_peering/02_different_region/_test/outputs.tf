@@ -1,0 +1,94 @@
+/**
+ * Test Module Outputs - Cross-Region
+ *
+ * Provides information needed to run connectivity tests.
+ */
+
+/** Key Pair Outputs */
+output "key_name" {
+  value       = module.key_pair_nvirginia.key_name
+  description = "Name of the SSH key pair (N. Virginia)"
+}
+
+output "private_key_pem" {
+  value       = module.key_pair_nvirginia.private_key_pem
+  description = "Private key in PEM format - save to file: terraform output -raw private_key_pem > key.pem && chmod 400 key.pem"
+  sensitive   = true
+}
+
+/** Instance Outputs */
+output "bastion_public_ip" {
+  value       = module.instances.bastion_public_ip
+  description = "Public IP of Bastion (SSH target) in N. Virginia"
+}
+
+output "bastion_private_ip" {
+  value       = module.instances.bastion_private_ip
+  description = "Private IP of Bastion"
+}
+
+output "vpc_a_private_ip" {
+  value       = module.instances.vpc_a_private_ip
+  description = "Private IP of VPC A private instance (same VPC target) - N. Virginia"
+}
+
+output "vpc_c_private_ip" {
+  value       = module.instances.vpc_c_private_ip
+  description = "Private IP of VPC C private instance (cross-region target) - London"
+}
+
+output "test_instructions" {
+  value = <<-EOT
+
+    ╔═══════════════════════════════════════════════════════════════════════╗
+    ║             CROSS-REGION VPC PEERING CONNECTIVITY TEST                ║
+    ║                 N. Virginia (vpc_a) <---> London (vpc_c)              ║
+    ╠═══════════════════════════════════════════════════════════════════════╣
+    ║  terraform output -raw test_private_key_pem > _test/${module.key_pair_nvirginia.key_name}.pem ║
+    ║  chmod 400 _test/${module.key_pair_nvirginia.key_name}.pem (linux only)       ║
+    ║  Step 1: SSH into Bastion (in vpc_a public subnet, N. Virginia)       ║
+    ║  ──────────────────────────────────────────────────                   ║
+    ║  ssh -i _test/${module.key_pair_nvirginia.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
+    ║    ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
+    ║    ssh ec2-user@${module.instances.vpc_c_private_ip} (to connect to VPC C private instance - London) ║
+    ║                                                                       ║
+    ║  Step 2: Run the automated connectivity test                          ║
+    ║  ────────────────────────────────────────────────                     ║
+    ║  ./test_connectivity.sh                                               ║
+    ║                                                                       ║
+    ║  Or manually test each target:                                        ║
+    ║  ─────────────────────────────                                        ║
+    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC, same region) ║
+    ║  ping ${module.instances.vpc_c_private_ip}    # VPC C private (cross-region peering) ║
+    ║                                                                       ║
+    ╠═══════════════════════════════════════════════════════════════════════╣
+    ║  Expected Results:                                                    ║
+    ║  ─────────────────                                                    ║
+    ║  • Bastion -> VPC A Private: SUCCESS (same VPC routing)               ║
+    ║  • Bastion -> VPC C Private: SUCCESS (via cross-region VPC peering)   ║
+    ║                                                                       ║
+    ║  Cross-Region Latency:                                                ║
+    ║  ─────────────────────                                                ║
+    ║  • Same region (N. Virginia): ~1-2ms latency                          ║
+    ║  • Cross-region (London):     ~60-100ms latency (expected)            ║
+    ║                                                                       ║
+    ║  If peering is NOT working, you'll see:                               ║
+    ║  ping: connect: Network is unreachable                                ║
+    ║  (or timeout with no response)                                        ║
+    ╚═══════════════════════════════════════════════════════════════════════╝
+
+  EOT
+  description = "Instructions for testing cross-region VPC peering connectivity"
+}
+
+output "test_summary" {
+  value = {
+    security_groups = module.security_groups.security_group_details
+    key_pairs = {
+      nvirginia = module.key_pair_nvirginia.key_name
+      london    = module.key_pair_london.key_name
+    }
+    instances = module.instances.instance_details
+  }
+  description = "Summary of test resources: security groups with ingress rules, key pairs, and EC2 instances"
+}
