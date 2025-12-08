@@ -41,7 +41,7 @@ data "aws_subnet" "vpc_b" {
   }
 }
 
-/** Get route tables in vpc_a by Name tag */
+/** Get route tables in vpc_a by Name tag (depends on routes to show peering) */
 data "aws_route_table" "vpc_a" {
   for_each = local.vpc_a_subnets
 
@@ -49,9 +49,11 @@ data "aws_route_table" "vpc_a" {
     name   = "tag:Name"
     values = [each.value.rt_name]
   }
+
+  depends_on = [module.routes]
 }
 
-/** Get route tables in vpc_b by Name tag */
+/** Get route tables in vpc_b by Name tag (depends on routes to show peering) */
 data "aws_route_table" "vpc_b" {
   for_each = local.vpc_b_subnets
 
@@ -59,4 +61,6 @@ data "aws_route_table" "vpc_b" {
     name   = "tag:Name"
     values = [each.value.rt_name]
   }
+
+  depends_on = [module.routes]
 }
