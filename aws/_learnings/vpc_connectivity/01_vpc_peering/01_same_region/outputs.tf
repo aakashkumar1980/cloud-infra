@@ -34,7 +34,7 @@ output "nvirginia" {
             name = data.aws_route_table.vpc_a[subnet_key].tags["Name"]
             routes = [
               for route in data.aws_route_table.vpc_a[subnet_key].routes :
-              "${route.cidr_block} -> ${coalesce(route.gateway_id, "") != "" ? route.gateway_id : (coalesce(route.nat_gateway_id, "") != "" ? route.nat_gateway_id : (coalesce(route.vpc_peering_connection_id, "") != "" ? "${local.peering_tag_name} *" : "local"))}"
+              "${route.cidr_block} -> ${try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (try(length(route.vpc_peering_connection_id), 0) > 0 ? "${local.peering_tag_name} *" : "local"))}"
             ]
           }
 
@@ -82,7 +82,7 @@ output "nvirginia" {
             name = data.aws_route_table.vpc_b[subnet_key].tags["Name"]
             routes = [
               for route in data.aws_route_table.vpc_b[subnet_key].routes :
-              "${route.cidr_block} -> ${coalesce(route.gateway_id, "") != "" ? route.gateway_id : (coalesce(route.nat_gateway_id, "") != "" ? route.nat_gateway_id : (coalesce(route.vpc_peering_connection_id, "") != "" ? "${local.peering_tag_name} *" : "local"))}"
+              "${route.cidr_block} -> ${try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (try(length(route.vpc_peering_connection_id), 0) > 0 ? "${local.peering_tag_name} *" : "local"))}"
             ]
           }
 
