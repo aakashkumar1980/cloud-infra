@@ -42,15 +42,31 @@ locals {
   vpcs_nvirginia = try(local.networking.regions[local.REGION_N_VIRGINIA].vpcs, {})
   vpcs_london    = try(local.networking.regions[local.REGION_LONDON].vpcs, {})
 
-  # Route table names for vpc_a (N. Virginia)
-  vpc_a_route_table_names = [
+  # Subnet configuration for vpc_a (N. Virginia)
+  vpc_a_subnets = {
     for subnet in local.vpcs_nvirginia.vpc_a.subnets :
-    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
-  ]
+    "${subnet.tier}_zone_${subnet.zone}" => {
+      name    = "subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
+      cidr    = subnet.cidr
+      tier    = subnet.tier
+      zone    = subnet.zone
+      rt_name = "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_a-${local.name_suffix_nvirginia}"
+    }
+  }
 
-  # Route table names for vpc_c (London)
-  vpc_c_route_table_names = [
+  # Subnet configuration for vpc_c (London)
+  vpc_c_subnets = {
     for subnet in local.vpcs_london.vpc_c.subnets :
-    "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_c-${local.name_suffix_london}"
-  ]
+    "${subnet.tier}_zone_${subnet.zone}" => {
+      name    = "subnet_${subnet.tier}_zone_${subnet.zone}-vpc_c-${local.name_suffix_london}"
+      cidr    = subnet.cidr
+      tier    = subnet.tier
+      zone    = subnet.zone
+      rt_name = "routetable-subnet_${subnet.tier}_zone_${subnet.zone}-vpc_c-${local.name_suffix_london}"
+    }
+  }
+
+  # Route table names (for backwards compatibility)
+  vpc_a_route_table_names = [for s in local.vpc_a_subnets : s.rt_name]
+  vpc_c_route_table_names = [for s in local.vpc_c_subnets : s.rt_name]
 }
