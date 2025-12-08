@@ -28,24 +28,46 @@ data "aws_vpc" "vpc_c" {
   }
 }
 
-/** Get route tables in vpc_a (N. Virginia) by Name tag */
-data "aws_route_table" "vpc_a" {
+/** Get subnets in vpc_a (N. Virginia) by Name tag */
+data "aws_subnet" "vpc_a" {
   provider = aws.nvirginia
-  for_each = toset(local.vpc_a_route_table_names)
+  for_each = local.vpc_a_subnets
 
   filter {
     name   = "tag:Name"
-    values = [each.value]
+    values = [each.value.name]
+  }
+}
+
+/** Get subnets in vpc_c (London) by Name tag */
+data "aws_subnet" "vpc_c" {
+  provider = aws.london
+  for_each = local.vpc_c_subnets
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value.name]
+  }
+}
+
+/** Get route tables in vpc_a (N. Virginia) by Name tag */
+data "aws_route_table" "vpc_a" {
+  provider = aws.nvirginia
+  for_each = local.vpc_a_subnets
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value.rt_name]
   }
 }
 
 /** Get route tables in vpc_c (London) by Name tag */
 data "aws_route_table" "vpc_c" {
   provider = aws.london
-  for_each = toset(local.vpc_c_route_table_names)
+  for_each = local.vpc_c_subnets
 
   filter {
     name   = "tag:Name"
-    values = [each.value]
+    values = [each.value.rt_name]
   }
 }

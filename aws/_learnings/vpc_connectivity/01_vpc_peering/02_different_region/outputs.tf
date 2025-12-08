@@ -1,7 +1,8 @@
 /**
  * Outputs
  *
- * Exposes cross-region VPC peering connection details and routing information.
+ * Exposes cross-region VPC peering connection details and routing information
+ * in a hierarchical structure organized by region and VPC.
  */
 
 locals {
@@ -9,91 +10,111 @@ locals {
 }
 
 /**
- * 1. VPC Peering Connection Details
+ * Cross-Region VPC Peering - Hierarchical Network Infrastructure
+ *
+ * Shows: VPC Peering -> Regions -> VPCs -> Subnets -> Route Table -> Routes, EC2 -> Security Groups
  */
-output "vpc_peering" {
+output "network" {
+  description = "Cross-region network infrastructure hierarchy"
   value = {
-    name   = local.peering_tag_name
-    status = module.peering_connection.peering_connection_status
-    vpc_a = {
-      name   = local.vpc_a_name
-      cidr   = data.aws_vpc.vpc_a.cidr_block
-      region = local.regions_cfg[local.REGION_N_VIRGINIA]
+    vpc_peering = {
+      name   = local.peering_tag_name
+      status = module.peering_connection.peering_connection_status
     }
-    vpc_c = {
-      name   = local.vpc_c_name
-      cidr   = data.aws_vpc.vpc_c.cidr_block
-      region = local.regions_cfg[local.REGION_LONDON]
-    }
-  }
-  description = "Cross-Region VPC Peering Connection: name, status, and connected VPCs with regions"
-}
 
-/**
- * 2. Route Table Details with New Routes
- */
-output "route_tables" {
-  value = {
-    vpc_a = {
+    nvirginia = {
       region = local.regions_cfg[local.REGION_N_VIRGINIA]
-      routes = {
-        for name, rt in data.aws_route_table.vpc_a : name => {
-          name = name
-          routes = concat(
-            # Existing routes (not managed by this module)
-            [
-              for route in rt.routes : {
-                destination = route.cidr_block
-                target_name = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
-                type        = route.gateway_id != "" ? "internet_gateway" : (route.nat_gateway_id != "" ? "nat_gateway" : "local")
-              }
-              if route.cidr_block != data.aws_vpc.vpc_c.cidr_block
-            ],
-            # New peering route (marked with *)
-            [
-              {
-                destination = data.aws_vpc.vpc_c.cidr_block
-                target_name = "${local.peering_tag_name} *"
-                type        = "vpc_peering_connection"
-              }
-            ]
-          )
+
+      vpc_a = {
+        name = local.vpc_a_name
+        cidr = data.aws_vpc.vpc_a.cidr_block
+
+        subnets = {
+          for subnet_key, subnet in data.aws_subnet.vpc_a : subnet.tags["Name"] => {
+            cidr = subnet.cidr_block
+
+            route_table = {
+              name = data.aws_route_table.vpc_a[subnet_key].tags["Name"]
+              routes = [
+                for route in data.aws_route_table.vpc_a[subnet_key].routes :
+                "${route.cidr_block} -> ${route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : (route.vpc_peering_connection_id != "" ? "${local.peering_tag_name} *" : "local"))}"
+              ]
+            }
+
+            ec2 = var.enable_test ? (
+              subnet_key == "public_zone_a" ? {
+                name       = module.test[0].test_summary.instances.bastion.name
+                private_ip = module.test[0].test_summary.instances.bastion.private_ip
+                public_ip  = module.test[0].test_summary.instances.bastion.public_ip
+                security_group = {
+                  name = module.test[0].test_summary.security_groups.bastion.name
+                  rules = [
+                    for rule in module.test[0].test_summary.security_groups.bastion.ingress_rules :
+                    "${rule.type} | ${rule.port_range} | ${rule.source}"
+                  ]
+                }
+              } : (
+                subnet_key == "private_zone_a" ? {
+                  name       = module.test[0].test_summary.instances.vpc_a_private.name
+                  private_ip = module.test[0].test_summary.instances.vpc_a_private.private_ip
+                  public_ip  = module.test[0].test_summary.instances.vpc_a_private.public_ip
+                  security_group = {
+                    name = module.test[0].test_summary.security_groups.vpc_a_private.name
+                    rules = [
+                      for rule in module.test[0].test_summary.security_groups.vpc_a_private.ingress_rules :
+                      "${rule.type} | ${rule.port_range} | ${rule.source}"
+                    ]
+                  }
+                } : null
+              )
+            ) : null
+          }
         }
       }
     }
-    vpc_c = {
+
+    london = {
       region = local.regions_cfg[local.REGION_LONDON]
-      routes = {
-        for name, rt in data.aws_route_table.vpc_c : name => {
-          name = name
-          routes = concat(
-            # Existing routes (not managed by this module)
-            [
-              for route in rt.routes : {
-                destination = route.cidr_block
-                target_name = route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : "local")
-                type        = route.gateway_id != "" ? "internet_gateway" : (route.nat_gateway_id != "" ? "nat_gateway" : "local")
-              }
-              if route.cidr_block != data.aws_vpc.vpc_a.cidr_block
-            ],
-            # New peering route (marked with *)
-            [
-              {
-                destination = data.aws_vpc.vpc_a.cidr_block
-                target_name = "${local.peering_tag_name} *"
-                type        = "vpc_peering_connection"
-              }
-            ]
-          )
+
+      vpc_c = {
+        name = local.vpc_c_name
+        cidr = data.aws_vpc.vpc_c.cidr_block
+
+        subnets = {
+          for subnet_key, subnet in data.aws_subnet.vpc_c : subnet.tags["Name"] => {
+            cidr = subnet.cidr_block
+
+            route_table = {
+              name = data.aws_route_table.vpc_c[subnet_key].tags["Name"]
+              routes = [
+                for route in data.aws_route_table.vpc_c[subnet_key].routes :
+                "${route.cidr_block} -> ${route.gateway_id != "" ? route.gateway_id : (route.nat_gateway_id != "" ? route.nat_gateway_id : (route.vpc_peering_connection_id != "" ? "${local.peering_tag_name} *" : "local"))}"
+              ]
+            }
+
+            ec2 = var.enable_test ? (
+              subnet_key == "private_zone_c" ? {
+                name       = module.test[0].test_summary.instances.vpc_c_private.name
+                private_ip = module.test[0].test_summary.instances.vpc_c_private.private_ip
+                public_ip  = module.test[0].test_summary.instances.vpc_c_private.public_ip
+                security_group = {
+                  name = module.test[0].test_summary.security_groups.vpc_c_private.name
+                  rules = [
+                    for rule in module.test[0].test_summary.security_groups.vpc_c_private.ingress_rules :
+                    "${rule.type} | ${rule.port_range} | ${rule.source}"
+                  ]
+                }
+              } : null
+            ) : null
+          }
         }
       }
     }
   }
-  description = "Route tables with existing and new routes (* marks new peering routes)"
 }
 
 /**
- * 3. Test Instructions
+ * Test Instructions
  */
 output "test_instructions" {
   value       = var.enable_test ? module.test[0].test_instructions : "Test disabled. Set enable_test = true to create test instances."
@@ -101,7 +122,7 @@ output "test_instructions" {
 }
 
 /**
- * 4. Test Summary
+ * Test Summary
  */
 output "test_summary" {
   value       = var.enable_test ? module.test[0].test_summary : null
