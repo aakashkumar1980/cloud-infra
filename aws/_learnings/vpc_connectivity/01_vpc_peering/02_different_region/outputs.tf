@@ -128,18 +128,3 @@ output "test_instructions" {
   value       = var.enable_test ? module.test[0].test_instructions : "Test disabled. Set enable_test = true to create test instances."
   description = "Instructions for testing cross-region VPC peering connectivity"
 }
-
-/**
- * Test Summary
- */
-output "test_summary" {
-  value       = var.enable_test ? module.test[0].test_summary : null
-  description = "Test summary: security groups with ingress rules, key pair, and EC2 instances"
-}
-
-/** Private Key Output (sensitive) */
-output "test_private_key_pem" {
-  value       = var.enable_test ? module.test[0].private_key_pem : null
-  sensitive   = true
-  description = "Private key PEM for SSH access"
-}

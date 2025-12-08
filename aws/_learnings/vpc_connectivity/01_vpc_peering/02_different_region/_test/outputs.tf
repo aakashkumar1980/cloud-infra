@@ -46,35 +46,16 @@ output "test_instructions" {
     ╠═══════════════════════════════════════════════════════════════════════╣
     ║  terraform output -raw test_private_key_pem > _test/${module.key_pair_nvirginia.key_name}.pem ║
     ║  chmod 400 _test/${module.key_pair_nvirginia.key_name}.pem (linux only)       ║
+    ║                                                                       ║
     ║  Step 1: SSH into Bastion (in vpc_a public subnet, N. Virginia)       ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test/${module.key_pair_nvirginia.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
-    ║    ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
-    ║    ssh ec2-user@${module.instances.vpc_c_private_ip} (to connect to VPC C private instance - London) ║
     ║                                                                       ║
-    ║  Step 2: Run the automated connectivity test                          ║
+    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test ║
     ║  ────────────────────────────────────────────────                     ║
+    ║  ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
-    ║  Or manually test each target:                                        ║
-    ║  ─────────────────────────────                                        ║
-    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC, same region) ║
-    ║  ping ${module.instances.vpc_c_private_ip}    # VPC C private (cross-region peering) ║
-    ║                                                                       ║
-    ╠═══════════════════════════════════════════════════════════════════════╣
-    ║  Expected Results:                                                    ║
-    ║  ─────────────────                                                    ║
-    ║  • Bastion -> VPC A Private: SUCCESS (same VPC routing)               ║
-    ║  • Bastion -> VPC C Private: SUCCESS (via cross-region VPC peering)   ║
-    ║                                                                       ║
-    ║  Cross-Region Latency:                                                ║
-    ║  ─────────────────────                                                ║
-    ║  • Same region (N. Virginia): ~1-2ms latency                          ║
-    ║  • Cross-region (London):     ~60-100ms latency (expected)            ║
-    ║                                                                       ║
-    ║  If peering is NOT working, you'll see:                               ║
-    ║  ping: connect: Network is unreachable                                ║
-    ║  (or timeout with no response)                                        ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
