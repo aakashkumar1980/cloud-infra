@@ -44,11 +44,11 @@
  */
 
 /**
- * VPC A Private EC2 Instance - Target in vpc_a private subnet
+ * VPC A Private EC2 Instance - Test source in vpc_a private subnet
  *
- * This instance validates internal VPC routing.
+ * This instance runs the connectivity test to VPC B private EC2.
  * No public IP (private subnet).
- * Runs iperf3 server for bandwidth testing.
+ * Access via bastion (jump host).
  */
 resource "aws_instance" "vpc_a_private_ec2" {
   ami                    = var.ami_id
@@ -57,35 +57,52 @@ resource "aws_instance" "vpc_a_private_ec2" {
   vpc_security_group_ids = [var.vpc_a_private_sg_id]
   key_name               = var.key_name != "" ? var.key_name : null
 
+  # VPC A Private depends on VPC B Private to get its IP for the test script
+  depends_on = [
+    aws_instance.vpc_b_private_ec2
+  ]
+
   user_data = <<-EOF
     #!/bin/bash
+    echo "=== VPC Peering Connectivity Test - Source Instance ===" > /etc/motd
+
     # Install iperf3 for bandwidth testing
     yum install -y iperf3
 
-    # Start iperf3 server (runs on port 5201)
-    # Run as a systemd service for persistence
-    cat > /etc/systemd/system/iperf3.service << 'SERVICE'
-    [Unit]
-    Description=iperf3 server
-    After=network.target
+    # Create connectivity test script with pre-configured IP
+    cat > /home/ec2-user/test_connectivity.sh << 'SCRIPT'
+    ${templatefile("${path.module}/test_connectivity.sh", {
+      vpc_a_private_ip = ""
+      vpc_b_private_ip = aws_instance.vpc_b_private_ec2.private_ip
+    })}
+    SCRIPT
 
-    [Service]
-    Type=simple
-    ExecStart=/usr/bin/iperf3 -s
-    Restart=always
+    chmod +x /home/ec2-user/test_connectivity.sh
+    chown ec2-user:ec2-user /home/ec2-user/test_connectivity.sh
 
-    [Install]
-    WantedBy=multi-user.target
-    SERVICE
+    # Create a simple readme
+    cat > /home/ec2-user/README.txt << 'README'
+    VPC Peering Connectivity Test
+    =============================
 
-    systemctl daemon-reload
-    systemctl enable iperf3
-    systemctl start iperf3
+    Target IP (pre-configured):
+      - VPC B Private: ${aws_instance.vpc_b_private_ec2.private_ip}
+
+    Commands:
+      ./test_connectivity.sh          # Run ping + bandwidth tests
+      ./test_connectivity.sh ping     # Run ping test only
+      ./test_connectivity.sh speed    # Run bandwidth test only
+
+    Manual iperf3 commands:
+      iperf3 -c ${aws_instance.vpc_b_private_ec2.private_ip}   # Test to VPC B
+
+    README
+    chown ec2-user:ec2-user /home/ec2-user/README.txt
   EOF
 
   tags = {
     Name = "test_vpc-a-private-ec2-${var.name_suffix}"
-    Role = "target-same-vpc"
+    Role = "test-source"
   }
 }
 
@@ -139,8 +156,7 @@ resource "aws_instance" "vpc_b_private_ec2" {
  * Bastion EC2 Instance - Jump Host in vpc_a public subnet
  *
  * This instance has a public IP for SSH access.
- * Created LAST so it can reference private IPs of target instances.
- * The connectivity test script is pre-configured with target IPs.
+ * Used only as a jump host to SSH into VPC A private EC2.
  */
 resource "aws_instance" "bastion_ec2" {
   ami                         = var.ami_id
@@ -150,18 +166,14 @@ resource "aws_instance" "bastion_ec2" {
   associate_public_ip_address = true
   key_name                    = var.key_name != "" ? var.key_name : null
 
-  # Bastion depends on private instances to get their IPs
+  # Bastion depends on private instance to get its IP
   depends_on = [
-    aws_instance.vpc_a_private_ec2,
-    aws_instance.vpc_b_private_ec2
+    aws_instance.vpc_a_private_ec2
   ]
 
   user_data = <<-EOF
     #!/bin/bash
-    echo "=== VPC Peering Connectivity Test Bastion ===" > /etc/motd
-
-    # Install iperf3 for bandwidth testing (client mode)
-    yum install -y iperf3
+    echo "=== VPC Peering - Jump Host ===" > /etc/motd
 
     # Copy private key for SSH access to private instances
     %{ if var.private_key_pem != "" }
@@ -172,38 +184,18 @@ resource "aws_instance" "bastion_ec2" {
     chown ec2-user:ec2-user /home/ec2-user/.ssh/id_rsa
     %{ endif }
 
-    # Create connectivity test script with pre-configured IPs
-    cat > /home/ec2-user/test_connectivity.sh << 'SCRIPT'
-    ${templatefile("${path.module}/test_connectivity.sh", {
-      vpc_a_private_ip = aws_instance.vpc_a_private_ec2.private_ip
-      vpc_b_private_ip = aws_instance.vpc_b_private_ec2.private_ip
-    })}
-    SCRIPT
-
-    chmod +x /home/ec2-user/test_connectivity.sh
-    chown ec2-user:ec2-user /home/ec2-user/test_connectivity.sh
-
-    # Also create a simple readme
+    # Create a simple readme
     cat > /home/ec2-user/README.txt << 'README'
-    VPC Peering Connectivity Test
-    =============================
+    VPC Peering Connectivity Test - Jump Host
+    =========================================
 
-    Target IPs (pre-configured):
-      - VPC A Private: ${aws_instance.vpc_a_private_ec2.private_ip}
-      - VPC B Private: ${aws_instance.vpc_b_private_ec2.private_ip}
+    This is a jump host. SSH into VPC A Private to run the connectivity test.
 
-    Commands:
-      ./test_connectivity.sh          # Run ping + bandwidth tests
-      ./test_connectivity.sh ping     # Run ping test only
-      ./test_connectivity.sh speed    # Run bandwidth test only
+    SSH to VPC A Private:
+      ssh ec2-user@${aws_instance.vpc_a_private_ec2.private_ip}
 
-    SSH to private instances:
-      ssh ec2-user@${aws_instance.vpc_a_private_ec2.private_ip}   # VPC A Private
-      ssh ec2-user@${aws_instance.vpc_b_private_ec2.private_ip}   # VPC B Private (via peering)
-
-    Manual iperf3 commands:
-      iperf3 -c ${aws_instance.vpc_a_private_ec2.private_ip}   # Test to VPC A
-      iperf3 -c ${aws_instance.vpc_b_private_ec2.private_ip}   # Test to VPC B
+    Then run the test:
+      ./test_connectivity.sh
 
     README
     chown ec2-user:ec2-user /home/ec2-user/README.txt
