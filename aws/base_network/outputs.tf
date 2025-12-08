@@ -1,73 +1,116 @@
 /**
- * Outputs - N. Virginia Region (us-east-1)
+ * Outputs - Hierarchical Network Infrastructure
  *
- * Exposes the names and routing information for all networking
- * resources created in the N. Virginia region.
+ * Displays all networking resources organized by region and VPC
+ * in a hierarchical tree structure.
  */
-output "aa_nvirginia_vpc_names" {
-  value = [
-    for k, name in module.vpc_nvirginia.vpc_names :
-    "${name} (${module.vpc_nvirginia.vpc_cidrs[k]})"
-  ]
-  description = "Names and CIDR ranges of VPCs in N. Virginia"
-}
-output "ab_nvirginia_igw_names" {
-  value       = values(module.vpc_nvirginia.igw_names)
-  description = "Names of Internet Gateways in N. Virginia"
-}
-output "ac_nvirginia_subnet_names" {
-  value = [
-    for k, name in module.vpc_nvirginia.subnet_names :
-    "${name} (${module.vpc_nvirginia.subnet_cidrs[k]})"
-  ]
-  description = "Names and CIDR ranges of subnets in N. Virginia"
-}
-output "ad_nvirginia_route_table_public_routes" {
-  value       = module.vpc_nvirginia.route_table_public_routes
-  description = "Public route table routing info in N. Virginia"
-}
-output "ae_nvirginia_nat_gateway_names" {
-  value       = values(module.vpc_nvirginia.nat_gateway_names)
-  description = "Names of NAT Gateways in N. Virginia"
-}
-output "af_nvirginia_route_table_private_routes" {
-  value       = module.vpc_nvirginia.route_table_private_routes
-  description = "Private route table routing info in N. Virginia"
+
+/**
+ * N. Virginia Region (us-east-1)
+ *
+ * Hierarchical output showing:
+ *   Region -> VPC -> Internet Gateway, Subnets -> NAT Gateway, Route Table -> Routes
+ */
+output "nvirginia" {
+  description = "N. Virginia region network infrastructure hierarchy"
+  value = {
+    for vpc_key, vpc_name in module.vpc_nvirginia.vpc_names : vpc_name => {
+      cidr = module.vpc_nvirginia.vpc_cidrs[vpc_key]
+
+      internet_gateway = lookup(module.vpc_nvirginia.igw_names, vpc_key, null)
+
+      subnets = {
+        for subnet_key, subnet_name in module.vpc_nvirginia.subnet_names :
+        subnet_name => {
+          cidr = module.vpc_nvirginia.subnet_cidrs[subnet_key]
+
+          nat_gateway = (
+            contains(keys(module.vpc_nvirginia.public_subnet_ids), subnet_key) &&
+            contains(keys(module.vpc_nvirginia.nat_gateway_names), vpc_key)
+          ) ? module.vpc_nvirginia.nat_gateway_names[vpc_key] : null
+
+          route_table = merge(
+            # Public route table info
+            contains(keys(module.vpc_nvirginia.route_table_public_names), subnet_key) ? {
+              name = module.vpc_nvirginia.route_table_public_names[subnet_key]
+              routes = concat(
+                ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
+                [
+                  for route in try(module.vpc_nvirginia.route_table_public_routes[module.vpc_nvirginia.route_table_public_names[subnet_key]].routes, []) :
+                  "${route.destination} -> ${route.target_name}"
+                ]
+              )
+            } : {},
+            # Private route table info
+            contains(keys(module.vpc_nvirginia.route_table_private_names), subnet_key) ? {
+              name = module.vpc_nvirginia.route_table_private_names[subnet_key]
+              routes = concat(
+                ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
+                [
+                  for route in try(module.vpc_nvirginia.route_table_private_routes[module.vpc_nvirginia.route_table_private_names[subnet_key]].routes, []) :
+                  "${route.destination} -> ${route.target_name}"
+                ]
+              )
+            } : {}
+          )
+        }
+        if split("/", subnet_key)[0] == vpc_key
+      }
+    }
+  }
 }
 
 /**
- * Outputs - London Region (eu-west-2)
+ * London Region (eu-west-2)
  *
- * Exposes the names and routing information for all networking
- * resources created in the London region.
+ * Hierarchical output showing:
+ *   Region -> VPC -> Internet Gateway, Subnets -> NAT Gateway, Route Table -> Routes
  */
-output "ba_london_vpc_names" {
-  value = [
-    for k, name in module.vpc_london.vpc_names :
-    "${name} (${module.vpc_london.vpc_cidrs[k]})"
-  ]
-  description = "Names and CIDR ranges of VPCs in London"
-}
-output "bb_london_igw_names" {
-  value       = values(module.vpc_london.igw_names)
-  description = "Names of Internet Gateways in London"
-}
-output "bc_london_subnet_names" {
-  value = [
-    for k, name in module.vpc_london.subnet_names :
-    "${name} (${module.vpc_london.subnet_cidrs[k]})"
-  ]
-  description = "Names and CIDR ranges of subnets in London"
-}
-output "bd_london_route_table_public_routes" {
-  value       = module.vpc_london.route_table_public_routes
-  description = "Public route table routing info in London"
-}
-output "be_london_nat_gateway_names" {
-  value       = values(module.vpc_london.nat_gateway_names)
-  description = "Names of NAT Gateways in London"
-}
-output "bf_london_route_table_private_routes" {
-  value       = module.vpc_london.route_table_private_routes
-  description = "Private route table routing info in London"
+output "london" {
+  description = "London region network infrastructure hierarchy"
+  value = {
+    for vpc_key, vpc_name in module.vpc_london.vpc_names : vpc_name => {
+      cidr = module.vpc_london.vpc_cidrs[vpc_key]
+
+      internet_gateway = lookup(module.vpc_london.igw_names, vpc_key, null)
+
+      subnets = {
+        for subnet_key, subnet_name in module.vpc_london.subnet_names :
+        subnet_name => {
+          cidr = module.vpc_london.subnet_cidrs[subnet_key]
+
+          nat_gateway = (
+            contains(keys(module.vpc_london.public_subnet_ids), subnet_key) &&
+            contains(keys(module.vpc_london.nat_gateway_names), vpc_key)
+          ) ? module.vpc_london.nat_gateway_names[vpc_key] : null
+
+          route_table = merge(
+            # Public route table info
+            contains(keys(module.vpc_london.route_table_public_names), subnet_key) ? {
+              name = module.vpc_london.route_table_public_names[subnet_key]
+              routes = concat(
+                ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
+                [
+                  for route in try(module.vpc_london.route_table_public_routes[module.vpc_london.route_table_public_names[subnet_key]].routes, []) :
+                  "${route.destination} -> ${route.target_name}"
+                ]
+              )
+            } : {},
+            # Private route table info
+            contains(keys(module.vpc_london.route_table_private_names), subnet_key) ? {
+              name = module.vpc_london.route_table_private_names[subnet_key]
+              routes = concat(
+                ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
+                [
+                  for route in try(module.vpc_london.route_table_private_routes[module.vpc_london.route_table_private_names[subnet_key]].routes, []) :
+                  "${route.destination} -> ${route.target_name}"
+                ]
+              )
+            } : {}
+          )
+        }
+        if split("/", subnet_key)[0] == vpc_key
+      }
+    }
+  }
 }
