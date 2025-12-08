@@ -29,30 +29,23 @@ output "nvirginia" {
             contains(keys(module.vpc_nvirginia.nat_gateway_names), vpc_key)
           ) ? module.vpc_nvirginia.nat_gateway_names[vpc_key] : null
 
-          route_table = merge(
-            # Public route table info
-            contains(keys(module.vpc_nvirginia.route_table_public_names), subnet_key) ? {
-              name = module.vpc_nvirginia.route_table_public_names[subnet_key]
-              routes = concat(
-                ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
-                [
-                  for route in try(module.vpc_nvirginia.route_table_public_routes[module.vpc_nvirginia.route_table_public_names[subnet_key]].routes, []) :
-                  "${route.destination} -> ${route.target_name}"
-                ]
-              )
-            } : {},
-            # Private route table info
-            contains(keys(module.vpc_nvirginia.route_table_private_names), subnet_key) ? {
-              name = module.vpc_nvirginia.route_table_private_names[subnet_key]
-              routes = concat(
-                ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
-                [
-                  for route in try(module.vpc_nvirginia.route_table_private_routes[module.vpc_nvirginia.route_table_private_names[subnet_key]].routes, []) :
-                  "${route.destination} -> ${route.target_name}"
-                ]
-              )
-            } : {}
-          )
+          route_table = {
+            name = contains(keys(module.vpc_nvirginia.route_table_public_names), subnet_key) ? module.vpc_nvirginia.route_table_public_names[subnet_key] : module.vpc_nvirginia.route_table_private_names[subnet_key]
+
+            routes = contains(keys(module.vpc_nvirginia.route_table_public_names), subnet_key) ? concat(
+              ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
+              [
+                for route in try(module.vpc_nvirginia.route_table_public_routes[module.vpc_nvirginia.route_table_public_names[subnet_key]].routes, []) :
+                "${route.destination} -> ${route.target_name}"
+              ]
+            ) : concat(
+              ["${module.vpc_nvirginia.vpc_cidrs[vpc_key]} -> local"],
+              [
+                for route in try(module.vpc_nvirginia.route_table_private_routes[module.vpc_nvirginia.route_table_private_names[subnet_key]].routes, []) :
+                "${route.destination} -> ${route.target_name}"
+              ]
+            )
+          }
         }
         if split("/", subnet_key)[0] == vpc_key
       }
@@ -84,30 +77,23 @@ output "london" {
             contains(keys(module.vpc_london.nat_gateway_names), vpc_key)
           ) ? module.vpc_london.nat_gateway_names[vpc_key] : null
 
-          route_table = merge(
-            # Public route table info
-            contains(keys(module.vpc_london.route_table_public_names), subnet_key) ? {
-              name = module.vpc_london.route_table_public_names[subnet_key]
-              routes = concat(
-                ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
-                [
-                  for route in try(module.vpc_london.route_table_public_routes[module.vpc_london.route_table_public_names[subnet_key]].routes, []) :
-                  "${route.destination} -> ${route.target_name}"
-                ]
-              )
-            } : {},
-            # Private route table info
-            contains(keys(module.vpc_london.route_table_private_names), subnet_key) ? {
-              name = module.vpc_london.route_table_private_names[subnet_key]
-              routes = concat(
-                ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
-                [
-                  for route in try(module.vpc_london.route_table_private_routes[module.vpc_london.route_table_private_names[subnet_key]].routes, []) :
-                  "${route.destination} -> ${route.target_name}"
-                ]
-              )
-            } : {}
-          )
+          route_table = {
+            name = contains(keys(module.vpc_london.route_table_public_names), subnet_key) ? module.vpc_london.route_table_public_names[subnet_key] : module.vpc_london.route_table_private_names[subnet_key]
+
+            routes = contains(keys(module.vpc_london.route_table_public_names), subnet_key) ? concat(
+              ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
+              [
+                for route in try(module.vpc_london.route_table_public_routes[module.vpc_london.route_table_public_names[subnet_key]].routes, []) :
+                "${route.destination} -> ${route.target_name}"
+              ]
+            ) : concat(
+              ["${module.vpc_london.vpc_cidrs[vpc_key]} -> local"],
+              [
+                for route in try(module.vpc_london.route_table_private_routes[module.vpc_london.route_table_private_names[subnet_key]].routes, []) :
+                "${route.destination} -> ${route.target_name}"
+              ]
+            )
+          }
         }
         if split("/", subnet_key)[0] == vpc_key
       }
