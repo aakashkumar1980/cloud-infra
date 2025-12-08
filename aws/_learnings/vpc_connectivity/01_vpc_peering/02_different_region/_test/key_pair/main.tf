@@ -1,12 +1,9 @@
 /**
- * Key Pair Module - Cross-Region Support
+ * Key Pair Module
  *
  * Creates an RSA key pair for SSH access to EC2 instances.
- * Can either generate a new key pair or use an existing public key.
- *
- * Cross-Region Usage:
- *   - First call: Generate new key pair (public_key_openssh = null)
- *   - Second call: Use existing public key to register in another region
+ * The private key is generated locally and the public key is
+ * registered with AWS as a key pair.
  *
  * Usage:
  *   After terraform apply, save the private key:
@@ -15,13 +12,11 @@
  */
 
 /**
- * Generate RSA Private Key (only if not using existing public key)
+ * Generate RSA Private Key
  *
  * Creates a 4096-bit RSA key pair locally using the TLS provider.
  */
 resource "tls_private_key" "ssh_key" {
-  count = var.public_key_openssh == null ? 1 : 0
-
   algorithm = "RSA"
   rsa_bits  = 4096
 }
@@ -30,11 +25,10 @@ resource "tls_private_key" "ssh_key" {
  * AWS Key Pair
  *
  * Registers the public key with AWS for EC2 instance access.
- * Uses either the generated public key or an existing one (for cross-region).
  */
 resource "aws_key_pair" "generated_key" {
   key_name   = "test_key-${var.name_suffix}"
-  public_key = var.public_key_openssh != null ? var.public_key_openssh : tls_private_key.ssh_key[0].public_key_openssh
+  public_key = tls_private_key.ssh_key.public_key_openssh
 
   tags = {
     Name = "test_key-${var.name_suffix}"

@@ -53,8 +53,7 @@ module "key_pair_nvirginia" {
 /**
  * Key Pair Module - London
  *
- * Registers the same public key in London region.
- * This allows SSH access to VPC C instances using the same private key.
+ * Generates an SSH key pair for EC2 instance access in London.
  */
 module "key_pair_london" {
   source = "./key_pair"
@@ -63,8 +62,7 @@ module "key_pair_london" {
     aws = aws.london
   }
 
-  name_suffix       = var.name_suffix_london
-  public_key_openssh = module.key_pair_nvirginia.public_key_openssh
+  name_suffix = var.name_suffix_london
 }
 
 /**
