@@ -122,3 +122,9 @@ output "test_instructions" {
   description = "Instructions for testing VPC peering connectivity"
 }
 
+/** Private Key Output (sensitive) */
+output "test_private_key_pem" {
+  value       = var.enable_test ? module.test[0].private_key_pem : null
+  sensitive   = true
+  description = "Private key PEM for SSH access"
+}
