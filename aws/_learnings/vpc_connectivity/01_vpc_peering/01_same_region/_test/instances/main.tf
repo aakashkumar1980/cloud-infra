@@ -101,7 +101,7 @@ resource "aws_instance" "vpc_a_private_ec2" {
   EOF
 
   tags = {
-    Name = "test_vpc-a-private-ec2-${var.name_suffix}"
+    Name = "test_vpc_a-private-ec2-${var.name_suffix}"
     Role = "test-source"
   }
 }
@@ -147,7 +147,7 @@ resource "aws_instance" "vpc_b_private_ec2" {
   EOF
 
   tags = {
-    Name = "test_vpc-b-private-ec2-${var.name_suffix}"
+    Name = "test_vpc_b-private-ec2-${var.name_suffix}"
     Role = "target-cross-vpc"
   }
 }
@@ -202,7 +202,7 @@ resource "aws_instance" "bastion_ec2" {
   EOF
 
   tags = {
-    Name = "test_bastion-vpc-a-public-ec2-${var.name_suffix}"
+    Name = "test_bastion-vpc_a-public-ec2-${var.name_suffix}"
     Role = "bastion"
   }
 }

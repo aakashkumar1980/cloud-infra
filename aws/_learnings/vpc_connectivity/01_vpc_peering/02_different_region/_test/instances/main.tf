@@ -117,7 +117,7 @@ resource "aws_instance" "vpc_a_private_ec2" {
   EOF
 
   tags = {
-    Name   = "test_vpc-a-private-ec2-${var.name_suffix_nvirginia}"
+    Name   = "test_vpc_a-private-ec2-${var.name_suffix_nvirginia}"
     Role   = "test-source"
     Region = "us-east-1"
   }
@@ -166,7 +166,7 @@ resource "aws_instance" "vpc_c_private_ec2" {
   EOF
 
   tags = {
-    Name   = "test_vpc-c-private-ec2-${var.name_suffix_london}"
+    Name   = "test_vpc_c-private-ec2-${var.name_suffix_london}"
     Role   = "target-cross-region"
     Region = "eu-west-2"
   }
@@ -224,7 +224,7 @@ resource "aws_instance" "bastion_ec2" {
   EOF
 
   tags = {
-    Name   = "test_bastion-vpc-a-public-ec2-${var.name_suffix_nvirginia}"
+    Name   = "test_bastion-vpc_a-public-ec2-${var.name_suffix_nvirginia}"
     Role   = "bastion"
     Region = "us-east-1"
   }

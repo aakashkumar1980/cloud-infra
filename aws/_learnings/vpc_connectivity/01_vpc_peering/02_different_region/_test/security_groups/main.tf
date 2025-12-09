@@ -48,7 +48,7 @@ resource "aws_security_group" "sg_bastion" {
   vpc_id      = var.vpc_a_id
 
   tags = {
-    Name = "test_sg_bastion-vpc-a-public-${var.name_suffix_nvirginia}"
+    Name = "test_sg_bastion-vpc_a-public-${var.name_suffix_nvirginia}"
   }
 }
 
@@ -91,7 +91,7 @@ resource "aws_security_group" "sg_vpc_a_private" {
   vpc_id      = var.vpc_a_id
 
   tags = {
-    Name = "test_sg-vpc-a-private-${var.name_suffix_nvirginia}"
+    Name = "test_sg-vpc_a-private-${var.name_suffix_nvirginia}"
   }
 }
 
@@ -193,7 +193,7 @@ resource "aws_security_group" "sg_vpc_c_private" {
   vpc_id      = var.vpc_c_id
 
   tags = {
-    Name = "test_sg-vpc-c-private-${var.name_suffix_london}"
+    Name = "test_sg-vpc_c-private-${var.name_suffix_london}"
   }
 }
 
