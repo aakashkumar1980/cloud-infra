@@ -21,7 +21,7 @@
  * Cross-Region Considerations:
  *   - Higher latency expected for cross-region traffic (~60-100ms)
  *   - Each region uses different AMI IDs
- *   - Key pairs are created in each region separately
+ *   - Same SSH key is shared across both regions for seamless access
  */
 
 terraform {
@@ -35,11 +35,20 @@ terraform {
 }
 
 /**
- * Key Pair Module - N. Virginia (Primary)
+ * Generate RSA Private Key
  *
- * Generates an SSH key pair for EC2 instance access.
- * This is the primary key - the same public key will be
- * imported into London for cross-region SSH access.
+ * Creates a 4096-bit RSA key pair locally using the TLS provider.
+ * This key is shared across both regions for seamless SSH access.
+ */
+resource "tls_private_key" "ssh_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+/**
+ * Key Pair Module - N. Virginia
+ *
+ * Registers the SSH public key with AWS in N. Virginia region.
  */
 module "key_pair_nvirginia" {
   source = "./key_pair"
@@ -48,13 +57,14 @@ module "key_pair_nvirginia" {
     aws = aws.nvirginia
   }
 
-  name_suffix = var.name_suffix_nvirginia
+  name_suffix        = var.name_suffix_nvirginia
+  public_key_openssh = tls_private_key.ssh_key.public_key_openssh
 }
 
 /**
- * Key Pair Module - London (Uses same key as N. Virginia)
+ * Key Pair Module - London
  *
- * Imports the same public key from N. Virginia into London.
+ * Registers the same SSH public key with AWS in London region.
  * This allows using a single .pem file to SSH into instances
  * in both regions, making cross-region access seamless.
  */
@@ -66,7 +76,7 @@ module "key_pair_london" {
   }
 
   name_suffix        = var.name_suffix_london
-  public_key_openssh = module.key_pair_nvirginia.public_key_openssh
+  public_key_openssh = tls_private_key.ssh_key.public_key_openssh
 }
 
 /**
@@ -123,10 +133,10 @@ module "instances" {
   vpc_a_private_sg_id = module.security_groups.vpc_a_private_sg_id
   vpc_c_private_sg_id = module.security_groups.vpc_c_private_sg_id
 
-  # SSH access - use auto-generated key and copy to bastion for private instance access
+  # SSH access - use shared key across both regions for seamless access
   key_name_nvirginia = module.key_pair_nvirginia.key_name
   key_name_london    = module.key_pair_london.key_name
-  private_key_pem    = module.key_pair_nvirginia.private_key_pem
+  private_key_pem    = tls_private_key.ssh_key.private_key_pem
   name_suffix_nvirginia = var.name_suffix_nvirginia
   name_suffix_london    = var.name_suffix_london
 }

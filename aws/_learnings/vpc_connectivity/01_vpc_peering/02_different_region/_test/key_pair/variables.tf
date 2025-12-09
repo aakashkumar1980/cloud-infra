@@ -9,6 +9,5 @@ variable "name_suffix" {
 
 variable "public_key_openssh" {
   type        = string
-  description = "Existing public key in OpenSSH format to import (if provided, skips key generation)"
-  default     = null
+  description = "Public key in OpenSSH format to register with AWS"
 }
