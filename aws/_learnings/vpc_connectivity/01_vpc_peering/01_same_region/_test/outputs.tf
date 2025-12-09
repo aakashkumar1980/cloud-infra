@@ -52,9 +52,12 @@ output "test_instructions" {
     ║                                                                       ║
     ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test to VPC A private instance(${module.instances.vpc_b_private_ip}) ║
     ║  ────────────────────────────────────────────────                     ║
-    ║  ssh ec2-user@${module.instances.vpc_a_private_ip} ║
+    ║  ssh ec2-user@${module.instances.vpc_a_private_ip}                    ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
+    ║  Step 3: Then SSH into VPC B private instance                         ║
+    ║  ────────────────────────────────────────────────                     ║
+    ║  ssh ec2-user@${module.instances.vpc_b_private_ip}                    ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
