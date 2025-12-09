@@ -49,27 +49,12 @@ output "test_instructions" {
     ║  Step 1: SSH into Bastion (in vpc_a public subnet)                    ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test\${module.key_pair.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
-    ║    ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
-    ║    ssh ec2-user@${module.instances.vpc_b_private_ip} (to connect to VPC B private instance) ║
     ║                                                                       ║
-    ║  Step 2: Run the automated connectivity test                          ║
+    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test  ║
     ║  ────────────────────────────────────────────────                     ║
+    ║  ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
-    ║  Or manually test each target:                                        ║
-    ║  ─────────────────────────────                                        ║
-    ║  ping ${module.instances.vpc_a_private_ip}    # VPC A private (same VPC) ║
-    ║  ping ${module.instances.vpc_b_private_ip}    # VPC B private (via peering) ║
-    ║                                                                       ║
-    ╠═══════════════════════════════════════════════════════════════════════╣
-    ║  Expected Results:                                                    ║
-    ║  ─────────────────                                                    ║
-    ║  • Bastion -> VPC A Private: SUCCESS (same VPC routing)               ║
-    ║  • Bastion -> VPC B Private: SUCCESS (via VPC peering)                ║
-    ║                                                                       ║
-    ║  If peering is NOT working, you'll see:                               ║
-    ║  ping: connect: Network is unreachable                                ║
-    ║  (or timeout with no response)                                        ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
