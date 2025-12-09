@@ -28,8 +28,8 @@ bastion:
 # ----------------------------------------------------------------------------
 # VPC A Private Instance Security Group Rules (N. Virginia)
 # ----------------------------------------------------------------------------
-# Allows SSH, ICMP and iperf3 from VPC A for connectivity and bandwidth testing
-# Also allows ICMP from VPC C for cross-region testing
+# Allows SSH, ICMP and iperf3 from VPC A and VPC C for connectivity and
+# bandwidth testing within VPC and across cross-region VPC peering
 # ----------------------------------------------------------------------------
 vpc_a_private:
   ingress:
@@ -38,6 +38,12 @@ vpc_a_private:
       from_port: 22
       to_port: 22
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: ssh_from_vpc_c_via_cross_region_peering
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
 
     - description: icmp_from_vpc_a
       protocol: icmp
@@ -57,6 +63,12 @@ vpc_a_private:
       to_port: 5201
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: iperf3_from_vpc_c_via_cross_region_peering
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
+
   egress:
     - description: all_outbound
       protocol: "-1"
@@ -65,7 +77,8 @@ vpc_a_private:
 # ----------------------------------------------------------------------------
 # VPC C Private Instance Security Group Rules (London)
 # ----------------------------------------------------------------------------
-# Allows SSH, ICMP and iperf3 from VPC A for cross-region peering test
+# Allows SSH, ICMP and iperf3 from VPC A (via cross-region peering) and
+# VPC C (within VPC) for cross-VPC and intra-VPC connectivity testing
 # ----------------------------------------------------------------------------
 vpc_c_private:
   ingress:
@@ -75,17 +88,35 @@ vpc_c_private:
       to_port: 22
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: ssh_from_vpc_c
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
+
     - description: icmp_from_vpc_a_via_cross_region_peering
       protocol: icmp
       from_port: -1
       to_port: -1
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: icmp_from_vpc_c
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
+
     - description: iperf3_from_vpc_a_via_cross_region_peering
       protocol: tcp
       from_port: 5201
       to_port: 5201
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: iperf3_from_vpc_c
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_c_cidr
 
   egress:
     - description: all_outbound
