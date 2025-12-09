@@ -47,15 +47,19 @@ output "test_instructions" {
     ║  terraform output -raw test_private_key_pem > _test/${module.key_pair_nvirginia.key_name}.pem ║
     ║  chmod 400 _test/${module.key_pair_nvirginia.key_name}.pem (linux only)       ║
     ║                                                                       ║
-    ║  Step 1: SSH into Bastion (in vpc_a public subnet, N. Virginia)       ║
+    ║  Step 1: SSH into Bastion EC2@${module.instances.bastion_private_ip} (in vpc_a public subnet, N. Virginia)       ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test/${module.key_pair_nvirginia.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
     ║                                                                       ║
-    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test ║
+    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test to VPC C private instance(${module.instances.vpc_c_private_ip}) ║
     ║  ────────────────────────────────────────────────                     ║
-    ║  ssh ec2-user@${module.instances.vpc_a_private_ip} (to connect to VPC A private instance) ║
+    ║  ssh ec2-user@${module.instances.vpc_a_private_ip} ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
+    ║      Step 2.1: Then SSH into VPC B private instance                   ║
+    ║      ────────────────────────────────────────────────                 ║
+    ║      scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@${module.instances.vpc_c_private_ip}:~/.ssh/ ║
+    ║      ssh ec2-user@${module.instances.vpc_c_private_ip}                ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT

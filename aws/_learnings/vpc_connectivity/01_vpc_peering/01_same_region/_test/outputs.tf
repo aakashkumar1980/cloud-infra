@@ -44,20 +44,22 @@ output "test_instructions" {
     ║                    VPC PEERING CONNECTIVITY TEST                      ║
     ╠═══════════════════════════════════════════════════════════════════════╣
     ║  terraform output -raw test_private_key_pem > _test\${module.key_pair.key_name}.pem ║
-    ║  chmod 400 _test\${module.key_pair.key_name}.pem (linux only)       ║
+    ║  chmod 400 _test\${module.key_pair.key_name}.pem (linux only)         ║
     ║                                                                       ║
     ║  Step 1: SSH into Bastion EC2@${module.instances.bastion_private_ip} (in vpc_a public subnet) ║
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test\${module.key_pair.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
     ║                                                                       ║
-    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test to VPC A private instance(${module.instances.vpc_b_private_ip}) ║
+    ║  Step 2: Then SSH into VPC A private instance (${module.instances.vpc_a_private_ip}) and run the automated connectivity test to VPC B private instance (${module.instances.vpc_b_private_ip}) ║
     ║  ────────────────────────────────────────────────                     ║
+    ║  scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@${module.instances.vpc_a_private_ip}:~/.ssh/ ║
     ║  ssh ec2-user@${module.instances.vpc_a_private_ip}                    ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
-    ║  Step 3: Then SSH into VPC B private instance                         ║
-    ║  ────────────────────────────────────────────────                     ║
-    ║  ssh ec2-user@${module.instances.vpc_b_private_ip}                    ║
+    ║      Step 2.1: Then SSH into VPC B private instance                   ║
+    ║      ────────────────────────────────────────────────                 ║
+    ║      scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@${module.instances.vpc_b_private_ip}:~/.ssh/ ║
+    ║      ssh ec2-user@${module.instances.vpc_b_private_ip}                ║
     ╚═══════════════════════════════════════════════════════════════════════╝
 
   EOT
