@@ -35,10 +35,11 @@ terraform {
 }
 
 /**
- * Key Pair Module - N. Virginia
+ * Key Pair Module - N. Virginia (Primary)
  *
- * Generates an SSH key pair for EC2 instance access in N. Virginia.
- * The same key will also be registered in London for cross-region access.
+ * Generates an SSH key pair for EC2 instance access.
+ * This is the primary key - the same public key will be
+ * imported into London for cross-region SSH access.
  */
 module "key_pair_nvirginia" {
   source = "./key_pair"
@@ -51,9 +52,11 @@ module "key_pair_nvirginia" {
 }
 
 /**
- * Key Pair Module - London
+ * Key Pair Module - London (Uses same key as N. Virginia)
  *
- * Generates an SSH key pair for EC2 instance access in London.
+ * Imports the same public key from N. Virginia into London.
+ * This allows using a single .pem file to SSH into instances
+ * in both regions, making cross-region access seamless.
  */
 module "key_pair_london" {
   source = "./key_pair"
@@ -62,7 +65,8 @@ module "key_pair_london" {
     aws = aws.london
   }
 
-  name_suffix = var.name_suffix_london
+  name_suffix        = var.name_suffix_london
+  public_key_openssh = module.key_pair_nvirginia.public_key_openssh
 }
 
 /**
