@@ -28,7 +28,8 @@ bastion:
 # ----------------------------------------------------------------------------
 # VPC A Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows SSH, ICMP and iperf3 from VPC A for connectivity and bandwidth testing
+# Allows SSH, ICMP and iperf3 from VPC A and VPC B for connectivity and
+# bandwidth testing within VPC and across VPC peering
 # ----------------------------------------------------------------------------
 vpc_a_private:
   ingress:
@@ -37,6 +38,12 @@ vpc_a_private:
       from_port: 22
       to_port: 22
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: ssh_from_vpc_b_via_peering
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
 
     - description: icmp_from_vpc_a
       protocol: icmp
@@ -56,6 +63,12 @@ vpc_a_private:
       to_port: 5201
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: iperf3_from_vpc_b_via_peering
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
+
   egress:
     - description: all_outbound
       protocol: "-1"
@@ -64,7 +77,8 @@ vpc_a_private:
 # ----------------------------------------------------------------------------
 # VPC B Private Instance Security Group Rules
 # ----------------------------------------------------------------------------
-# Allows SSH, ICMP and iperf3 from VPC A for cross-VPC peering test
+# Allows SSH, ICMP and iperf3 from VPC A (via peering) and VPC B (within VPC)
+# for cross-VPC and intra-VPC connectivity testing
 # ----------------------------------------------------------------------------
 vpc_b_private:
   ingress:
@@ -74,17 +88,35 @@ vpc_b_private:
       to_port: 22
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: ssh_from_vpc_b
+      protocol: tcp
+      from_port: 22
+      to_port: 22
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
+
     - description: icmp_from_vpc_a_via_peering
       protocol: icmp
       from_port: -1
       to_port: -1
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
 
+    - description: icmp_from_vpc_b
+      protocol: icmp
+      from_port: -1
+      to_port: -1
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
+
     - description: iperf3_from_vpc_a_via_peering
       protocol: tcp
       from_port: 5201
       to_port: 5201
       # cidr_ipv4: will be set dynamically to var.vpc_a_cidr
+
+    - description: iperf3_from_vpc_b
+      protocol: tcp
+      from_port: 5201
+      to_port: 5201
+      # cidr_ipv4: will be set dynamically to var.vpc_b_cidr
 
   egress:
     - description: all_outbound
