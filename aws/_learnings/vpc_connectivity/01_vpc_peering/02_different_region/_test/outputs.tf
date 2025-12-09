@@ -51,8 +51,9 @@ output "test_instructions" {
     ║  ──────────────────────────────────────────────────                   ║
     ║  ssh -i _test/${module.key_pair_nvirginia.key_name}.pem ec2-user@${module.instances.bastion_public_ip} ║
     ║                                                                       ║
-    ║  Step 2: Then SSH into VPC A private instance and run the automated connectivity test to VPC C private instance(${module.instances.vpc_c_private_ip}) ║
+    ║  Step 2: Then SSH into VPC A private instance (${module.instances.vpc_a_private_ip}) and run the automated connectivity test to VPC C private instance(${module.instances.vpc_c_private_ip}) ║
     ║  ────────────────────────────────────────────────                     ║
+    ║  scp -i ~/.ssh/id_rsa ~/.ssh/id_rsa ec2-user@${module.instances.vpc_a_private_ip}:~/.ssh/ ║
     ║  ssh ec2-user@${module.instances.vpc_a_private_ip} ║
     ║  ./test_connectivity.sh                                               ║
     ║                                                                       ║
