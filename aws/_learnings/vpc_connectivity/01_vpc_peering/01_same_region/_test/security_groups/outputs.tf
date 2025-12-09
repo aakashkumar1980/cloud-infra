@@ -39,6 +39,11 @@ output "security_group_details" {
           source     = aws_vpc_security_group_ingress_rule.vpc_a_private_ssh_from_vpc_a.cidr_ipv4
         },
         {
+          type       = upper(aws_vpc_security_group_ingress_rule.vpc_a_private_ssh_from_vpc_b.ip_protocol)
+          port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_a_private_ssh_from_vpc_b.from_port)
+          source     = aws_vpc_security_group_ingress_rule.vpc_a_private_ssh_from_vpc_b.cidr_ipv4
+        },
+        {
           type       = upper(aws_vpc_security_group_ingress_rule.vpc_a_private_icmp_from_vpc_a.ip_protocol)
           port_range = "All"
           source     = aws_vpc_security_group_ingress_rule.vpc_a_private_icmp_from_vpc_a.cidr_ipv4
@@ -52,6 +57,11 @@ output "security_group_details" {
           type       = upper(aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_a.ip_protocol)
           port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_a.from_port)
           source     = aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_a.cidr_ipv4
+        },
+        {
+          type       = upper(aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_b.ip_protocol)
+          port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_b.from_port)
+          source     = aws_vpc_security_group_ingress_rule.vpc_a_private_iperf3_from_vpc_b.cidr_ipv4
         }
       ]
     }
@@ -64,14 +74,29 @@ output "security_group_details" {
           source     = aws_vpc_security_group_ingress_rule.vpc_b_private_ssh_from_vpc_a.cidr_ipv4
         },
         {
+          type       = upper(aws_vpc_security_group_ingress_rule.vpc_b_private_ssh_from_vpc_b.ip_protocol)
+          port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_b_private_ssh_from_vpc_b.from_port)
+          source     = aws_vpc_security_group_ingress_rule.vpc_b_private_ssh_from_vpc_b.cidr_ipv4
+        },
+        {
           type       = upper(aws_vpc_security_group_ingress_rule.vpc_b_private_icmp_from_vpc_a.ip_protocol)
           port_range = "All"
           source     = aws_vpc_security_group_ingress_rule.vpc_b_private_icmp_from_vpc_a.cidr_ipv4
         },
         {
+          type       = upper(aws_vpc_security_group_ingress_rule.vpc_b_private_icmp_from_vpc_b.ip_protocol)
+          port_range = "All"
+          source     = aws_vpc_security_group_ingress_rule.vpc_b_private_icmp_from_vpc_b.cidr_ipv4
+        },
+        {
           type       = upper(aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_a.ip_protocol)
           port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_a.from_port)
           source     = aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_a.cidr_ipv4
+        },
+        {
+          type       = upper(aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_b.ip_protocol)
+          port_range = tostring(aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_b.from_port)
+          source     = aws_vpc_security_group_ingress_rule.vpc_b_private_iperf3_from_vpc_b.cidr_ipv4
         }
       ]
     }
