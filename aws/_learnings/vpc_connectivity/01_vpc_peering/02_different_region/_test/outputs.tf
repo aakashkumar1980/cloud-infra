@@ -11,7 +11,7 @@ output "key_name" {
 }
 
 output "private_key_pem" {
-  value       = module.key_pair_nvirginia.private_key_pem
+  value       = tls_private_key.ssh_key.private_key_pem
   description = "Private key in PEM format - save to file: terraform output -raw private_key_pem > key.pem && chmod 400 key.pem"
   sensitive   = true
 }
