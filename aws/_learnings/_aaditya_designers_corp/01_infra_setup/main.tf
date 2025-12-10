@@ -34,3 +34,17 @@ module "kms" {
   london_region    = local.regions_cfg[local.REGION_LONDON]
   tags_common      = local.tags_common
 }
+
+# -----------------------------------------------------------------------------
+# 1b. Secrets Manager - Secure Credential Storage
+# -----------------------------------------------------------------------------
+module "secrets_manager" {
+  source = "./modules/security/secrets_manager"
+
+  providers = {
+    aws.nvirginia = aws.nvirginia
+  }
+
+  kms_key_arn = module.kms.nvirginia_key_arn
+  tags_common = local.tags_common
+}

@@ -26,3 +26,28 @@ output "kms" {
     }
   }
 }
+
+# -----------------------------------------------------------------------------
+# 1b. Secrets Manager Outputs
+# -----------------------------------------------------------------------------
+output "secrets" {
+  description = "Secret ARNs (values are NOT exposed for security)"
+  value = {
+    ad = {
+      admin_secret_arn   = module.secrets_manager.ad_admin_secret_arn
+      restore_secret_arn = module.secrets_manager.ad_restore_secret_arn
+    }
+    gitlab = {
+      root_secret_arn = module.secrets_manager.gitlab_root_secret_arn
+    }
+    wikijs = {
+      admin_secret_arn = module.secrets_manager.wikijs_admin_secret_arn
+    }
+    keycloak = {
+      admin_secret_arn = module.secrets_manager.keycloak_admin_secret_arn
+    }
+    syncope = {
+      admin_secret_arn = module.secrets_manager.syncope_admin_secret_arn
+    }
+  }
+}
