@@ -7,6 +7,12 @@
 
 locals {
   peering_tag_name = "peering-vpc_a-to-vpc_b-${local.name_suffix_nvirginia}"
+
+  # Map of VPC peering connection ID -> Name tag
+  vpc_a_peering_names = {
+    for id, peer in data.aws_vpc_peering_connection.vpc_a_peers :
+    id => try(peer.tags["Name"], "peering-${id}")
+  }
 }
 
 /**
@@ -32,20 +38,16 @@ output "nvirginia" {
 
           route_table = {
             name = data.aws_route_table.vpc_a[subnet_key].tags["Name"]
-            routes = concat(
-              [
-                for route in data.aws_route_table.vpc_a[subnet_key].routes :
-                "${route.cidr_block} -> ${
-                  try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
-                    try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
-                      try(length(route.vpc_peering_connection_id), 0) > 0 ? "peering-${route.vpc_peering_connection_id}" : "local"
-                    )
+            routes = [
+              for route in data.aws_route_table.vpc_a[subnet_key].routes :
+              "${route.cidr_block} -> ${
+                try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
+                  try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
+                    try(length(route.vpc_peering_connection_id), 0) > 0 ? lookup(local.vpc_a_peering_names, route.vpc_peering_connection_id, "peering-${route.vpc_peering_connection_id}") : "local"
                   )
-                }"
-                if route.cidr_block != data.aws_vpc.vpc_b.cidr_block
-              ],
-              ["${data.aws_vpc.vpc_b.cidr_block} -> ${local.peering_tag_name} *"]
-            )
+                )
+              }"
+            ]
           }
 
           ec2 = var.enable_test ? (
@@ -90,20 +92,16 @@ output "nvirginia" {
 
           route_table = {
             name = data.aws_route_table.vpc_b[subnet_key].tags["Name"]
-            routes = concat(
-              [
-                for route in data.aws_route_table.vpc_b[subnet_key].routes :
-                "${route.cidr_block} -> ${
-                  try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
-                    try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
-                      try(length(route.vpc_peering_connection_id), 0) > 0 ? "peering-${route.vpc_peering_connection_id}" : "local"
-                    )
+            routes = [
+              for route in data.aws_route_table.vpc_b[subnet_key].routes :
+              "${route.cidr_block} -> ${
+                try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
+                  try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
+                    try(length(route.vpc_peering_connection_id), 0) > 0 ? local.peering_tag_name : "local"
                   )
-                }"
-                if route.cidr_block != data.aws_vpc.vpc_a.cidr_block
-              ],
-              ["${data.aws_vpc.vpc_a.cidr_block} -> ${local.peering_tag_name} *"]
-            )
+                )
+              }"
+            ]
           }
 
           ec2 = var.enable_test ? (

@@ -60,3 +60,17 @@ data "aws_route_table" "vpc_b" {
     values = [each.value.rt_name]
   }
 }
+
+/** Look up all VPC peering connections for vpc_a to get their Name tags */
+data "aws_vpc_peering_connections" "vpc_a" {
+  filter {
+    name   = "requester-vpc-info.vpc-id"
+    values = [data.aws_vpc.vpc_a.id]
+  }
+}
+
+data "aws_vpc_peering_connection" "vpc_a_peers" {
+  for_each = toset(data.aws_vpc_peering_connections.vpc_a.ids)
+
+  id = each.value
+}
