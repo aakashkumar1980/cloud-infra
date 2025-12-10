@@ -35,7 +35,13 @@ output "nvirginia" {
             routes = concat(
               [
                 for route in data.aws_route_table.vpc_a[subnet_key].routes :
-                "${route.cidr_block} -> ${try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : "local")}"
+                "${route.cidr_block} -> ${
+                  try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
+                    try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
+                      try(length(route.vpc_peering_connection_id), 0) > 0 ? "peering-${route.vpc_peering_connection_id}" : "local"
+                    )
+                  )
+                }"
                 if route.cidr_block != data.aws_vpc.vpc_b.cidr_block
               ],
               ["${data.aws_vpc.vpc_b.cidr_block} -> ${local.peering_tag_name} *"]
@@ -87,7 +93,13 @@ output "nvirginia" {
             routes = concat(
               [
                 for route in data.aws_route_table.vpc_b[subnet_key].routes :
-                "${route.cidr_block} -> ${try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : "local")}"
+                "${route.cidr_block} -> ${
+                  try(length(route.gateway_id), 0) > 0 ? route.gateway_id : (
+                    try(length(route.nat_gateway_id), 0) > 0 ? route.nat_gateway_id : (
+                      try(length(route.vpc_peering_connection_id), 0) > 0 ? "peering-${route.vpc_peering_connection_id}" : "local"
+                    )
+                  )
+                }"
                 if route.cidr_block != data.aws_vpc.vpc_a.cidr_block
               ],
               ["${data.aws_vpc.vpc_a.cidr_block} -> ${local.peering_tag_name} *"]
