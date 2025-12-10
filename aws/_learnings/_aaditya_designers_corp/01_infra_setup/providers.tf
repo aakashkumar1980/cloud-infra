@@ -1,8 +1,12 @@
 /**
- * AWS Provider Configuration
+ * AWS Providers Configuration
  *
- * Sets up AWS provider for N. Virginia region (us-east-1).
- * Uses the same pattern as base_network for consistency.
+ * Sets up two AWS providers to deploy resources in different regions:
+ *   - nvirginia: US East (N. Virginia) - us-east-1
+ *   - london: EU (London) - eu-west-2
+ *
+ * The profile variable selects which AWS credentials to use (dev, stage, prod).
+ *
  */
 terraform {
   required_version = ">= 1.6.0"
@@ -15,6 +19,13 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  alias   = "nvirginia"
+  region  = local.regions_cfg[local.REGION_N_VIRGINIA]
+  profile = var.profile
+}
+
+provider "aws" {
+  alias   = "london"
+  region  = local.regions_cfg[local.REGION_LONDON]
   profile = var.profile
 }
