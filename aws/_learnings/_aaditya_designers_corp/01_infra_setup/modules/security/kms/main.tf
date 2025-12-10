@@ -164,9 +164,3 @@ resource "aws_kms_alias" "london" {
   target_key_id = aws_kms_replica_key.london.key_id
 }
 
-# -----------------------------------------------------------------------------
-# Data Sources
-# -----------------------------------------------------------------------------
-data "aws_caller_identity" "current" {
-  provider = aws.nvirginia
-}
