@@ -1,0 +1,234 @@
+{
+  "BASE_NETWORK": {
+    "london": {
+      "vpc_c-london-dev-terraform": {
+        "cidr": "192.168.0.0/26",
+        "internet_gateway": "igw-vpc_c-london-dev-terraform",
+        "subnets": {
+          "subnet_private_zone_c-vpc_c-london-dev-terraform": {
+            "cidr": "192.168.0.16/28",
+            "nat_gateway": null,
+            "route_table": {
+              "name": "routetable-subnet_private_zone_c-vpc_c-london-dev-terraform",
+              "routes": [
+                "192.168.0.0/26 -> local",
+                "0.0.0.0/0 -> natgw-subnet_public_zone_c-vpc_c-london-dev-terraform"
+              ]
+            }
+          },
+          "subnet_public_zone_c-vpc_c-london-dev-terraform": {
+            "cidr": "192.168.0.0/28",
+            "nat_gateway": "natgw-subnet_public_zone_c-vpc_c-london-dev-terraform -> igw-vpc_c-london-dev-terraform",
+            "route_table": {
+              "name": "routetable-subnet_public_zone_c-vpc_c-london-dev-terraform",
+              "routes": [
+                "192.168.0.0/26 -> local",
+                "0.0.0.0/0 -> igw-vpc_c-london-dev-terraform"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "nvirginia": {
+      "vpc_a-nvirginia-dev-terraform": {
+        "cidr": "10.0.0.0/24",
+        "internet_gateway": "igw-vpc_a-nvirginia-dev-terraform",
+        "subnets": {
+          "subnet_private_zone_a-vpc_a-nvirginia-dev-terraform": {
+            "cidr": "10.0.0.32/27",
+            "nat_gateway": null,
+            "route_table": {
+              "name": "routetable-subnet_private_zone_a-vpc_a-nvirginia-dev-terraform",
+              "routes": [
+                "10.0.0.0/24 -> local",
+                "0.0.0.0/0 -> natgw-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform"
+              ]
+            }
+          },
+          "subnet_public_zone_a-vpc_a-nvirginia-dev-terraform": {
+            "cidr": "10.0.0.0/27",
+            "nat_gateway": "natgw-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform -> igw-vpc_a-nvirginia-dev-terraform",
+            "route_table": {
+              "name": "routetable-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform",
+              "routes": [
+                "10.0.0.0/24 -> local",
+                "0.0.0.0/0 -> igw-vpc_a-nvirginia-dev-terraform"
+              ]
+            }
+          }
+        }
+      },
+      "vpc_b-nvirginia-dev-terraform": {
+        "cidr": "172.16.0.0/26",
+        "internet_gateway": "igw-vpc_b-nvirginia-dev-terraform",
+        "subnets": {
+          "subnet_private_zone_b-vpc_b-nvirginia-dev-terraform": {
+            "cidr": "172.16.0.16/28",
+            "nat_gateway": null,
+            "route_table": {
+              "name": "routetable-subnet_private_zone_b-vpc_b-nvirginia-dev-terraform",
+              "routes": [
+                "172.16.0.0/26 -> local",
+                "0.0.0.0/0 -> natgw-subnet_public_zone_b-vpc_b-nvirginia-dev-terraform"
+              ]
+            }
+          },
+          "subnet_public_zone_b-vpc_b-nvirginia-dev-terraform": {
+            "cidr": "172.16.0.0/28",
+            "nat_gateway": "natgw-subnet_public_zone_b-vpc_b-nvirginia-dev-terraform -> igw-vpc_b-nvirginia-dev-terraform",
+            "route_table": {
+              "name": "routetable-subnet_public_zone_b-vpc_b-nvirginia-dev-terraform",
+              "routes": [
+                "172.16.0.0/26 -> local",
+                "0.0.0.0/0 -> igw-vpc_b-nvirginia-dev-terraform"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "VPC_PEERING": {
+    "VPC_PEERING_LOCAL": {
+      "nvirginia": {
+        "vpc_a": {
+          "cidr": "10.0.0.0/24",
+          "name": "vpc_a-nvirginia-dev-terraform",
+          "subnets": {
+            "subnet_private_zone_a-vpc_a-nvirginia-dev-terraform": {
+              "cidr": "10.0.0.32/27",
+              "ec2": null,
+              "route_table": {
+                "name": "routetable-subnet_private_zone_a-vpc_a-nvirginia-dev-terraform",
+                "routes": [
+                  "192.168.0.0/26 -> local",
+                  "0.0.0.0/0 -> nat-0bd4a0dd43d5621f1",
+                  "172.16.0.0/26 -> peering-vpc_a-to-vpc_b-nvirginia-dev-terraform *"
+                ]
+              }
+            },
+            "subnet_public_zone_a-vpc_a-nvirginia-dev-terraform": {
+              "cidr": "10.0.0.0/27",
+              "ec2": null,
+              "route_table": {
+                "name": "routetable-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform",
+                "routes": [
+                  "192.168.0.0/26 -> local",
+                  "0.0.0.0/0 -> igw-013ebc220f11ade8a",
+                  "172.16.0.0/26 -> peering-vpc_a-to-vpc_b-nvirginia-dev-terraform *"
+                ]
+              }
+            }
+          }
+        },
+        "vpc_b": {
+          "cidr": "172.16.0.0/26",
+          "name": "vpc_b-nvirginia-dev-terraform",
+          "subnets": {
+            "subnet_private_zone_b-vpc_b-nvirginia-dev-terraform": {
+              "cidr": "172.16.0.16/28",
+              "ec2": null,
+              "route_table": {
+                "name": "routetable-subnet_private_zone_b-vpc_b-nvirginia-dev-terraform",
+                "routes": [
+                  "0.0.0.0/0 -> nat-0b7adba18aa5c58a5",
+                  "10.0.0.0/24 -> peering-vpc_a-to-vpc_b-nvirginia-dev-terraform *"
+                ]
+              }
+            },
+            "subnet_public_zone_b-vpc_b-nvirginia-dev-terraform": {
+              "cidr": "172.16.0.0/28",
+              "ec2": null,
+              "route_table": {
+                "name": "routetable-subnet_public_zone_b-vpc_b-nvirginia-dev-terraform",
+                "routes": [
+                  "0.0.0.0/0 -> igw-0171d4ff316824cf3",
+                  "10.0.0.0/24 -> peering-vpc_a-to-vpc_b-nvirginia-dev-terraform *"
+                ]
+              }
+            }
+          }
+        },
+        "vpc_peering": {
+          "name": "peering-vpc_a-to-vpc_b-nvirginia-dev-terraform",
+          "status": "active"
+        }
+      }
+    },
+
+    "VPC_PEERING_REMOTE": {
+      "network": {
+        "london": {
+          "region": "eu-west-2",
+          "vpc_c": {
+            "cidr": "192.168.0.0/26",
+            "name": "vpc_c-london-dev-terraform",
+            "subnets": {
+              "subnet_private_zone_c-vpc_c-london-dev-terraform": {
+                "cidr": "192.168.0.16/28",
+                "ec2": null,
+                "route_table": {
+                  "name": "routetable-subnet_private_zone_c-vpc_c-london-dev-terraform",
+                  "routes": [
+                    "0.0.0.0/0 -> nat-010caa695f75a9374",
+                    "10.0.0.0/24 -> peering-vpc_a-to-vpc_c-nvirginia-to-london-dev-terraform *"
+                  ]
+                }
+              },
+              "subnet_public_zone_c-vpc_c-london-dev-terraform": {
+                "cidr": "192.168.0.0/28",
+                "ec2": null,
+                "route_table": {
+                  "name": "routetable-subnet_public_zone_c-vpc_c-london-dev-terraform",
+                  "routes": [
+                    "0.0.0.0/0 -> igw-0e77836a4d733a200",
+                    "10.0.0.0/24 -> peering-vpc_a-to-vpc_c-nvirginia-to-london-dev-terraform *"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "nvirginia": {
+          "region": "us-east-1",
+          "vpc_a": {
+            "cidr": "10.0.0.0/24",
+            "name": "vpc_a-nvirginia-dev-terraform",
+            "subnets": {
+              "subnet_private_zone_a-vpc_a-nvirginia-dev-terraform": {
+                "cidr": "10.0.0.32/27",
+                "ec2": null,
+                "route_table": {
+                  "name": "routetable-subnet_private_zone_a-vpc_a-nvirginia-dev-terraform",
+                  "routes": [
+                    "172.16.0.0/26 -> local",
+                    "0.0.0.0/0 -> nat-0bd4a0dd43d5621f1",
+                    "192.168.0.0/26 -> peering-vpc_a-to-vpc_c-nvirginia-to-london-dev-terraform *"
+                  ]
+                }
+              },
+              "subnet_public_zone_a-vpc_a-nvirginia-dev-terraform": {
+                "cidr": "10.0.0.0/27",
+                "ec2": null,
+                "route_table": {
+                  "name": "routetable-subnet_public_zone_a-vpc_a-nvirginia-dev-terraform",
+                  "routes": [
+                    "172.16.0.0/26 -> local",
+                    "0.0.0.0/0 -> igw-013ebc220f11ade8a",
+                    "192.168.0.0/26 -> peering-vpc_a-to-vpc_c-nvirginia-to-london-dev-terraform *"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "vpc_peering": {
+          "name": "peering-vpc_a-to-vpc_c-nvirginia-to-london-dev-terraform",
+          "status": "active"
+        }
+      }
+    }
+  }
+}
