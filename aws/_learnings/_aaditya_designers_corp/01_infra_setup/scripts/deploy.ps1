@@ -42,10 +42,10 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = (Get-Item "$ScriptDir\..\..\..\.." ).FullName
 
 # Module paths
-$BaseNetwork = Join-Path $ProjectRoot "aws\base_network"
-$VpcPeeringSame = Join-Path $ProjectRoot "aws\_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
-$VpcPeeringCross = Join-Path $ProjectRoot "aws\_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
-$InfraSetup = Join-Path $ProjectRoot "aws\_learnings\_aaditya_designers_corp\01_infra_setup"
+$BaseNetwork = Join-Path $ProjectRoot "base_network"
+$VpcPeeringSame = Join-Path $ProjectRoot "_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
+$VpcPeeringCross = Join-Path $ProjectRoot "_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
+$InfraSetup = Join-Path $ProjectRoot "_learnings\_aaditya_designers_corp\01_infra_setup"
 
 # Function to print colored output
 function Write-Header {
