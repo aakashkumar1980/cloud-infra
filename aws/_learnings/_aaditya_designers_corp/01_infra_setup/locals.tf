@@ -17,7 +17,7 @@ locals {
     (local.REGION_LONDON)     = "eu-west-2"
   }
 
-  config_dir = abspath("${path.module}/../../../../configs")
+  config_dir = abspath("${path.module}/../../../configs")
   env_dir    = abspath("${local.config_dir}/${var.profile}")
   tags_cfg   = yamldecode(file("${local.config_dir}/tags.yaml"))
   networking = jsondecode(file("${local.env_dir}/networking.json"))
