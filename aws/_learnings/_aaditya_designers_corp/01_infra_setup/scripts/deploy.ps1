@@ -57,19 +57,19 @@ function Write-Header {
     Write-Host ""
 }
 
-function Write-Success {
+function Write-SuccessMessage {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor Green
+    Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
-function Write-Warning {
+function Write-WarningMessage {
     param([string]$Message)
-    Write-Host "⚠ $Message" -ForegroundColor Yellow
+    Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
-function Write-Error {
+function Write-ErrorMessage {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor Red
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 # Function to run terraform in a directory
@@ -112,7 +112,7 @@ function Invoke-Terraform {
             throw "Terraform $TerraformAction failed"
         }
 
-        Write-Success "$StepName completed!"
+        Write-SuccessMessage "$StepName completed!"
     }
     finally {
         Pop-Location
@@ -124,7 +124,7 @@ try {
     $null = Get-Command terraform -ErrorAction Stop
 }
 catch {
-    Write-Error "Terraform is not installed!"
+    Write-ErrorMessage "Terraform is not installed!"
     Write-Host "Please install Terraform: https://www.terraform.io/downloads"
     exit 1
 }
@@ -136,7 +136,7 @@ Write-Host "Project Root: $ProjectRoot"
 
 # Confirm destroy action
 if ($Action -eq "destroy") {
-    Write-Warning "This will DESTROY all infrastructure!"
+    Write-WarningMessage "This will DESTROY all infrastructure!"
     $confirm = Read-Host "Are you sure? (yes/no)"
     if ($confirm -ne "yes") {
         Write-Host "Aborted."
@@ -165,6 +165,6 @@ try {
     Write-Host "All steps completed successfully!" -ForegroundColor Green
 }
 catch {
-    Write-Error "Deployment failed: $_"
+    Write-ErrorMessage "Deployment failed: $_"
     exit 1
 }
