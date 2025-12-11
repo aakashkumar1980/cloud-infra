@@ -514,6 +514,62 @@
           ]
         }
       }
+    },
+    {
+      "Sid": "ProtectLargeEBSVolumes",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateVolume",
+        "ec2:ModifyVolume"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "NumericGreaterThan": {
+          "ec2:VolumeSize": "100"
+        }
+      }
+    },
+    {
+      "Sid": "ProtectExpensiveVolumeTypes",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateVolume",
+        "ec2:ModifyVolume"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:VolumeType": [
+            "io1",
+            "io2"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ProtectLargeRootVolumes",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "NumericGreaterThan": {
+          "ec2:VolumeSize": "100"
+        }
+      }
+    },
+    {
+      "Sid": "ProtectExpensiveRootVolumeTypes",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:VolumeType": [
+            "io1",
+            "io2"
+          ]
+        }
+      }
     }
   ]
 }
