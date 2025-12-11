@@ -17,6 +17,7 @@
     "│   └── DenyExpensiveVolumes  - Block io1/io2 IOPS volumes        │",
     "└─────────────────────────────────────────────────────────────────┘"
   ],
+  "Version": "2012-10-17",
   "Statement": [
     {"Sid": "VPCAll", "Effect": "Allow", "Action": [
       "ec2:CreateVpc", "ec2:DeleteVpc", "ec2:ModifyVpcAttribute",
