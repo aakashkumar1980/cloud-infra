@@ -2,6 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "description": "VPC :: Core :: VPC actions liek create/delete VPCs and subnets",
       "Sid": "VPCCore",
       "Effect": "Allow",
       "Action": [
@@ -23,6 +24,7 @@
       }
     },
     {
+      "description": "VPC :: Peering :: Actions to create and manage VPC peering connections",
       "Sid": "VPCPeering",
       "Effect": "Allow",
       "Action": [
