@@ -1,0 +1,18 @@
+# AWS KMS Configuration
+aws:
+  region: us-east-1
+  kms:
+    # Replace with your actual KMS Key ARN after terraform apply
+    # Format: arn:aws:kms:us-east-1:ACCOUNT_ID:key/KEY_ID
+    key-arn: ${KMS_KEY_ARN:arn:aws:kms:us-east-1:123456789012:key/your-key-id}
+    # Or use alias (recommended)
+    # key-arn: arn:aws:kms:us-east-1:ACCOUNT_ID:alias/aaditya-designers-cmk-nvirginia-dev-terraform
+
+spring:
+  application:
+    name: kms-encryption-demo
+
+logging:
+  level:
+    com.aadityadesigners: DEBUG
+    software.amazon.awssdk: INFO
