@@ -3,7 +3,6 @@
   "Statement": [
 
     {
-      "description": "VPC :: Core :: Create, delete, and modify VPCs and subnets",
       "Sid": "VPCCore",
       "Effect": "Allow",
       "Action": [
@@ -17,15 +16,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "VPC :: Peering :: Create and manage VPC peering connections",
       "Sid": "VPCPeering",
       "Effect": "Allow",
       "Action": [
@@ -38,15 +33,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "VPC :: Internet :: Manage Internet Gateways, NAT Gateways, and Elastic IPs",
       "Sid": "VPCInternetConnectivity",
       "Effect": "Allow",
       "Action": [
@@ -64,15 +55,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "VPC :: Routing :: Create and manage route tables and routes",
       "Sid": "VPCRouting",
       "Effect": "Allow",
       "Action": [
@@ -88,15 +75,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "VPC :: Security Groups :: Create and manage security group rules",
       "Sid": "VPCSecurityGroups",
       "Effect": "Allow",
       "Action": [
@@ -113,34 +96,23 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "EC2 :: Read :: Describe all EC2 resources (read-only)",
       "Sid": "EC2ReadOnly",
       "Effect": "Allow",
-      "Action": [
-        "ec2:Describe*"
-      ],
+      "Action": ["ec2:Describe*"],
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "EC2 :: Instances :: Launch, terminate, start, stop, and manage EC2 instances",
       "Sid": "EC2Instances",
       "Effect": "Allow",
       "Action": [
@@ -155,15 +127,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "EC2 :: Instance Profiles :: Associate IAM instance profiles to EC2 instances",
       "Sid": "EC2InstanceProfiles",
       "Effect": "Allow",
       "Action": [
@@ -174,15 +142,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "EC2 :: Volumes :: Create, delete, attach, and manage EBS volumes",
       "Sid": "EC2Volumes",
       "Effect": "Allow",
       "Action": [
@@ -195,15 +159,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "EC2 :: Key Pairs :: Create, delete, and import SSH key pairs",
       "Sid": "EC2KeyPairs",
       "Effect": "Allow",
       "Action": [
@@ -214,15 +174,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "EC2 :: Tagging :: Create and delete tags on EC2 resources",
       "Sid": "EC2Tagging",
       "Effect": "Allow",
       "Action": [
@@ -232,17 +188,12 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "KMS :: Key Management :: Create, manage, and replicate KMS keys and aliases",
       "Sid": "KMSKeyManagement",
       "Effect": "Allow",
       "Action": [
@@ -270,15 +221,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "KMS :: Crypto Operations :: Encrypt, decrypt, and generate data keys",
       "Sid": "KMSCryptoOperations",
       "Effect": "Allow",
       "Action": [
@@ -290,17 +237,12 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "Secrets Manager :: Management :: Create, manage, rotate, and retrieve secrets",
       "Sid": "SecretsManagerManagement",
       "Effect": "Allow",
       "Action": [
@@ -324,17 +266,12 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "IAM :: Roles and Policies :: Create and manage IAM roles, policies, and attachments",
       "Sid": "IAMRolesAndPolicies",
       "Effect": "Allow",
       "Action": [
@@ -370,7 +307,6 @@
       "Resource": "*"
     },
     {
-      "description": "IAM :: Instance Profiles :: Create and manage instance profiles for EC2",
       "Sid": "IAMInstanceProfiles",
       "Effect": "Allow",
       "Action": [
@@ -388,12 +324,9 @@
       "Resource": "*"
     },
     {
-      "description": "IAM :: Global :: Allow IAM operations (IAM is a global service)",
       "Sid": "IAMGlobalOperations",
       "Effect": "Allow",
-      "Action": [
-        "iam:*"
-      ],
+      "Action": ["iam:*"],
       "Resource": "*",
       "Condition": {
         "StringEquals": {
@@ -402,9 +335,7 @@
       }
     },
 
-
     {
-      "description": "CloudWatch :: Logs :: Create and manage log groups, streams, and retention policies",
       "Sid": "CloudWatchLogs",
       "Effect": "Allow",
       "Action": [
@@ -426,17 +357,12 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "SSM :: Parameter Store :: Store and retrieve configuration parameters",
       "Sid": "SSMParameterStore",
       "Effect": "Allow",
       "Action": [
@@ -454,15 +380,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "SSM :: Session Manager :: Remote session management and command execution on EC2",
       "Sid": "SSMSessionManager",
       "Effect": "Allow",
       "Action": [
@@ -480,15 +402,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
     {
-      "description": "SSM :: Documents :: Access SSM automation and run command documents",
       "Sid": "SSMDocuments",
       "Effect": "Allow",
       "Action": [
@@ -499,32 +417,22 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         }
       }
     },
 
-
     {
-      "description": "Cost Protection :: Region Lock :: Deny all actions outside allowed regions (us-east-1, eu-west-2)",
       "Sid": "ProtectOtherRegions",
       "Effect": "Deny",
       "Action": "*",
       "Resource": "*",
       "Condition": {
         "StringNotEqualsIfExists": {
-          "aws:RequestedRegion": [
-            "eu-west-2",
-            "us-east-1"
-          ]
+          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
         },
         "ForAnyValue:StringNotEqualsIfExists": {
-          "aws:CalledVia": [
-            "cloudformation.amazonaws.com"
-          ]
+          "aws:CalledVia": ["cloudformation.amazonaws.com"]
         },
         "Bool": {
           "aws:ViaAWSService": "false"
@@ -532,7 +440,6 @@
       }
     },
     {
-      "description": "Cost Protection :: Instance Types :: Only allow t3/t3a/t4g in micro, small, medium sizes",
       "Sid": "ProtectHighCostInstanceTypes",
       "Effect": "Deny",
       "Action": "ec2:RunInstances",
@@ -540,27 +447,17 @@
       "Condition": {
         "ForAnyValue:StringNotLike": {
           "ec2:InstanceType": [
-            "t3.micro",
-            "t3.small",
-            "t3.medium",
-            "t3a.micro",
-            "t3a.small",
-            "t3a.medium",
-            "t4g.micro",
-            "t4g.small",
-            "t4g.medium"
+            "t3.micro", "t3.small", "t3.medium",
+            "t3a.micro", "t3a.small", "t3a.medium",
+            "t4g.micro", "t4g.small", "t4g.medium"
           ]
         }
       }
     },
     {
-      "description": "Cost Protection :: EBS Size :: Block standalone EBS volumes larger than 100GB",
       "Sid": "ProtectLargeEBSVolumes",
       "Effect": "Deny",
-      "Action": [
-        "ec2:CreateVolume",
-        "ec2:ModifyVolume"
-      ],
+      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume"],
       "Resource": "*",
       "Condition": {
         "NumericGreaterThan": {
@@ -569,25 +466,17 @@
       }
     },
     {
-      "description": "Cost Protection :: EBS Type :: Block expensive provisioned IOPS volumes (io1, io2)",
       "Sid": "ProtectExpensiveVolumeTypes",
       "Effect": "Deny",
-      "Action": [
-        "ec2:CreateVolume",
-        "ec2:ModifyVolume"
-      ],
+      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume"],
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "ec2:VolumeType": [
-            "io1",
-            "io2"
-          ]
+          "ec2:VolumeType": ["io1", "io2"]
         }
       }
     },
     {
-      "description": "Cost Protection :: Root Volume Size :: Block EC2 instances with root volumes larger than 100GB",
       "Sid": "ProtectLargeRootVolumes",
       "Effect": "Deny",
       "Action": "ec2:RunInstances",
@@ -599,17 +488,13 @@
       }
     },
     {
-      "description": "Cost Protection :: Root Volume Type :: Block EC2 instances with expensive root volume types",
       "Sid": "ProtectExpensiveRootVolumeTypes",
       "Effect": "Deny",
       "Action": "ec2:RunInstances",
       "Resource": "arn:aws:ec2:*:*:volume/*",
       "Condition": {
         "StringEquals": {
-          "ec2:VolumeType": [
-            "io1",
-            "io2"
-          ]
+          "ec2:VolumeType": ["io1", "io2"]
         }
       }
     }
