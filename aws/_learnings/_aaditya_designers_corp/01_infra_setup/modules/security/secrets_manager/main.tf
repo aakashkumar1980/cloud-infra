@@ -61,9 +61,10 @@ resource "random_password" "syncope_admin" {
 resource "aws_secretsmanager_secret" "ad_admin" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/ad/admin-password"
-  description = "AD Domain Administrator password"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/ad/admin-password"
+  description             = "AD Domain Administrator password"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-ad-admin-password"
@@ -85,9 +86,10 @@ resource "aws_secretsmanager_secret_version" "ad_admin" {
 resource "aws_secretsmanager_secret" "ad_restore" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/ad/restore-password"
-  description = "AD DS Safe Mode (DSRM) password for recovery"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/ad/restore-password"
+  description             = "AD DS Safe Mode (DSRM) password for recovery"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-ad-restore-password"
@@ -111,9 +113,10 @@ resource "aws_secretsmanager_secret_version" "ad_restore" {
 resource "aws_secretsmanager_secret" "gitlab_root" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/gitlab/root-password"
-  description = "GitLab root administrator password"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/gitlab/root-password"
+  description             = "GitLab root administrator password"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-gitlab-root-password"
@@ -137,9 +140,10 @@ resource "aws_secretsmanager_secret_version" "gitlab_root" {
 resource "aws_secretsmanager_secret" "wikijs_admin" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/wikijs/admin-password"
-  description = "Wiki.js administrator password"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/wikijs/admin-password"
+  description             = "Wiki.js administrator password"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-wikijs-admin-password"
@@ -163,9 +167,10 @@ resource "aws_secretsmanager_secret_version" "wikijs_admin" {
 resource "aws_secretsmanager_secret" "keycloak_admin" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/keycloak/admin-password"
-  description = "Keycloak administrator password"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/keycloak/admin-password"
+  description             = "Keycloak administrator password"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-keycloak-admin-password"
@@ -189,9 +194,10 @@ resource "aws_secretsmanager_secret_version" "keycloak_admin" {
 resource "aws_secretsmanager_secret" "syncope_admin" {
   provider = aws.nvirginia
 
-  name        = "/aaditya/syncope/admin-password"
-  description = "Apache Syncope administrator password"
-  kms_key_id  = var.kms_key_arn
+  name                    = "/aaditya/syncope/admin-password"
+  description             = "Apache Syncope administrator password"
+  kms_key_id              = var.kms_key_arn
+  recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
   tags = merge(var.tags_common, {
     Name        = "aaditya-syncope-admin-password"
