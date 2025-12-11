@@ -1,547 +1,132 @@
 {
   "ABOUT": [
     "┌─────────────────────────────────────────────────────────────────┐",
-    "│ VPC                                                             │",
-    "│   ├── VPCCore           - Create/modify VPCs and subnets        │",
-    "│   ├── VPCPeering        - VPC peering connections               │",
-    "│   ├── VPCInternetConnectivity - IGW, NAT, Elastic IPs           │",
-    "│   ├── VPCRouting        - Route tables and routes               │",
-    "│   └── VPCSecurityGroups - Security group rules                  │",
+    "│ Allow Policies                                                  │",
+    "│   ├── VPCAll     - VPCs, subnets, peering, IGW, NAT, routes, SG │",
+    "│   ├── EC2All     - Instances, volumes, key pairs, tagging       │",
+    "│   ├── KMSAll     - Key management and crypto operations         │",
+    "│   ├── SecretsAll - Secrets Manager lifecycle                    │",
+    "│   ├── IAMAll     - Roles, policies, instance profiles           │",
+    "│   ├── LogsAll    - CloudWatch log groups and streams            │",
+    "│   └── SSMAll     - Parameter Store, Session Manager, documents  │",
     "├─────────────────────────────────────────────────────────────────┤",
-    "│ EC2                                                             │",
-    "│   ├── EC2ReadOnly       - Describe all EC2 resources            │",
-    "│   ├── EC2Instances      - Launch, terminate, start, stop        │",
-    "│   ├── EC2InstanceProfiles - Associate IAM profiles              │",
-    "│   ├── EC2Volumes        - EBS volume management                 │",
-    "│   ├── EC2KeyPairs       - SSH key pairs                         │",
-    "│   └── EC2Tagging        - Resource tagging                      │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ KMS                                                             │",
-    "│   ├── KMSKeyManagement  - Create/manage/replicate keys          │",
-    "│   └── KMSCryptoOperations - Encrypt/decrypt operations          │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ Secrets Manager                                                 │",
-    "│   └── SecretsManagerManagement - Secret lifecycle               │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ IAM                                                             │",
-    "│   ├── IAMRolesAndPolicies - Roles and policy management         │",
-    "│   ├── IAMInstanceProfiles - Instance profiles for EC2           │",
-    "│   └── IAMGlobalOperations - Global IAM access                   │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ CloudWatch                                                      │",
-    "│   └── CloudWatchLogs    - Log groups and streams                │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ SSM                                                             │",
-    "│   ├── SSMParameterStore - Configuration parameters              │",
-    "│   ├── SSMSessionManager - Remote session/command execution      │",
-    "│   └── SSMDocuments      - Automation documents                  │",
-    "├─────────────────────────────────────────────────────────────────┤",
-    "│ Cost Protection (DENY)                                          │",
-    "│   ├── ProtectOtherRegions        - Region lock                  │",
-    "│   ├── ProtectHighCostInstanceTypes - Instance type limit        │",
-    "│   ├── ProtectLargeEBSVolumes     - Max 100GB standalone         │",
-    "│   ├── ProtectExpensiveVolumeTypes - Block io1/io2               │",
-    "│   ├── ProtectLargeRootVolumes    - Max 100GB root               │",
-    "│   └── ProtectExpensiveRootVolumeTypes - Block io1/io2 root      │",
+    "│ Deny Policies (Cost Protection)                                 │",
+    "│   ├── DenyOtherRegions      - Only us-east-1, eu-west-2         │",
+    "│   ├── DenyBadInstanceTypes  - Only t3/t3a/t4g micro/small/med   │",
+    "│   ├── DenyBigVolumes        - Max 100GB EBS                     │",
+    "│   └── DenyExpensiveVolumes  - Block io1/io2 IOPS volumes        │",
     "└─────────────────────────────────────────────────────────────────┘"
   ],
-  "Version": "2012-10-17",
   "Statement": [
-    {
-      "Sid": "VPCCore",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateVpc",
-        "ec2:DeleteVpc",
-        "ec2:ModifyVpcAttribute",
-        "ec2:CreateSubnet",
-        "ec2:DeleteSubnet",
-        "ec2:ModifySubnetAttribute"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "VPCPeering",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateVpcPeeringConnection",
-        "ec2:AcceptVpcPeeringConnection",
-        "ec2:DeleteVpcPeeringConnection",
-        "ec2:RejectVpcPeeringConnection",
-        "ec2:ModifyVpcPeeringConnectionOptions"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "VPCInternetConnectivity",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateInternetGateway",
-        "ec2:AttachInternetGateway",
-        "ec2:DetachInternetGateway",
-        "ec2:DeleteInternetGateway",
-        "ec2:CreateNatGateway",
-        "ec2:DeleteNatGateway",
-        "ec2:AllocateAddress",
-        "ec2:ReleaseAddress",
-        "ec2:AssociateAddress",
-        "ec2:DisassociateAddress"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "VPCRouting",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateRouteTable",
-        "ec2:DeleteRouteTable",
-        "ec2:AssociateRouteTable",
-        "ec2:DisassociateRouteTable",
-        "ec2:ReplaceRouteTableAssociation",
-        "ec2:CreateRoute",
-        "ec2:DeleteRoute",
-        "ec2:ReplaceRoute"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "VPCSecurityGroups",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateSecurityGroup",
-        "ec2:DeleteSecurityGroup",
-        "ec2:AuthorizeSecurityGroupIngress",
-        "ec2:AuthorizeSecurityGroupEgress",
-        "ec2:RevokeSecurityGroupIngress",
-        "ec2:RevokeSecurityGroupEgress",
-        "ec2:ModifySecurityGroupRules",
-        "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
-        "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "VPCAll", "Effect": "Allow", "Action": [
+      "ec2:CreateVpc", "ec2:DeleteVpc", "ec2:ModifyVpcAttribute",
+      "ec2:CreateSubnet", "ec2:DeleteSubnet", "ec2:ModifySubnetAttribute",
+      "ec2:CreateVpcPeeringConnection", "ec2:AcceptVpcPeeringConnection",
+      "ec2:DeleteVpcPeeringConnection", "ec2:RejectVpcPeeringConnection",
+      "ec2:ModifyVpcPeeringConnectionOptions",
+      "ec2:CreateInternetGateway", "ec2:AttachInternetGateway",
+      "ec2:DetachInternetGateway", "ec2:DeleteInternetGateway",
+      "ec2:CreateNatGateway", "ec2:DeleteNatGateway",
+      "ec2:AllocateAddress", "ec2:ReleaseAddress",
+      "ec2:AssociateAddress", "ec2:DisassociateAddress",
+      "ec2:CreateRouteTable", "ec2:DeleteRouteTable",
+      "ec2:AssociateRouteTable", "ec2:DisassociateRouteTable",
+      "ec2:ReplaceRouteTableAssociation",
+      "ec2:CreateRoute", "ec2:DeleteRoute", "ec2:ReplaceRoute",
+      "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup",
+      "ec2:AuthorizeSecurityGroup*", "ec2:RevokeSecurityGroup*",
+      "ec2:ModifySecurityGroupRules", "ec2:UpdateSecurityGroupRule*"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "EC2ReadOnly",
-      "Effect": "Allow",
-      "Action": ["ec2:Describe*"],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "EC2Instances",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:RunInstances",
-        "ec2:TerminateInstances",
-        "ec2:StartInstances",
-        "ec2:StopInstances",
-        "ec2:RebootInstances",
-        "ec2:ModifyInstanceAttribute",
-        "ec2:GetPasswordData"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "EC2InstanceProfiles",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:AssociateIamInstanceProfile",
-        "ec2:DisassociateIamInstanceProfile",
-        "ec2:ReplaceIamInstanceProfileAssociation"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "EC2Volumes",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateVolume",
-        "ec2:DeleteVolume",
-        "ec2:AttachVolume",
-        "ec2:DetachVolume",
-        "ec2:ModifyVolume"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "EC2KeyPairs",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateKeyPair",
-        "ec2:DeleteKeyPair",
-        "ec2:ImportKeyPair"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "EC2Tagging",
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateTags",
-        "ec2:DeleteTags"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "EC2All", "Effect": "Allow", "Action": [
+      "ec2:Describe*",
+      "ec2:RunInstances", "ec2:TerminateInstances",
+      "ec2:StartInstances", "ec2:StopInstances", "ec2:RebootInstances",
+      "ec2:ModifyInstanceAttribute", "ec2:GetPasswordData",
+      "ec2:AssociateIamInstanceProfile", "ec2:DisassociateIamInstanceProfile",
+      "ec2:ReplaceIamInstanceProfileAssociation",
+      "ec2:CreateVolume", "ec2:DeleteVolume",
+      "ec2:AttachVolume", "ec2:DetachVolume", "ec2:ModifyVolume",
+      "ec2:CreateKeyPair", "ec2:DeleteKeyPair", "ec2:ImportKeyPair",
+      "ec2:CreateTags", "ec2:DeleteTags"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "KMSKeyManagement",
-      "Effect": "Allow",
-      "Action": [
-        "kms:CreateKey",
-        "kms:CreateAlias",
-        "kms:DeleteAlias",
-        "kms:DescribeKey",
-        "kms:EnableKeyRotation",
-        "kms:DisableKeyRotation",
-        "kms:GetKeyPolicy",
-        "kms:GetKeyRotationStatus",
-        "kms:ListAliases",
-        "kms:ListKeys",
-        "kms:ListResourceTags",
-        "kms:PutKeyPolicy",
-        "kms:ScheduleKeyDeletion",
-        "kms:CancelKeyDeletion",
-        "kms:TagResource",
-        "kms:UntagResource",
-        "kms:UpdateAlias",
-        "kms:UpdateKeyDescription",
-        "kms:ReplicateKey",
-        "kms:UpdatePrimaryRegion"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "KMSCryptoOperations",
-      "Effect": "Allow",
-      "Action": [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:GenerateDataKey",
-        "kms:GenerateDataKeyWithoutPlaintext"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "KMSAll", "Effect": "Allow", "Action": [
+      "kms:CreateKey", "kms:CreateAlias", "kms:DeleteAlias",
+      "kms:DescribeKey", "kms:EnableKeyRotation", "kms:DisableKeyRotation",
+      "kms:GetKeyPolicy", "kms:GetKeyRotationStatus",
+      "kms:ListAliases", "kms:ListKeys", "kms:ListResourceTags",
+      "kms:PutKeyPolicy", "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion",
+      "kms:TagResource", "kms:UntagResource",
+      "kms:UpdateAlias", "kms:UpdateKeyDescription",
+      "kms:ReplicateKey", "kms:UpdatePrimaryRegion",
+      "kms:Encrypt", "kms:Decrypt", "kms:GenerateDataKey*"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "SecretsManagerManagement",
-      "Effect": "Allow",
-      "Action": [
-        "secretsmanager:CreateSecret",
-        "secretsmanager:DeleteSecret",
-        "secretsmanager:DescribeSecret",
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:PutSecretValue",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:TagResource",
-        "secretsmanager:UntagResource",
-        "secretsmanager:ListSecrets",
-        "secretsmanager:GetRandomPassword",
-        "secretsmanager:RestoreSecret",
-        "secretsmanager:RotateSecret",
-        "secretsmanager:CancelRotateSecret",
-        "secretsmanager:GetResourcePolicy",
-        "secretsmanager:PutResourcePolicy",
-        "secretsmanager:DeleteResourcePolicy"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "SecretsAll", "Effect": "Allow", "Action": [
+      "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret",
+      "secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue",
+      "secretsmanager:PutSecretValue", "secretsmanager:UpdateSecret",
+      "secretsmanager:TagResource", "secretsmanager:UntagResource",
+      "secretsmanager:ListSecrets", "secretsmanager:GetRandomPassword",
+      "secretsmanager:RestoreSecret", "secretsmanager:RotateSecret",
+      "secretsmanager:CancelRotateSecret", "secretsmanager:*ResourcePolicy"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "IAMRolesAndPolicies",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:GetRole",
-        "iam:ListRoles",
-        "iam:TagRole",
-        "iam:UntagRole",
-        "iam:UpdateRole",
-        "iam:UpdateRoleDescription",
-        "iam:UpdateAssumeRolePolicy",
-        "iam:PassRole",
-        "iam:CreatePolicy",
-        "iam:DeletePolicy",
-        "iam:GetPolicy",
-        "iam:GetPolicyVersion",
-        "iam:ListPolicies",
-        "iam:ListPolicyVersions",
-        "iam:CreatePolicyVersion",
-        "iam:DeletePolicyVersion",
-        "iam:SetDefaultPolicyVersion",
-        "iam:TagPolicy",
-        "iam:UntagPolicy",
-        "iam:AttachRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:ListAttachedRolePolicies",
-        "iam:ListRolePolicies",
-        "iam:PutRolePolicy",
-        "iam:DeleteRolePolicy",
-        "iam:GetRolePolicy"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "IAMInstanceProfiles",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateInstanceProfile",
-        "iam:DeleteInstanceProfile",
-        "iam:GetInstanceProfile",
-        "iam:ListInstanceProfiles",
-        "iam:ListInstanceProfilesForRole",
-        "iam:AddRoleToInstanceProfile",
-        "iam:RemoveRoleFromInstanceProfile",
-        "iam:TagInstanceProfile",
-        "iam:UntagInstanceProfile",
-        "iam:ListInstanceProfileTags"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "IAMGlobalOperations",
-      "Effect": "Allow",
-      "Action": ["iam:*"],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": "us-east-1"
-        }
-      }
-    },
+    {"Sid": "IAMAll", "Effect": "Allow", "Action": [
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
+      "iam:TagRole", "iam:UntagRole", "iam:UpdateRole*", "iam:PassRole",
+      "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy*",
+      "iam:ListPolic*", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+      "iam:SetDefaultPolicyVersion", "iam:TagPolicy", "iam:UntagPolicy",
+      "iam:AttachRolePolicy", "iam:DetachRolePolicy",
+      "iam:ListAttachedRolePolicies", "iam:ListRolePolicies",
+      "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+      "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile",
+      "iam:GetInstanceProfile", "iam:ListInstanceProfile*",
+      "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
+      "iam:TagInstanceProfile", "iam:UntagInstanceProfile"
+    ], "Resource": "*"},
 
-    {
-      "Sid": "CloudWatchLogs",
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:DeleteLogGroup",
-        "logs:DescribeLogGroups",
-        "logs:ListTagsLogGroup",
-        "logs:TagLogGroup",
-        "logs:UntagLogGroup",
-        "logs:PutRetentionPolicy",
-        "logs:DeleteRetentionPolicy",
-        "logs:CreateLogStream",
-        "logs:DeleteLogStream",
-        "logs:DescribeLogStreams",
-        "logs:PutLogEvents",
-        "logs:GetLogEvents",
-        "logs:FilterLogEvents"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "LogsAll", "Effect": "Allow", "Action": [
+      "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
+      "logs:ListTagsLogGroup", "logs:TagLogGroup", "logs:UntagLogGroup",
+      "logs:PutRetentionPolicy", "logs:DeleteRetentionPolicy",
+      "logs:CreateLogStream", "logs:DeleteLogStream", "logs:DescribeLogStreams",
+      "logs:PutLogEvents", "logs:GetLogEvents", "logs:FilterLogEvents"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "SSMParameterStore",
-      "Effect": "Allow",
-      "Action": [
-        "ssm:GetParameter",
-        "ssm:GetParameters",
-        "ssm:GetParametersByPath",
-        "ssm:PutParameter",
-        "ssm:DeleteParameter",
-        "ssm:DeleteParameters",
-        "ssm:DescribeParameters",
-        "ssm:AddTagsToResource",
-        "ssm:RemoveTagsFromResource",
-        "ssm:ListTagsForResource"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "SSMSessionManager",
-      "Effect": "Allow",
-      "Action": [
-        "ssm:StartSession",
-        "ssm:TerminateSession",
-        "ssm:ResumeSession",
-        "ssm:DescribeSessions",
-        "ssm:GetConnectionStatus",
-        "ssm:SendCommand",
-        "ssm:GetCommandInvocation",
-        "ssm:ListCommandInvocations",
-        "ssm:ListCommands",
-        "ssm:CancelCommand"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
-    {
-      "Sid": "SSMDocuments",
-      "Effect": "Allow",
-      "Action": [
-        "ssm:DescribeDocument",
-        "ssm:GetDocument",
-        "ssm:ListDocuments"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        }
-      }
-    },
+    {"Sid": "SSMAll", "Effect": "Allow", "Action": [
+      "ssm:GetParameter*", "ssm:PutParameter", "ssm:DeleteParameter*",
+      "ssm:DescribeParameters", "ssm:AddTagsToResource",
+      "ssm:RemoveTagsFromResource", "ssm:ListTagsForResource",
+      "ssm:StartSession", "ssm:TerminateSession", "ssm:ResumeSession",
+      "ssm:DescribeSessions", "ssm:GetConnectionStatus",
+      "ssm:SendCommand", "ssm:GetCommandInvocation",
+      "ssm:ListCommand*", "ssm:CancelCommand",
+      "ssm:DescribeDocument", "ssm:GetDocument", "ssm:ListDocuments"
+    ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {
-      "Sid": "ProtectOtherRegions",
-      "Effect": "Deny",
-      "Action": "*",
-      "Resource": "*",
-      "Condition": {
-        "StringNotEqualsIfExists": {
-          "aws:RequestedRegion": ["eu-west-2", "us-east-1"]
-        },
-        "ForAnyValue:StringNotEqualsIfExists": {
-          "aws:CalledVia": ["cloudformation.amazonaws.com"]
-        },
-        "Bool": {
-          "aws:ViaAWSService": "false"
-        }
-      }
-    },
-    {
-      "Sid": "ProtectHighCostInstanceTypes",
-      "Effect": "Deny",
-      "Action": "ec2:RunInstances",
+    {"Sid": "DenyOtherRegions", "Effect": "Deny", "Action": "*", "Resource": "*",
+      "Condition": {"StringNotEqualsIfExists": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]},
+        "ForAnyValue:StringNotEqualsIfExists": {"aws:CalledVia": ["cloudformation.amazonaws.com"]},
+        "Bool": {"aws:ViaAWSService": "false"}}},
+
+    {"Sid": "DenyBadInstanceTypes", "Effect": "Deny", "Action": "ec2:RunInstances",
       "Resource": "arn:aws:ec2:*:*:instance/*",
-      "Condition": {
-        "ForAnyValue:StringNotLike": {
-          "ec2:InstanceType": [
-            "t3.micro", "t3.small", "t3.medium",
-            "t3a.micro", "t3a.small", "t3a.medium",
-            "t4g.micro", "t4g.small", "t4g.medium"
-          ]
-        }
-      }
-    },
-    {
-      "Sid": "ProtectLargeEBSVolumes",
-      "Effect": "Deny",
-      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume"],
-      "Resource": "*",
-      "Condition": {
-        "NumericGreaterThan": {
-          "ec2:VolumeSize": "100"
-        }
-      }
-    },
-    {
-      "Sid": "ProtectExpensiveVolumeTypes",
-      "Effect": "Deny",
-      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume"],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "ec2:VolumeType": ["io1", "io2"]
-        }
-      }
-    },
-    {
-      "Sid": "ProtectLargeRootVolumes",
-      "Effect": "Deny",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:*:*:volume/*",
-      "Condition": {
-        "NumericGreaterThan": {
-          "ec2:VolumeSize": "100"
-        }
-      }
-    },
-    {
-      "Sid": "ProtectExpensiveRootVolumeTypes",
-      "Effect": "Deny",
-      "Action": "ec2:RunInstances",
-      "Resource": "arn:aws:ec2:*:*:volume/*",
-      "Condition": {
-        "StringEquals": {
-          "ec2:VolumeType": ["io1", "io2"]
-        }
-      }
-    }
+      "Condition": {"ForAnyValue:StringNotLike": {"ec2:InstanceType": [
+        "t3.micro", "t3.small", "t3.medium",
+        "t3a.micro", "t3a.small", "t3a.medium",
+        "t4g.micro", "t4g.small", "t4g.medium"]}}},
+
+    {"Sid": "DenyBigVolumes", "Effect": "Deny",
+      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume", "ec2:RunInstances"],
+      "Resource": ["*", "arn:aws:ec2:*:*:volume/*"],
+      "Condition": {"NumericGreaterThan": {"ec2:VolumeSize": "100"}}},
+
+    {"Sid": "DenyExpensiveVolumes", "Effect": "Deny",
+      "Action": ["ec2:CreateVolume", "ec2:ModifyVolume", "ec2:RunInstances"],
+      "Resource": ["*", "arn:aws:ec2:*:*:volume/*"],
+      "Condition": {"StringEquals": {"ec2:VolumeType": ["io1", "io2"]}}}
   ]
 }
