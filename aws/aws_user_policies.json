@@ -1,4 +1,22 @@
 {
+  "ABOUT": [
+    "┌─────────────────────────────────────────────────────────────────┐",
+    "│ Allow Policies                                                  │",
+    "│   ├── VPCAll     - VPCs, subnets, peering, IGW, NAT, routes, SG │",
+    "│   ├── EC2All     - Instances, volumes, key pairs, tagging       │",
+    "│   ├── KMSAll     - Key management and crypto operations         │",
+    "│   ├── SecretsAll - Secrets Manager lifecycle                    │",
+    "│   ├── IAMAll     - Roles, policies, instance profiles, SLR      │",
+    "│   ├── LogsAll    - CloudWatch log groups and streams            │",
+    "│   └── SSMAll     - Parameter Store, Session Manager, documents  │",
+    "├─────────────────────────────────────────────────────────────────┤",
+    "│ Deny Policies (Cost Protection)                                 │",
+    "│   ├── DenyOtherRegions - Only us-east-1, eu-west-2              │",
+    "│   ├── DenyBadEC2       - Only t3/t3a/t4g micro/small/med        │",
+    "│   ├── DenyBigVol       - Max 100GB EBS                          │",
+    "│   └── DenyIOPS         - Block io1/io2 IOPS volumes             │",
+    "└─────────────────────────────────────────────────────────────────┘"
+  ],
   "Version": "2012-10-17",
   "Statement": [
     {"Sid": "VPCAll", "Effect": "Allow", "Action": [
