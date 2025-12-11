@@ -40,6 +40,8 @@ NC='\033[0m' # No Color
 # Configuration
 ACTION="${1:-apply}"
 PROFILE="${2:-dev}"
+# New: optional third arg (--force or -f) to skip confirmation for destroy
+FORCE_FLAG="${3:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../../.." && pwd)"
 
@@ -132,9 +134,10 @@ print_header "Aaditya Designers Corp - Infrastructure Deployment"
 echo "Action:  $ACTION"
 echo "Profile: $PROFILE"
 echo "Project Root: $PROJECT_ROOT"
+echo "Force:   $FORCE_FLAG"
 
-# Confirm destroy action
-if [ "$ACTION" == "destroy" ]; then
+# Confirm destroy action (skip if FORCE_FLAG is --force or -f)
+if [ "$ACTION" == "destroy" ] && [ "$FORCE_FLAG" != "--force" ] && [ "$FORCE_FLAG" != "-f" ]; then
     print_warning "This will DESTROY all infrastructure!"
     read -p "Are you sure? (yes/no): " confirm
     if [ "$confirm" != "yes" ]; then

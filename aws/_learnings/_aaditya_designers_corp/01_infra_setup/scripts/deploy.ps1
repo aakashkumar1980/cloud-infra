@@ -33,7 +33,11 @@ param(
 
     [Parameter(Mandatory=$false)]
     [ValidateSet("dev", "stage", "prod")]
-    [string]$Profile = "dev"
+    [string]$Profile = "dev",
+
+    # New: skip interactive confirmation for destroy
+    [Parameter(Mandatory=$false)]
+    [switch]$Force
 )
 
 # Configuration
@@ -133,9 +137,10 @@ Write-Header "Aaditya Designers Corp - Infrastructure Deployment"
 Write-Host "Action:  $Action"
 Write-Host "Profile: $Profile"
 Write-Host "Project Root: $ProjectRoot"
+Write-Host "Force:    $Force"
 
-# Confirm destroy action
-if ($Action -eq "destroy") {
+# Confirm destroy action (skip if -Force provided)
+if ($Action -eq "destroy" -and -not $Force) {
     Write-WarningMessage "This will DESTROY all infrastructure!"
     $confirm = Read-Host "Are you sure? (yes/no)"
     if ($confirm -ne "yes") {
