@@ -2,11 +2,8 @@
 aws:
   region: us-east-1
   kms:
-    # Replace with your actual KMS Key ARN after terraform apply
-    # Format: arn:aws:kms:us-east-1:ACCOUNT_ID:key/KEY_ID
-    key-arn: ${KMS_KEY_ARN:arn:aws:kms:us-east-1:123456789012:key/your-key-id}
-    # Or use alias (recommended)
-    # key-arn: arn:aws:kms:us-east-1:ACCOUNT_ID:alias/aaditya-designers-cmk-nvirginia-dev-terraform
+    # KMS Key ARN from terraform output
+    key-arn: ${KMS_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/mrk-385cf69ffec2418fa2c6ad5249fa6ad2}
 
 spring:
   application:
