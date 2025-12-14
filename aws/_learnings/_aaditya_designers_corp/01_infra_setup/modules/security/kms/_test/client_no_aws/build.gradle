@@ -1,6 +1,7 @@
 plugins {
     id 'java'
-    id 'application'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'com.aadityadesigners'
@@ -15,23 +16,22 @@ repositories {
 }
 
 dependencies {
-    // NO AWS SDK! This simulates a 3rd party without AWS account
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // JSON processing (for API calls)
-    implementation 'com.google.gson:gson:2.10.1'
+    // AWS SDK v2 - KMS
+    implementation platform('software.amazon.awssdk:bom:2.21.0')
+    implementation 'software.amazon.awssdk:kms'
+    implementation 'software.amazon.awssdk:auth'
 
-    // HTTP client (Java 11+ built-in HttpClient is used, no extra dependency needed)
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    // Logging
-    implementation 'org.slf4j:slf4j-api:2.0.9'
-    implementation 'ch.qos.logback:logback-classic:1.4.11'
+    // JSON processing for client tests (NO AWS SDK in tests!)
+    testImplementation 'com.google.code.gson:gson:2.10.1'
 }
 
-application {
-    mainClass = 'client_no_aws.ClientSimulatorApplication'
-}
-
-// Allow running with: ./gradlew run
-run {
-    standardInput = System.in
+tasks.named('test') {
+    useJUnitPlatform()
 }

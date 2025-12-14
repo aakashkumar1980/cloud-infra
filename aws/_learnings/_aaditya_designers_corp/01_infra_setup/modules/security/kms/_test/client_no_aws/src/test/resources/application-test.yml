@@ -1,0 +1,20 @@
+# Test Configuration
+# Uses the same KMS configuration as main application
+
+spring:
+  application:
+    name: company-backend-test
+
+# AWS Configuration for tests
+# These values should be set via environment variables or AWS credentials
+aws:
+  region: us-east-1
+  kms:
+    # For tests, you must set this via environment variable or in your test setup
+    # Example: export AWS_KMS_ASYMMETRIC_KEY_ARN=arn:aws:kms:us-east-1:xxx:key/xxx
+    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN}
+
+logging:
+  level:
+    company_backend: DEBUG
+    client_no_aws: DEBUG
