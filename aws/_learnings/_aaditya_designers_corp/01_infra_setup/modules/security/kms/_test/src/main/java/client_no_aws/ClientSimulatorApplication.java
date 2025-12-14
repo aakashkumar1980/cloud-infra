@@ -1,8 +1,8 @@
-package com.thirdparty.client;
+package client_no_aws;
 
-import com.thirdparty.client.api.CompanyApiClient;
-import com.thirdparty.client.crypto.AesEncryptor;
-import com.thirdparty.client.crypto.RsaEncryptor;
+import client_no_aws.api.CompanyApiClient;
+import client_no_aws.crypto.AesEncryptor;
+import client_no_aws.crypto.RsaEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

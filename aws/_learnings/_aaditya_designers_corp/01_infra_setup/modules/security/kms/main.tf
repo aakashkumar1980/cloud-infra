@@ -16,9 +16,9 @@
  */
 
 # -----------------------------------------------------------------------------
-# KMS Key for N. Virginia Region (AD Server)
+# Symmetric KMS Key for N. Virginia Region (AD Server)
 # -----------------------------------------------------------------------------
-resource "aws_kms_key" "nvirginia" {
+resource "aws_kms_key" "symmetric" {
   provider = aws.nvirginia
 
   description             = "CMK for Aaditya Designers Corp - N. Virginia (AD, EBS, Secrets)"
@@ -83,11 +83,11 @@ resource "aws_kms_key" "nvirginia" {
   })
 }
 
-resource "aws_kms_alias" "nvirginia" {
+resource "aws_kms_alias" "symmetric" {
   provider = aws.nvirginia
 
   name          = "alias/aaditya-nvirginia"
-  target_key_id = aws_kms_key.nvirginia.key_id
+  target_key_id = aws_kms_key.symmetric.key_id
 }
 
 # -----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ resource "aws_kms_replica_key" "london" {
   provider = aws.london
 
   description             = "CMK Replica for Aaditya Designers Corp - London (Apps, EBS, Secrets)"
-  primary_key_arn         = aws_kms_key.nvirginia.arn
+  primary_key_arn         = aws_kms_key.symmetric.arn
   deletion_window_in_days = 7
 
   # Key policy for London region

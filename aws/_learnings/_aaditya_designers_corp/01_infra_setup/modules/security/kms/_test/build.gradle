@@ -3,7 +3,7 @@ plugins {
     id 'application'
 }
 
-group = 'com.thirdparty'
+group = 'com.aadityadesigners'
 version = '1.0.0'
 
 java {
@@ -18,7 +18,7 @@ dependencies {
     // NO AWS SDK! This simulates a 3rd party without AWS account
 
     // JSON processing (for API calls)
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.gson:gson:2.10.1'
 
     // HTTP client (Java 11+ built-in HttpClient is used, no extra dependency needed)
 
@@ -28,7 +28,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'com.thirdparty.client.ClientSimulatorApplication'
+    mainClass = 'client_no_aws.ClientSimulatorApplication'
 }
 
 // Allow running with: ./gradlew run

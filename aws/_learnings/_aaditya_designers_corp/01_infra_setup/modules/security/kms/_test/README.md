@@ -4,11 +4,38 @@ This folder contains test implementations for three KMS use-cases:
 
 ## Use-Cases
 
-| Use-Case | Description | Status |
-|----------|-------------|--------|
-| **1. Third Party WITHOUT AWS Account** | 3rd party encrypts with public key | ✅ Implemented |
-| **2. Third Party WITH AWS Account** | 3rd party uses IAM credentials | 🔜 Planned |
-| **3. Internal Company Apps** | Apps use envelope encryption | 🔜 Planned |
+| Use-Case | Description | Package | Status |
+|----------|-------------|---------|--------|
+| **1. Third Party WITHOUT AWS Account** | 3rd party encrypts with public key | `client_no_aws` | ✅ Implemented |
+| **2. Third Party WITH AWS Account** | 3rd party uses IAM credentials | `client_with_aws` | 🔜 Planned |
+| **3. Internal Company Apps** | Apps use envelope encryption | `internal_app` | 🔜 Planned |
+
+---
+
+## Folder Structure
+
+```
+_test/
+├── terraform/                    # Asymmetric KMS key for Use-Case 1
+│   ├── locals.tf
+│   ├── providers.tf
+│   ├── variables.tf
+│   ├── main.tf
+│   └── outputs.tf
+│
+├── src/main/java/
+│   └── client_no_aws/            # Use-Case 1: 3rd party WITHOUT AWS
+│       ├── ClientSimulatorApplication.java
+│       ├── crypto/
+│       │   ├── AesEncryptor.java
+│       │   └── RsaEncryptor.java
+│       └── api/
+│           └── CompanyApiClient.java
+│
+├── build.gradle
+├── settings.gradle
+└── README.md
+```
 
 ---
 
@@ -43,33 +70,6 @@ This folder contains test implementations for three KMS use-cases:
      │ <───────────────────────────│                           │
 ```
 
-### Folder Structure
-
-```
-usecase1-third-party-no-aws/
-├── company-backend/          # Aaditya Corp backend (has AWS creds)
-│   ├── build.gradle
-│   └── src/main/java/
-│       └── com/aadityadesigners/kms/
-│           ├── CompanyBackendApplication.java
-│           ├── config/AwsKmsConfig.java
-│           ├── controller/EncryptionController.java
-│           ├── service/
-│           │   ├── PublicKeyService.java
-│           │   └── DecryptionService.java
-│           └── dto/
-│
-└── client-simulator/         # 3rd party simulator (NO AWS SDK!)
-    ├── build.gradle
-    └── src/main/java/
-        └── com/thirdparty/client/
-            ├── ClientSimulatorApplication.java
-            ├── crypto/
-            │   ├── AesEncryptor.java
-            │   └── RsaEncryptor.java
-            └── api/CompanyApiClient.java
-```
-
 ### How to Run
 
 #### 1. Create KMS Asymmetric Key (one-time)
@@ -82,28 +82,14 @@ terraform apply -var="profile=dev"
 
 Copy the `asymmetric_key_arn` from output.
 
-#### 2. Update Configuration
-
-Edit `company-backend/src/main/resources/application.yml`:
-```yaml
-aws:
-  kms:
-    asymmetric-key-arn: <paste-arn-here>
-```
-
-#### 3. Start Company Backend
+#### 2. Run Client Simulator
 
 ```bash
-cd usecase1-third-party-no-aws/company-backend
-./gradlew bootRun
-```
-
-#### 4. Run Client Simulator
-
-```bash
-cd usecase1-third-party-no-aws/client-simulator
 ./gradlew run
 ```
+
+**Note:** The client simulator requires the company backend to be running.
+The company backend code should be set up separately with AWS KMS access.
 
 ### Expected Output
 
@@ -142,3 +128,4 @@ cd usecase1-third-party-no-aws/client-simulator
 - **Public key is safe to share** - cannot be used for decryption
 - **Sensitive data never sent in plaintext** - encrypted before transmission
 - **DEK is random per request** - even same data produces different ciphertext
+- **KMS deletion window minimum 7 days** - AWS enforces this for security

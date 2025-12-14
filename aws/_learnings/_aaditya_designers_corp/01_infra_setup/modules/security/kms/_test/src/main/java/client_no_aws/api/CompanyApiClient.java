@@ -1,8 +1,8 @@
-package com.thirdparty.client.api;
+package client_no_aws.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.thirdparty.client.crypto.AesEncryptor;
+import client_no_aws.crypto.AesEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

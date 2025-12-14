@@ -1,4 +1,4 @@
-package com.thirdparty.client.crypto;
+package client_no_aws.crypto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
