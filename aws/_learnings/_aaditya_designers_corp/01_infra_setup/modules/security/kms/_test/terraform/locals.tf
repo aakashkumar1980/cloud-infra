@@ -1,0 +1,29 @@
+/**
+ * Local Variables for KMS _test Module
+ *
+ * Loads configuration files from /aws/configs for consistent tagging
+ * across all test modules.
+ *
+ * Config files loaded:
+ *   - configs/tags.yaml              -> Global and environment tags
+ */
+locals {
+  REGION_N_VIRGINIA = "nvirginia"
+
+  regions_cfg = {
+    (local.REGION_N_VIRGINIA) = "us-east-1"
+  }
+
+  # Path to shared configs (8 levels up from terraform/ to aws/)
+  config_dir = abspath("${path.module}/../../../../../../../../configs")
+  env_dir    = abspath("${local.config_dir}/${var.profile}")
+  tags_cfg   = yamldecode(file("${local.config_dir}/tags.yaml"))
+
+  tags_common = merge(
+    local.tags_cfg.global_tags,
+    lookup(local.tags_cfg.environment_tags, var.profile, {})
+  )
+
+  # Name suffix for resources
+  name_suffix = "${local.REGION_N_VIRGINIA}-${var.profile}-terraform"
+}
