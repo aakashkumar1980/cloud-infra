@@ -6,21 +6,21 @@
  */
 
 # -----------------------------------------------------------------------------
-# N. Virginia KMS Key Outputs
+# Symmetric KMS Key Outputs (N. Virginia)
 # -----------------------------------------------------------------------------
 output "nvirginia_key_arn" {
-  description = "ARN of the KMS key in N. Virginia"
-  value       = aws_kms_key.nvirginia.arn
+  description = "ARN of the symmetric KMS key in N. Virginia"
+  value       = aws_kms_key.symmetric.arn
 }
 
 output "nvirginia_key_id" {
-  description = "ID of the KMS key in N. Virginia"
-  value       = aws_kms_key.nvirginia.key_id
+  description = "ID of the symmetric KMS key in N. Virginia"
+  value       = aws_kms_key.symmetric.key_id
 }
 
 output "nvirginia_key_alias" {
-  description = "Alias of the KMS key in N. Virginia"
-  value       = aws_kms_alias.nvirginia.name
+  description = "Alias of the symmetric KMS key in N. Virginia"
+  value       = aws_kms_alias.symmetric.name
 }
 
 # -----------------------------------------------------------------------------
