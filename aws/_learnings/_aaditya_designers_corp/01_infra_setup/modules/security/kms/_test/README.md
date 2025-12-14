@@ -1,117 +1,144 @@
-# KMS Encryption Demo - AWS Encryption SDK
+# KMS Test Cases
 
-Spring Boot demo application showing how to use AWS KMS for encryption/decryption using the AWS Encryption SDK (Option 3 - Production Ready).
+This folder contains test implementations for three KMS use-cases:
 
-## Architecture
+## Use-Cases
+
+| Use-Case | Description | Status |
+|----------|-------------|--------|
+| **1. Third Party WITHOUT AWS Account** | 3rd party encrypts with public key | ✅ Implemented |
+| **2. Third Party WITH AWS Account** | 3rd party uses IAM credentials | 🔜 Planned |
+| **3. Internal Company Apps** | Apps use envelope encryption | 🔜 Planned |
+
+---
+
+## Use-Case 1: Third Party WITHOUT AWS Account
+
+### Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    ENVELOPE ENCRYPTION                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Your App                        AWS KMS                        │
-│  ────────                        ───────                        │
-│                                                                 │
-│  1. "Encrypt this data"                                         │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌─────────────────┐    GenerateDataKey     ┌───────────────┐  │
-│  │ AWS Encryption  │ ──────────────────────►│   KMS Key     │  │
-│  │     SDK         │◄────────────────────── │ (Never leaves │  │
-│  └─────────────────┘  Plaintext DEK +       │    AWS)       │  │
-│         │             Encrypted DEK         └───────────────┘  │
-│         │                                                       │
-│         ▼                                                       │
-│  2. Encrypt data locally with DEK (AES-GCM)                    │
-│         │                                                       │
-│         ▼                                                       │
-│  3. Return: [Encrypted DEK] + [Encrypted Data] + [Metadata]    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+3rd Party Client              Company Backend              AWS KMS
+(No AWS SDK)                  (Spring Boot)
+─────────────                 ─────────────                ───────
+     │                             │                           │
+     │  1. GET /public-key         │                           │
+     │ ───────────────────────────>│                           │
+     │                             │  GetPublicKey()           │
+     │                             │ ─────────────────────────>│
+     │  2. Public Key (PEM)        │                           │
+     │ <───────────────────────────│<──────────────────────────│
+     │                             │                           │
+     │  3. Encrypt DEK with RSA    │                           │
+     │  4. Encrypt data with AES   │                           │
+     │                             │                           │
+     │  5. POST /decrypt           │                           │
+     │     {encryptedDek, data}    │                           │
+     │ ───────────────────────────>│                           │
+     │                             │  Decrypt(encryptedDek)    │
+     │                             │ ─────────────────────────>│
+     │                             │  plaintextDek             │
+     │                             │<──────────────────────────│
+     │                             │                           │
+     │  6. Decrypted plaintext     │  AES decrypt locally      │
+     │ <───────────────────────────│                           │
 ```
 
-## Prerequisites
+### Folder Structure
 
-1. **AWS Credentials** configured:
-   ```bash
-   export AWS_ACCESS_KEY_ID=your-access-key
-   export AWS_SECRET_ACCESS_KEY=your-secret-key
-   ```
+```
+usecase1-third-party-no-aws/
+├── company-backend/          # Aaditya Corp backend (has AWS creds)
+│   ├── build.gradle
+│   └── src/main/java/
+│       └── com/aadityadesigners/kms/
+│           ├── CompanyBackendApplication.java
+│           ├── config/AwsKmsConfig.java
+│           ├── controller/EncryptionController.java
+│           ├── service/
+│           │   ├── PublicKeyService.java
+│           │   └── DecryptionService.java
+│           └── dto/
+│
+└── client-simulator/         # 3rd party simulator (NO AWS SDK!)
+    ├── build.gradle
+    └── src/main/java/
+        └── com/thirdparty/client/
+            ├── ClientSimulatorApplication.java
+            ├── crypto/
+            │   ├── AesEncryptor.java
+            │   └── RsaEncryptor.java
+            └── api/CompanyApiClient.java
+```
 
-2. **KMS Key** created via Terraform:
-   ```bash
-   cd aws/_learnings/_aaditya_designers_corp/01_infra_setup
-   terraform apply -var="profile=dev"
-   ```
+### How to Run
 
-3. **Set KMS Key ARN**:
-   ```bash
-   # Get the key ARN from Terraform output
-   export KMS_KEY_ARN=$(terraform output -raw kms_key_arn_nvirginia)
-   # Or use alias ARN
-   export KMS_KEY_ARN="arn:aws:kms:us-east-1:YOUR_ACCOUNT:alias/aaditya-designers-cmk-nvirginia-dev-terraform"
-   ```
-
-## Run the Demo
+#### 1. Create KMS Asymmetric Key (one-time)
 
 ```bash
-cd aws/_learnings/_aaditya_designers_corp/01_infra_setup/modules/security/kms/_test
+cd terraform
+terraform init
+terraform apply -var="profile=dev"
+```
 
-# Run with Gradle
+Copy the `asymmetric_key_arn` from output.
+
+#### 2. Update Configuration
+
+Edit `company-backend/src/main/resources/application.yml`:
+```yaml
+aws:
+  kms:
+    asymmetric-key-arn: <paste-arn-here>
+```
+
+#### 3. Start Company Backend
+
+```bash
+cd usecase1-third-party-no-aws/company-backend
 ./gradlew bootRun
-
-# Or with explicit key ARN
-KMS_KEY_ARN="arn:aws:kms:us-east-1:123456789:key/abc-123" ./gradlew bootRun
 ```
 
-## Expected Output
+#### 4. Run Client Simulator
 
-```
-============================================================
-KMS ENCRYPTION DEMO - AWS Encryption SDK
-============================================================
-
-[1] Original Text: Hello, Aaditya Designers! This is sensitive data.
-
-[2] Encrypting with KMS...
-Encrypted (Base64): AYADeJzLzUzJz0nNBQBFrAYfAAAAABwAB3B1cnBvc2UAFmRhdGEtZW5jcnlwdGlv...
-Encrypted size: 587 bytes
-
-[3] Decrypting with KMS...
-Decrypted Text: Hello, Aaditya Designers! This is sensitive data.
-
-[4] Verification:
-Original matches Decrypted: ✓ SUCCESS
-
-============================================================
-DEMO COMPLETE
-============================================================
+```bash
+cd usecase1-third-party-no-aws/client-simulator
+./gradlew run
 ```
 
-## Key Components
+### Expected Output
 
-| File | Description |
-|------|-------------|
-| `AwsConfig.java` | AWS beans configuration (KmsClient, AwsCrypto, KeyProvider) |
-| `KmsEncryptionService.java` | Main encryption/decryption service |
-| `KmsEncryptionDemoApplication.java` | Demo runner with examples |
+```
+[STEP 1] Fetching public key from Aaditya Corp...
+✓ Public key loaded successfully
 
-## Encryption Context
+[STEP 2] Sensitive data to encrypt:
+         "SSN: 123-45-6789, Credit Card: 4111-1111-1111-1111..."
 
-The service supports **encryption context** - additional authenticated data that:
-- Is NOT encrypted (stored in plaintext)
-- IS cryptographically bound to ciphertext
-- Must match exactly during decryption
+[STEP 3] Encrypting data locally with AES-GCM...
+✓ Data encrypted with random DEK
 
-```java
-// Multi-tenant example
-byte[] encrypted = service.encryptForTenant("secret", "tenant-123");
-String decrypted = service.decryptForTenant(encrypted, "tenant-123");
+[STEP 4] Encrypting DEK with company's public key (RSA-OAEP)...
+✓ DEK encrypted with public key
+
+[STEP 5] Sending encrypted payload to Aaditya Corp API...
+         (Sensitive data is NEVER sent in plaintext!)
+
+[STEP 6] Response from server:
+         "SSN: 123-45-6789, Credit Card: 4111-1111-1111-1111..."
+
+═══════════════════════════════════════════════════════════════
+  ✓ SUCCESS! Data round-trip verified.
+  ✓ Sensitive data was encrypted locally.
+  ✓ Only encrypted data traveled over the network.
+  ✓ Decryption happened server-side using KMS.
+═══════════════════════════════════════════════════════════════
 ```
 
-## Production Considerations
+---
 
-1. **Key Caching**: AWS Encryption SDK supports data key caching to reduce KMS API calls
-2. **Key Rotation**: Handled automatically by KMS (yearly)
-3. **Cross-Region**: Use multi-region keys for disaster recovery
-4. **Audit**: All KMS operations logged in CloudTrail
+## Security Notes
+
+- **Private key NEVER leaves KMS** - only KMS can decrypt the DEK
+- **Public key is safe to share** - cannot be used for decryption
+- **Sensitive data never sent in plaintext** - encrypted before transmission
+- **DEK is random per request** - even same data produces different ciphertext
