@@ -13,11 +13,6 @@
  *   5. Company backend decrypts data with DEK
  */
 
-# Get current AWS account ID
-data "aws_caller_identity" "current" {
-  provider = aws.nvirginia
-}
-
 # -----------------------------------------------------------------------------
 # Asymmetric KMS Key (RSA-4096) for 3rd Party Encryption
 # -----------------------------------------------------------------------------
