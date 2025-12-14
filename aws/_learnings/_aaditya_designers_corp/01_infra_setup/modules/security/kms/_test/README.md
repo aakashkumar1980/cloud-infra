@@ -6,7 +6,7 @@ This folder contains test implementations for three KMS use-cases:
 
 | Use-Case | Description | Package | Status |
 |----------|-------------|---------|--------|
-| **1. Third Party WITHOUT AWS Account** | 3rd party encrypts with public key | `client_no_aws` | ✅ Implemented |
+| **1. Third Party WITHOUT AWS Account** | 3rd party encrypts with public key | `client_no_aws` + `company_backend` | ✅ Implemented |
 | **2. Third Party WITH AWS Account** | 3rd party uses IAM credentials | `client_with_aws` | 🔜 Planned |
 | **3. Internal Company Apps** | Apps use envelope encryption | `internal_app` | 🔜 Planned |
 
@@ -16,15 +16,33 @@ This folder contains test implementations for three KMS use-cases:
 
 ```
 _test/
-├── terraform/                    # Asymmetric KMS key for Use-Case 1
+├── terraform/                    # One-time setup: Asymmetric KMS key
 │   ├── locals.tf
 │   ├── providers.tf
 │   ├── variables.tf
+│   ├── data.tf
 │   ├── main.tf
 │   └── outputs.tf
 │
-├── src/main/java/
-│   └── client_no_aws/            # Use-Case 1: 3rd party WITHOUT AWS
+├── company_backend/              # Company Backend (Spring Boot + AWS SDK)
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src/main/java/company_backend/
+│       ├── CompanyBackendApplication.java
+│       ├── config/AwsKmsConfig.java
+│       ├── controller/EncryptionController.java
+│       ├── service/
+│       │   ├── PublicKeyService.java
+│       │   └── DecryptionService.java
+│       └── dto/
+│           ├── PublicKeyResponse.java
+│           ├── DecryptRequest.java
+│           └── DecryptResponse.java
+│
+├── client_no_aws/                # 3rd Party Client (NO AWS SDK!)
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src/main/java/client_no_aws/
 │       ├── ClientSimulatorApplication.java
 │       ├── crypto/
 │       │   ├── AesEncryptor.java
@@ -32,8 +50,7 @@ _test/
 │       └── api/
 │           └── CompanyApiClient.java
 │
-├── build.gradle
-├── settings.gradle
+├── .gitignore
 └── README.md
 ```
 
@@ -45,8 +62,8 @@ _test/
 
 ```
 3rd Party Client              Company Backend              AWS KMS
-(No AWS SDK)                  (Spring Boot)
-─────────────                 ─────────────                ───────
+(No AWS SDK)                  (Spring Boot + AWS SDK)
+─────────────                 ─────────────────────        ───────
      │                             │                           │
      │  1. GET /public-key         │                           │
      │ ───────────────────────────>│                           │
@@ -82,14 +99,31 @@ terraform apply -var="profile=dev"
 
 Copy the `asymmetric_key_arn` from output.
 
-#### 2. Run Client Simulator
+#### 2. Update Company Backend Configuration
 
-```bash
-./gradlew run
+Edit `company_backend/src/main/resources/application.yml`:
+```yaml
+aws:
+  kms:
+    asymmetric-key-arn: <paste-arn-here>
 ```
 
-**Note:** The client simulator requires the company backend to be running.
-The company backend code should be set up separately with AWS KMS access.
+#### 3. Start Company Backend
+
+```bash
+cd company_backend
+./gradlew bootRun
+```
+
+Backend runs at `http://localhost:8080`
+
+#### 4. Run Client Simulator
+
+In a new terminal:
+```bash
+cd client_no_aws
+./gradlew run
+```
 
 ### Expected Output
 
