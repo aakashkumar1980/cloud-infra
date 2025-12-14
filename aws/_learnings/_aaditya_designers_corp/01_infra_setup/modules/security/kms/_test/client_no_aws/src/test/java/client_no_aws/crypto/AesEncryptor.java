@@ -1,8 +1,5 @@
 package client_no_aws.crypto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -11,14 +8,12 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * AES-GCM Encryption
+ * AES-GCM Encryption (Test Helper)
  *
  * Uses standard Java crypto (NO AWS SDK).
  * Generates a random DEK (Data Encryption Key) and encrypts data with it.
  */
 public class AesEncryptor {
-
-    private static final Logger log = LoggerFactory.getLogger(AesEncryptor.class);
 
     private static final int AES_KEY_SIZE = 256;
     private static final int GCM_IV_LENGTH = 12;  // 96 bits recommended for GCM
@@ -46,7 +41,6 @@ public class AesEncryptor {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(AES_KEY_SIZE, new SecureRandom());
         SecretKey key = keyGen.generateKey();
-        log.debug("Generated random DEK: {} bits", AES_KEY_SIZE);
         return key.getEncoded();
     }
 
@@ -58,8 +52,6 @@ public class AesEncryptor {
      * @return EncryptionResult containing encrypted data, IV, and auth tag
      */
     public EncryptionResult encrypt(String plaintext, byte[] dek) throws Exception {
-        log.debug("Encrypting {} bytes of data with AES-GCM", plaintext.length());
-
         // Generate random IV
         byte[] iv = new byte[GCM_IV_LENGTH];
         new SecureRandom().nextBytes(iv);
@@ -80,9 +72,6 @@ public class AesEncryptor {
 
         System.arraycopy(cipherTextWithTag, 0, encryptedData, 0, encryptedData.length);
         System.arraycopy(cipherTextWithTag, encryptedData.length, authTag, 0, tagLengthBytes);
-
-        log.debug("Encryption complete. Ciphertext: {} bytes, IV: {} bytes, AuthTag: {} bytes",
-                encryptedData.length, iv.length, authTag.length);
 
         return new EncryptionResult(dek, encryptedData, iv, authTag);
     }
