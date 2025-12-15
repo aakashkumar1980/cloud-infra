@@ -13,19 +13,17 @@
  *   - Automatic yearly key rotation
  *   - Multi-region keys for cross-region encryption
  *   - Least privilege key policy
- *   - Key reuse: Looks up existing keys by alias before creating new ones
  *   - Protection: prevent_destroy lifecycle prevents accidental deletion
+ *
+ * Note: Keys are managed via Terraform state. To import existing keys:
+ *   terraform import module.kms.aws_kms_key.kms_nvirginia <key-id>
  */
 
 # -----------------------------------------------------------------------------
 # Symmetric KMS Key for N. Virginia Region (AD Server)
-# Only created if existing key is not found
 # -----------------------------------------------------------------------------
 resource "aws_kms_key" "kms_nvirginia" {
   provider = aws.nvirginia
-
-  # Only create if existing key not found
-  count = local.nvirginia_key_exists ? 0 : 1
 
   description             = "CMK for Aaditya Designers Corp - N. Virginia (AD, EBS, Secrets)"
   deletion_window_in_days = 7
@@ -96,25 +94,18 @@ resource "aws_kms_key" "kms_nvirginia" {
 resource "aws_kms_alias" "kms_nvirginia" {
   provider = aws.nvirginia
 
-  # Only create if we created a new key
-  count = local.nvirginia_key_exists ? 0 : 1
-
   name          = "alias/symmetric_kms-${var.name_suffix_nvirginia}"
-  target_key_id = aws_kms_key.kms_nvirginia[0].key_id
+  target_key_id = aws_kms_key.kms_nvirginia.key_id
 }
 
 # -----------------------------------------------------------------------------
 # KMS Key Replica for London Region (App Servers)
-# Only created if existing key is not found
 # -----------------------------------------------------------------------------
 resource "aws_kms_replica_key" "kms_london" {
   provider = aws.london
 
-  # Only create if existing key not found AND primary key exists
-  count = local.london_key_exists ? 0 : (local.nvirginia_key_arn != null ? 1 : 0)
-
   description             = "CMK Replica for Aaditya Designers Corp - London (Apps, EBS, Secrets)"
-  primary_key_arn         = local.nvirginia_key_arn
+  primary_key_arn         = aws_kms_key.kms_nvirginia.arn
   deletion_window_in_days = 7
 
   # Key policy for London region
@@ -181,9 +172,6 @@ resource "aws_kms_replica_key" "kms_london" {
 resource "aws_kms_alias" "kms_london" {
   provider = aws.london
 
-  # Only create if we created a new replica key
-  count = local.london_key_exists ? 0 : (local.nvirginia_key_arn != null ? 1 : 0)
-
   name          = "alias/replica_symmetric_kms-${var.name_suffix_london}"
-  target_key_id = aws_kms_replica_key.kms_london[0].key_id
+  target_key_id = aws_kms_replica_key.kms_london.key_id
 }
