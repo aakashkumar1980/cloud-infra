@@ -108,7 +108,7 @@ data "aws_vpc_peering_connection" "nvirginia_to_london" {
 
   filter {
     name   = "tag:Name"
-    values = ["peering-vpc_a-to-vpc_c-${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-terraform"]
+    values = ["peering-vpc_a-to-vpc_c-${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-${local.tags_common["managed_by"]}"]
   }
 
   filter {
