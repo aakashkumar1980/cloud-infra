@@ -34,6 +34,10 @@ module "kms" {
   london_region    = local.regions_cfg[local.REGION_LONDON]
   name_suffix_nvirginia = local.name_suffix_nvirginia
   name_suffix_london    = local.name_suffix_london
+
+  # Set to false for initial deployment (keys don't exist yet)
+  # Set to true after keys are created to reuse them on subsequent runs
+  reuse_existing_keys = false
 }
 
 # -----------------------------------------------------------------------------
