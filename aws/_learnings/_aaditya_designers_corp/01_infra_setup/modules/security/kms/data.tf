@@ -14,30 +14,34 @@ data "aws_caller_identity" "current" {
 }
 
 # -----------------------------------------------------------------------------
-# Check if KMS Aliases Exist (using AWS CLI)
+# Check if KMS Aliases Exist (using AWS CLI via PowerShell for Windows)
 # This prevents errors when aliases don't exist yet
 # -----------------------------------------------------------------------------
 
 # Check if N. Virginia alias exists
 data "external" "check_nvirginia_alias" {
-  program = ["bash", "-c", <<-EOT
-    if aws kms describe-key --key-id "alias/symmetric_kms-${var.name_suffix_nvirginia}" --region ${var.nvirginia_region} 2>/dev/null; then
-      echo '{"exists": "true"}'
-    else
-      echo '{"exists": "false"}'
-    fi
+  program = ["powershell", "-Command", <<-EOT
+    $ErrorActionPreference = 'SilentlyContinue'
+    $result = aws kms describe-key --key-id "alias/symmetric_kms-${var.name_suffix_nvirginia}" --region ${var.nvirginia_region} 2>$null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Output '{"exists": "true"}'
+    } else {
+      Write-Output '{"exists": "false"}'
+    }
   EOT
   ]
 }
 
 # Check if London alias exists
 data "external" "check_london_alias" {
-  program = ["bash", "-c", <<-EOT
-    if aws kms describe-key --key-id "alias/replica_symmetric_kms-${var.name_suffix_london}" --region ${var.london_region} 2>/dev/null; then
-      echo '{"exists": "true"}'
-    else
-      echo '{"exists": "false"}'
-    fi
+  program = ["powershell", "-Command", <<-EOT
+    $ErrorActionPreference = 'SilentlyContinue'
+    $result = aws kms describe-key --key-id "alias/replica_symmetric_kms-${var.name_suffix_london}" --region ${var.london_region} 2>$null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Output '{"exists": "true"}'
+    } else {
+      Write-Output '{"exists": "false"}'
+    }
   EOT
   ]
 }
