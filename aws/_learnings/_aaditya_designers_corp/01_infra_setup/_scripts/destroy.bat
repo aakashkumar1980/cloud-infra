@@ -2,14 +2,15 @@
 REM Terraform Destroy Script for 01_infra_setup
 REM Uses dev profile with auto-approve
 REM Destroys in reverse order: 01_infra_setup -> 02_different_region -> 01_same_region -> base_network
+REM NOTE: KMS module is preserved (not destroyed) for reuse
 
 echo ============================================
 echo Running Terraform Destroy for 01_infra_setup
 echo ============================================
 
-REM First destroy this module
+REM First destroy this module (excluding KMS)
 echo.
-echo [Main] Destroying 01_infra_setup...
+echo [Main] Destroying 01_infra_setup (preserving KMS)...
 echo --------------------------------------------
 
 cd /d "%~dp0.."
@@ -22,8 +23,9 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Running Terraform Destroy with auto-approve...
-terraform destroy -var="profile=dev" -auto-approve
+echo Running Terraform Destroy (excluding KMS module)...
+REM Destroy secrets_manager but preserve KMS for reuse
+terraform destroy -var="profile=dev" -target=module.secrets_manager -auto-approve
 if %errorlevel% neq 0 (
     echo ERROR: Terraform destroy failed
     exit /b %errorlevel%
@@ -52,4 +54,5 @@ if %errorlevel% neq 0 (
 echo.
 echo ============================================
 echo Terraform Destroy completed successfully
+echo (KMS keys preserved for reuse)
 echo ============================================

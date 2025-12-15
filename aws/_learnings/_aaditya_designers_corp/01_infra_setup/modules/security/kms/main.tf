@@ -84,11 +84,6 @@ resource "aws_kms_key" "kms_nvirginia" {
   tags = {
     Name = "symmetric_kms-${var.name_suffix_nvirginia}"
   }
-
-  # Prevent accidental deletion of KMS keys
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_kms_alias" "kms_nvirginia" {
@@ -161,11 +156,6 @@ resource "aws_kms_replica_key" "kms_london" {
 
   tags = {
     Name = "replica_symmetric_kms-${var.name_suffix_london}"
-  }
-
-  # Prevent accidental deletion of KMS keys
-  lifecycle {
-    prevent_destroy = true
   }
 }
 
