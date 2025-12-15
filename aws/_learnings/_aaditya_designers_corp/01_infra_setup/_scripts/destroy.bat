@@ -1,0 +1,55 @@
+@echo off
+REM Terraform Destroy Script for 01_infra_setup
+REM Uses dev profile with auto-approve
+REM Destroys in reverse order: 01_infra_setup -> 02_different_region -> 01_same_region -> base_network
+
+echo ============================================
+echo Running Terraform Destroy for 01_infra_setup
+echo ============================================
+
+REM First destroy this module
+echo.
+echo [Main] Destroying 01_infra_setup...
+echo --------------------------------------------
+
+cd /d "%~dp0.."
+
+echo Initializing Terraform...
+terraform init
+if %errorlevel% neq 0 (
+    echo ERROR: Terraform init failed
+    exit /b %errorlevel%
+)
+
+echo.
+echo Running Terraform Destroy with auto-approve...
+terraform destroy -var="profile=dev" -auto-approve
+if %errorlevel% neq 0 (
+    echo ERROR: Terraform destroy failed
+    exit /b %errorlevel%
+)
+
+REM Then destroy dependency: 02_different_region (reverse of apply order)
+echo.
+echo [Dependency 1] Destroying 02_different_region...
+echo --------------------------------------------
+call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\02_different_region\_scripts\destroy.bat"
+if %errorlevel% neq 0 (
+    echo ERROR: Dependency 02_different_region destroy failed
+    exit /b %errorlevel%
+)
+
+REM Then destroy dependency: 01_same_region (reverse of apply order)
+echo.
+echo [Dependency 2] Destroying 01_same_region...
+echo --------------------------------------------
+call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\01_same_region\_scripts\destroy.bat"
+if %errorlevel% neq 0 (
+    echo ERROR: Dependency 01_same_region destroy failed
+    exit /b %errorlevel%
+)
+
+echo.
+echo ============================================
+echo Terraform Destroy completed successfully
+echo ============================================
