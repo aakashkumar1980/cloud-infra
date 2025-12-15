@@ -53,12 +53,12 @@ resource "aws_kms_key" "asymmetric" {
     ]
   })
 
-  tags = merge(local.tags_common, {
-    Name     = "kms-asymmetric-${local.name_suffix}"
+  tags = {
+    Name     = "test_kms_asymmetric-${local.name_suffix}"
     UseCase  = "third-party-no-aws"
     KeyType  = "RSA_4096"
     Purpose  = "3rd party encryption without AWS account"
-  })
+  }
 }
 
 resource "aws_kms_alias" "asymmetric" {

@@ -23,7 +23,5 @@ locals {
     local.tags_cfg.global_tags,
     lookup(local.tags_cfg.environment_tags, var.profile, {})
   )
-
-  # Name suffix for resources
-  name_suffix = "${local.REGION_N_VIRGINIA}-${var.profile}-terraform"
+  name_suffix = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["managed_by"]}"
 }

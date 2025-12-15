@@ -18,7 +18,7 @@
 # -----------------------------------------------------------------------------
 # Symmetric KMS Key for N. Virginia Region (AD Server)
 # -----------------------------------------------------------------------------
-resource "aws_kms_key" "symmetric" {
+resource "aws_kms_key" "kms_nvirginia" {
   provider = aws.nvirginia
 
   description             = "CMK for Aaditya Designers Corp - N. Virginia (AD, EBS, Secrets)"
@@ -77,23 +77,22 @@ resource "aws_kms_key" "symmetric" {
     ]
   })
 
-  tags = merge(var.tags_common, {
-    Name   = "kms-aaditya-nvirginia"
-    Region = "nvirginia"
-  })
+  tags = {
+    Name = "symmetric_kms-${var.name_suffix_nvirginia}"
+  }
 }
 
-resource "aws_kms_alias" "symmetric" {
+resource "aws_kms_alias" "kms_nvirginia" {
   provider = aws.nvirginia
 
-  name          = "alias/aaditya-nvirginia"
-  target_key_id = aws_kms_key.symmetric.key_id
+  name          = "alias/symmetric_kms-${var.name_suffix_nvirginia}"
+  target_key_id = aws_kms_key.kms_nvirginia.key_id
 }
 
 # -----------------------------------------------------------------------------
 # KMS Key Replica for London Region (App Servers)
 # -----------------------------------------------------------------------------
-resource "aws_kms_replica_key" "london" {
+resource "aws_kms_replica_key" "kms_london" {
   provider = aws.london
 
   description             = "CMK Replica for Aaditya Designers Corp - London (Apps, EBS, Secrets)"
@@ -151,16 +150,15 @@ resource "aws_kms_replica_key" "london" {
     ]
   })
 
-  tags = merge(var.tags_common, {
-    Name   = "kms-aaditya-london"
-    Region = "london"
-  })
+  tags = {
+    Name = "replica_symmetric_kms-${var.name_suffix_london}"
+  }
 }
 
-resource "aws_kms_alias" "london" {
+resource "aws_kms_alias" "kms_london" {
   provider = aws.london
 
-  name          = "alias/aaditya-london"
-  target_key_id = aws_kms_replica_key.london.key_id
+  name          = "alias/replica_symmetric_kms-${var.name_suffix_london}"
+  target_key_id = aws_kms_replica_key.kms_london.key_id
 }
 

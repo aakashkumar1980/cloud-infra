@@ -32,7 +32,8 @@ module "kms" {
 
   nvirginia_region = local.regions_cfg[local.REGION_N_VIRGINIA]
   london_region    = local.regions_cfg[local.REGION_LONDON]
-  tags_common      = local.tags_common
+  name_suffix_nvirginia = local.name_suffix_nvirginia
+  name_suffix_london    = local.name_suffix_london
 }
 
 # -----------------------------------------------------------------------------
@@ -46,5 +47,5 @@ module "secrets_manager" {
   }
 
   kms_key_arn = module.kms.nvirginia_key_arn
-  tags_common = local.tags_common
+  name_suffix = local.name_suffix_nvirginia
 }

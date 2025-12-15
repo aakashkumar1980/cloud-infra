@@ -10,17 +10,17 @@
 # -----------------------------------------------------------------------------
 output "nvirginia_key_arn" {
   description = "ARN of the symmetric KMS key in N. Virginia"
-  value       = aws_kms_key.symmetric.arn
+  value       = aws_kms_key.kms_nvirginia.arn
 }
 
 output "nvirginia_key_id" {
   description = "ID of the symmetric KMS key in N. Virginia"
-  value       = aws_kms_key.symmetric.key_id
+  value       = aws_kms_key.kms_nvirginia.key_id
 }
 
 output "nvirginia_key_alias" {
   description = "Alias of the symmetric KMS key in N. Virginia"
-  value       = aws_kms_alias.symmetric.name
+  value       = aws_kms_alias.kms_nvirginia.name
 }
 
 # -----------------------------------------------------------------------------
@@ -28,15 +28,15 @@ output "nvirginia_key_alias" {
 # -----------------------------------------------------------------------------
 output "london_key_arn" {
   description = "ARN of the KMS replica key in London"
-  value       = aws_kms_replica_key.london.arn
+  value       = aws_kms_replica_key.kms_london.arn
 }
 
 output "london_key_id" {
   description = "ID of the KMS replica key in London"
-  value       = aws_kms_replica_key.london.key_id
+  value       = aws_kms_replica_key.kms_london.key_id
 }
 
 output "london_key_alias" {
   description = "Alias of the KMS replica key in London"
-  value       = aws_kms_alias.london.name
+  value       = aws_kms_alias.kms_london.name
 }

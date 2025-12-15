@@ -7,8 +7,8 @@ variable "kms_key_arn" {
   type        = string
 }
 
-variable "tags_common" {
-  description = "Common tags to apply to all resources"
-  type        = map(string)
-  default     = {}
+variable "name_suffix" {
+  type        = string
+  description = "Suffix for resource naming in the Region"
 }
+

@@ -66,10 +66,10 @@ resource "aws_secretsmanager_secret" "ad_admin" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-ad-admin-password"
+  tags = {
+    Name = "secret_ad_admin-${var.name_suffix}"
     Application = "active-directory"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "ad_admin" {
@@ -91,10 +91,10 @@ resource "aws_secretsmanager_secret" "ad_restore" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-ad-restore-password"
+  tags = {
+    Name = "secret_ad_restore-${var.name_suffix}"
     Application = "active-directory"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "ad_restore" {
@@ -118,10 +118,10 @@ resource "aws_secretsmanager_secret" "gitlab_root" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-gitlab-root-password"
+  tags = {
+    Name = "secret_gitlab_root-${var.name_suffix}"
     Application = "gitlab"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "gitlab_root" {
@@ -145,10 +145,10 @@ resource "aws_secretsmanager_secret" "wikijs_admin" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-wikijs-admin-password"
+  tags = {
+    Name = "secret_wikijs_admin-${var.name_suffix}"
     Application = "wikijs"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "wikijs_admin" {
@@ -172,10 +172,10 @@ resource "aws_secretsmanager_secret" "keycloak_admin" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-keycloak-admin-password"
+  tags = {
+    Name = "secret_keycloak_admin-${var.name_suffix}"
     Application = "keycloak"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "keycloak_admin" {
@@ -199,10 +199,10 @@ resource "aws_secretsmanager_secret" "syncope_admin" {
   kms_key_id              = var.kms_key_arn
   recovery_window_in_days = 0 # Force delete without recovery (POC only)
 
-  tags = merge(var.tags_common, {
-    Name        = "aaditya-syncope-admin-password"
+  tags = {
+    Name = "secret_syncope_admin-${var.name_suffix}"
     Application = "syncope"
-  })
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "syncope_admin" {

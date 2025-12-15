@@ -29,6 +29,7 @@
 global_tags:
   project: terraform-aws
   managed_by: terraform
+  company: aaditya_designers
   owner: aakash.kumar
   contact: aakash.kumar1980@yahoo.com
 

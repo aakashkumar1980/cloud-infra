@@ -14,8 +14,12 @@ variable "london_region" {
   default     = "eu-west-2"
 }
 
-variable "tags_common" {
-  description = "Common tags to apply to all resources"
-  type        = map(string)
-  default     = {}
+variable "name_suffix_nvirginia" {
+  type        = string
+  description = "Suffix for resource naming in N. Virginia"
+}
+
+variable "name_suffix_london" {
+  type        = string
+  description = "Suffix for resource naming in London"
 }
