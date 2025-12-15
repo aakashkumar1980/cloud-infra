@@ -2,8 +2,8 @@
  * KMS Module - Data Sources
  *
  * Looks up existing KMS keys by alias to enable key reuse.
- * This prevents creating duplicate keys and allows the module
- * to work with pre-existing keys.
+ * Uses external data sources to safely check if aliases exist
+ * before attempting to look them up (prevents errors on first run).
  */
 
 # -----------------------------------------------------------------------------
@@ -14,16 +14,44 @@ data "aws_caller_identity" "current" {
 }
 
 # -----------------------------------------------------------------------------
-# Lookup Existing KMS Keys by Alias (for reuse)
+# Check if KMS Aliases Exist (using AWS CLI)
+# This prevents errors when aliases don't exist yet
 # -----------------------------------------------------------------------------
 
-# Try to find existing N. Virginia key by alias
+# Check if N. Virginia alias exists
+data "external" "check_nvirginia_alias" {
+  program = ["bash", "-c", <<-EOT
+    if aws kms describe-key --key-id "alias/symmetric_kms-${var.name_suffix_nvirginia}" --region ${var.nvirginia_region} 2>/dev/null; then
+      echo '{"exists": "true"}'
+    else
+      echo '{"exists": "false"}'
+    fi
+  EOT
+  ]
+}
+
+# Check if London alias exists
+data "external" "check_london_alias" {
+  program = ["bash", "-c", <<-EOT
+    if aws kms describe-key --key-id "alias/replica_symmetric_kms-${var.name_suffix_london}" --region ${var.london_region} 2>/dev/null; then
+      echo '{"exists": "true"}'
+    else
+      echo '{"exists": "false"}'
+    fi
+  EOT
+  ]
+}
+
+# -----------------------------------------------------------------------------
+# Lookup Existing KMS Keys by Alias (only if they exist)
+# -----------------------------------------------------------------------------
+
+# Lookup N. Virginia key only if alias exists
 data "aws_kms_alias" "existing_nvirginia" {
   provider = aws.nvirginia
   name     = "alias/symmetric_kms-${var.name_suffix_nvirginia}"
 
-  # Returns null if not found (won't fail)
-  count = var.reuse_existing_keys ? 1 : 0
+  count = data.external.check_nvirginia_alias.result.exists == "true" ? 1 : 0
 }
 
 # Get key details if alias exists
@@ -31,15 +59,15 @@ data "aws_kms_key" "existing_nvirginia" {
   provider = aws.nvirginia
   key_id   = data.aws_kms_alias.existing_nvirginia[0].target_key_id
 
-  count = var.reuse_existing_keys && length(data.aws_kms_alias.existing_nvirginia) > 0 ? 1 : 0
+  count = length(data.aws_kms_alias.existing_nvirginia) > 0 ? 1 : 0
 }
 
-# Try to find existing London replica key by alias
+# Lookup London replica key only if alias exists
 data "aws_kms_alias" "existing_london" {
   provider = aws.london
   name     = "alias/replica_symmetric_kms-${var.name_suffix_london}"
 
-  count = var.reuse_existing_keys ? 1 : 0
+  count = data.external.check_london_alias.result.exists == "true" ? 1 : 0
 }
 
 # Get key details if alias exists
@@ -47,7 +75,7 @@ data "aws_kms_key" "existing_london" {
   provider = aws.london
   key_id   = data.aws_kms_alias.existing_london[0].target_key_id
 
-  count = var.reuse_existing_keys && length(data.aws_kms_alias.existing_london) > 0 ? 1 : 0
+  count = length(data.aws_kms_alias.existing_london) > 0 ? 1 : 0
 }
 
 # -----------------------------------------------------------------------------
@@ -55,8 +83,8 @@ data "aws_kms_key" "existing_london" {
 # -----------------------------------------------------------------------------
 locals {
   # Check if existing keys were found
-  nvirginia_key_exists = var.reuse_existing_keys && length(data.aws_kms_key.existing_nvirginia) > 0
-  london_key_exists    = var.reuse_existing_keys && length(data.aws_kms_key.existing_london) > 0
+  nvirginia_key_exists = length(data.aws_kms_key.existing_nvirginia) > 0
+  london_key_exists    = length(data.aws_kms_key.existing_london) > 0
 
   # Final key ARNs (existing or newly created)
   nvirginia_key_arn = local.nvirginia_key_exists ? data.aws_kms_key.existing_nvirginia[0].arn : (length(aws_kms_key.kms_nvirginia) > 0 ? aws_kms_key.kms_nvirginia[0].arn : null)

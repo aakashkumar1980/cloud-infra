@@ -24,15 +24,6 @@ variable "name_suffix_london" {
   description = "Suffix for resource naming in London"
 }
 
-# -----------------------------------------------------------------------------
-# Key Reuse Configuration
-# -----------------------------------------------------------------------------
-variable "reuse_existing_keys" {
-  description = "If true, looks up existing KMS keys by alias and reuses them instead of creating new ones"
-  type        = bool
-  default     = true
-}
-
 variable "prevent_destroy" {
   description = "If true, prevents KMS keys from being destroyed by terraform destroy"
   type        = bool
