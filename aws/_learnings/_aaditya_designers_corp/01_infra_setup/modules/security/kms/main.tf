@@ -96,7 +96,7 @@ resource "aws_kms_replica_key" "kms_london" {
   provider = aws.london
 
   description             = "CMK Replica for Aaditya Designers Corp - London (Apps, EBS, Secrets)"
-  primary_key_arn         = aws_kms_key.symmetric.arn
+  primary_key_arn         = aws_kms_key.kms_nvirginia.arn
   deletion_window_in_days = 7
 
   # Key policy for London region
