@@ -23,9 +23,3 @@ variable "name_suffix_london" {
   type        = string
   description = "Suffix for resource naming in London"
 }
-
-variable "prevent_destroy" {
-  description = "If true, prevents KMS keys from being destroyed by terraform destroy"
-  type        = bool
-  default     = true
-}
