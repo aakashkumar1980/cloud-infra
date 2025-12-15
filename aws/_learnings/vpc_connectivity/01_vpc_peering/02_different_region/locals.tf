@@ -31,8 +31,8 @@ locals {
   )
 
   # Name suffixes for each region
-  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-terraform"
-  name_suffix_london    = "${local.REGION_LONDON}-${var.profile}-terraform"
+  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["managed_by"]}"
+  name_suffix_london    = "${local.REGION_LONDON}-${var.profile}-${local.tags_common["managed_by"]}"
 
   # VPC names following base_network naming convention
   vpc_a_name = "vpc_a-${local.name_suffix_nvirginia}"

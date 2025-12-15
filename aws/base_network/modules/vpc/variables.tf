@@ -11,9 +11,9 @@
  * @var az_letter_to_ix - Maps zone letters to array indices
  *                        (e.g., { a=0, b=1, c=2 })
  *
- * @var common_tags     - Tags applied to all resources
+ * @var tags_common     - Tags applied to all resources
  */
 variable "vpcs"            { type = map(any) }
 variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
-variable "common_tags"     { type = map(string) }
+variable "tags_common"     { type = map(string) }

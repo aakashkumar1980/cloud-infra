@@ -23,7 +23,7 @@ locals {
     lookup(local.tags_cfg.environment_tags, var.profile, {})
   )
 
-  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-terraform"
+  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["managed_by"]}"
   vpc_a_name = "vpc_a-${local.name_suffix_nvirginia}"
   vpc_b_name = "vpc_b-${local.name_suffix_nvirginia}"
 

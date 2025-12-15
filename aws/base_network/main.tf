@@ -11,7 +11,7 @@
  * @param vpcs            - VPC configurations from networking.json
  * @param az_names        - Available availability zones in this region
  * @param az_letter_to_ix - Maps zone letters to indices
- * @param common_tags     - Tags applied to all resources
+ * @param tags_common     - Tags applied to all resources
  */
 module "vpc_nvirginia" {
   source    = "./modules/vpc"
@@ -20,7 +20,7 @@ module "vpc_nvirginia" {
   vpcs            = local.vpcs_nvirginia
   az_names        = data.aws_availability_zones.nvirginia.names
   az_letter_to_ix = local.az_letter_to_ix
-  common_tags     = merge(local.tags_common, { "region" = local.REGION_N_VIRGINIA })
+  tags_common     = merge(local.tags_common, { "region" = local.REGION_N_VIRGINIA })
 }
 
 /**
@@ -36,7 +36,7 @@ module "vpc_nvirginia" {
  * @param vpcs            - VPC configurations from networking.json
  * @param az_names        - Available availability zones in this region
  * @param az_letter_to_ix - Maps zone letters to indices
- * @param common_tags     - Tags applied to all resources
+ * @param tags_common     - Tags applied to all resources
  */
 module "vpc_london" {
   source    = "./modules/vpc"
@@ -45,5 +45,5 @@ module "vpc_london" {
   vpcs            = local.vpcs_london
   az_names        = data.aws_availability_zones.london.names
   az_letter_to_ix = local.az_letter_to_ix
-  common_tags     = merge(local.tags_common, { "region" = local.REGION_LONDON })
+  tags_common     = merge(local.tags_common, { "region" = local.REGION_LONDON })
 }

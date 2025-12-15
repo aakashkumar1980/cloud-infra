@@ -26,7 +26,7 @@ resource "aws_route_table" "public_rt" {
   for_each = local.public_subnets
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "routetable-${each.value.subnet_name}-${var.name_suffix}"
   })
 }

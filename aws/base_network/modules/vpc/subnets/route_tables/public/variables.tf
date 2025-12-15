@@ -13,7 +13,7 @@
  * @var public_subnet_ids - Map of public subnet keys to their AWS resource IDs
  *                          Used to associate route tables with public subnets
  *
- * @var common_tags       - Tags applied to all route table resources
+ * @var tags_common       - Tags applied to all route table resources
  *                          Includes environment, managed_by, and other standard tags
  *
  * @var name_suffix       - Standard suffix for resource naming
@@ -24,5 +24,5 @@ variable "vpcs"              { type = map(any) }
 variable "vpc_ids"           { type = map(string) }
 variable "igw_ids"           { type = map(string) }
 variable "public_subnet_ids" { type = map(string) }
-variable "common_tags"       { type = map(string) }
+variable "tags_common"       { type = map(string) }
 variable "name_suffix"       { type = string }

@@ -44,7 +44,7 @@ resource "aws_vpc_peering_connection" "peering_vpc_a_to_vpc_c" {
   peer_region = var.peer_region   # Required for cross-region peering
   auto_accept = false             # Cannot auto-accept cross-region peering
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "peering-vpc_a-to-vpc_c-${var.name_suffix}"
     Side = "Requester"
   })
@@ -62,7 +62,7 @@ resource "aws_vpc_peering_connection_accepter" "accepter" {
   vpc_peering_connection_id = aws_vpc_peering_connection.peering_vpc_a_to_vpc_c.id
   auto_accept               = true
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "peering-vpc_a-to-vpc_c-${var.name_suffix}"
     Side = "Accepter"
   })

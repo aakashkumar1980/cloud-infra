@@ -20,7 +20,7 @@ resource "aws_internet_gateway" "this" {
   for_each = var.vpcs
   vpc_id   = var.vpc_ids[each.key]
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "igw-${each.key}-${var.name_suffix}"
   })
 }

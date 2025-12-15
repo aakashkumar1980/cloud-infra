@@ -6,7 +6,7 @@
  */
 
 locals {
-  peering_tag_name = "peering-vpc_a-to-vpc_c-${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-terraform"
+  peering_tag_name = "peering-vpc_a-to-vpc_c-${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-${local.tags_common["managed_by"]}"
 
   # Map of VPC peering connection ID -> Name tag
   vpc_a_peering_names = {

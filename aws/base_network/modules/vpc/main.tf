@@ -27,7 +27,7 @@ resource "aws_vpc" "this" {
   for_each   = var.vpcs
   cidr_block = each.value.cidr
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "${each.key}-${local.name_suffix}"
   })
 }
@@ -42,7 +42,7 @@ module "internet_gateway" {
   source      = "./internet_gateway"
   vpcs        = var.vpcs
   vpc_ids     = { for k, v in aws_vpc.this : k => v.id }
-  common_tags = var.common_tags
+  tags_common = var.tags_common
   name_suffix = local.name_suffix
 }
 
@@ -61,6 +61,6 @@ module "subnets" {
   az_letter_to_ix = var.az_letter_to_ix
   igw_ids         = module.internet_gateway.igw_ids
   igw_names       = module.internet_gateway.igw_names
-  common_tags     = var.common_tags
+  tags_common     = var.tags_common
   name_suffix     = local.name_suffix
 }

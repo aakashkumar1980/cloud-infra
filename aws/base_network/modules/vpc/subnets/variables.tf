@@ -7,7 +7,7 @@
  * @var az_letter_to_ix - Maps zone letters (a,b,c) to array indices (0,1,2)
  * @var igw_ids         - Map of VPC names to Internet Gateway IDs
  * @var igw_names       - Map of VPC names to Internet Gateway Name tags
- * @var common_tags     - Tags applied to all resources
+ * @var tags_common     - Tags applied to all resources
  * @var name_suffix     - Standard suffix for resource naming
  *                        Format: {region}-{environment}-{managed_by}
  *                        Example: "nvirginia-dev-terraform"
@@ -18,5 +18,5 @@ variable "az_names"        { type = list(string) }
 variable "az_letter_to_ix" { type = map(number) }
 variable "igw_ids"         { type = map(string) }
 variable "igw_names"       { type = map(string) }
-variable "common_tags"     { type = map(string) }
+variable "tags_common"     { type = map(string) }
 variable "name_suffix"     { type = string }

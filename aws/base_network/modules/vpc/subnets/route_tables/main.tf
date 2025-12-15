@@ -31,7 +31,7 @@ module "route_tables_public" {
   vpc_ids           = var.vpc_ids
   igw_ids           = var.igw_ids
   public_subnet_ids = var.public_subnet_ids
-  common_tags       = var.common_tags
+  tags_common       = var.tags_common
   name_suffix       = var.name_suffix
 }
 
@@ -44,6 +44,6 @@ module "route_tables_private" {
   private_subnet_ids = var.private_subnet_ids
   igw_ids            = var.igw_ids
   igw_names          = var.igw_names
-  common_tags        = var.common_tags
+  tags_common        = var.tags_common
   name_suffix        = var.name_suffix
 }

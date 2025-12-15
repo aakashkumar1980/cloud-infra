@@ -32,7 +32,7 @@ resource "aws_eip" "eip" {
   for_each = local.nat_gateway_subnets
   domain   = "vpc"
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "eip-natgw-${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
   })
 }
@@ -52,7 +52,7 @@ resource "aws_nat_gateway" "this" {
   allocation_id = aws_eip.eip[each.key].id
   subnet_id     = var.public_subnet_ids[each.value]
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "natgw-${local.public_subnets[each.value].subnet_name}-${var.name_suffix}"
   })
 

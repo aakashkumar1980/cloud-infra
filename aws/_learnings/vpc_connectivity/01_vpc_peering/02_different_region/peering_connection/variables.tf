@@ -17,7 +17,7 @@ variable "peer_region" {
   description = "AWS region of the peer (accepter) VPC"
 }
 
-variable "common_tags" {
+variable "tags_common" {
   type        = map(string)
   description = "Common tags to apply to all resources"
 }

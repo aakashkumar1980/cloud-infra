@@ -34,7 +34,7 @@ module "peering_connection" {
 
   vpc_a_id    = data.aws_vpc.vpc_a.id
   vpc_b_id    = data.aws_vpc.vpc_b.id
-  common_tags = local.tags_common
+  tags_common = local.tags_common
   name_suffix = local.name_suffix_nvirginia
 }
 

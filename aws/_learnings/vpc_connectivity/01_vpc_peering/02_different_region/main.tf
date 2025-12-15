@@ -46,8 +46,8 @@ module "peering_connection" {
   vpc_a_id         = data.aws_vpc.vpc_a.id
   vpc_c_id         = data.aws_vpc.vpc_c.id
   peer_region      = local.regions_cfg[local.REGION_LONDON]
-  common_tags      = local.tags_common
-  name_suffix      = "${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-terraform"
+  tags_common      = local.tags_common
+  name_suffix      = "${local.REGION_N_VIRGINIA}-to-${local.REGION_LONDON}-${var.profile}-${local.tags_common["managed_by"]}"
 }
 
 /**

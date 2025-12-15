@@ -19,7 +19,7 @@
  * @var igw_names          - Map of VPC names to Internet Gateway Name tags
  *                           Used for output display showing NAT GW -> IGW relationship
  *
- * @var common_tags        - Tags applied to all route table resources
+ * @var tags_common        - Tags applied to all route table resources
  *                           Includes environment, managed_by, and other standard tags
  *
  * @var name_suffix        - Standard suffix for resource naming
@@ -32,5 +32,5 @@ variable "public_subnet_ids"  { type = map(string) }
 variable "private_subnet_ids" { type = map(string) }
 variable "igw_ids"            { type = map(string) }
 variable "igw_names"          { type = map(string) }
-variable "common_tags"        { type = map(string) }
+variable "tags_common"        { type = map(string) }
 variable "name_suffix"        { type = string }

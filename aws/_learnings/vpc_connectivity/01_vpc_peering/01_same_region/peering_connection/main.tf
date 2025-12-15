@@ -20,7 +20,7 @@ resource "aws_vpc_peering_connection" "peering_vpc_a_to_vpc_b" {
   peer_vpc_id = var.vpc_b_id   # Accepter VPC
   auto_accept = true           # Auto-accept since same account
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "peering-vpc_a-to-vpc_b-${var.name_suffix}"
     Side = "Requester"
   })

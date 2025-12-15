@@ -12,7 +12,7 @@ variable "vpc_b_id" {
   description = "ID of vpc_b (accepter VPC)"
 }
 
-variable "common_tags" {
+variable "tags_common" {
   type        = map(string)
   description = "Common tags to apply to all resources"
 }

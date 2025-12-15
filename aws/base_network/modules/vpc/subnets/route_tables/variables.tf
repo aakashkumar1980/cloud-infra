@@ -26,7 +26,7 @@
  *                           Key format: "{vpc_name}/private_zone_{zone}"
  *                           Example: { "vpc_a/private_zone_a" = "subnet-333444" }
  *
- * @var common_tags        - Tags applied to all route table resources
+ * @var tags_common        - Tags applied to all route table resources
  *                           Example: { environment = "dev", managed_by = "terraform" }
  *
  * @var name_suffix        - Standard suffix for resource naming
@@ -39,5 +39,5 @@ variable "igw_ids"            { type = map(string) }
 variable "igw_names"          { type = map(string) }
 variable "public_subnet_ids"  { type = map(string) }
 variable "private_subnet_ids" { type = map(string) }
-variable "common_tags"        { type = map(string) }
+variable "tags_common"        { type = map(string) }
 variable "name_suffix"        { type = string }

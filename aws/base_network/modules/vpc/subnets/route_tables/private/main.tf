@@ -43,7 +43,7 @@ module "nat_gateway" {
   public_subnet_ids = var.public_subnet_ids
   igw_ids           = var.igw_ids
   igw_names         = var.igw_names
-  common_tags       = var.common_tags
+  tags_common       = var.tags_common
   name_suffix       = var.name_suffix
 }
 
@@ -52,7 +52,7 @@ resource "aws_route_table" "private_rt" {
   for_each = local.private_subnets
   vpc_id   = var.vpc_ids[each.value.vpc_name]
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "routetable-${each.value.subnet_name}-${var.name_suffix}"
   })
 }

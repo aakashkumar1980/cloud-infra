@@ -32,7 +32,7 @@ resource "aws_subnet" "this" {
   cidr_block        = each.value.cidr
   availability_zone = each.value.az
 
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags_common, {
     Name = "subnet_${each.value.name}-${each.value.vpc_name}-${var.name_suffix}"
   })
 }
@@ -52,6 +52,6 @@ module "route_tables" {
   igw_names          = var.igw_names
   public_subnet_ids  = { for k, s in aws_subnet.this : k => s.id if contains(local.public_subnet_keys, k) }
   private_subnet_ids = { for k, s in aws_subnet.this : k => s.id if contains(local.private_subnet_keys, k) }
-  common_tags        = var.common_tags
+  tags_common        = var.tags_common
   name_suffix        = var.name_suffix
 }
