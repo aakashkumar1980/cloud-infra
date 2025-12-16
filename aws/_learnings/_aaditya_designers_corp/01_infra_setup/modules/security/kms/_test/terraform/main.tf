@@ -19,7 +19,7 @@
 resource "aws_kms_key" "asymmetric" {
   provider = aws.nvirginia
 
-  description              = "Asymmetric RSA key for 3rd party encryption (Use-Case 1)"
+  description              = "Test Asymmetric RSA key for 3rd party encryption (Use-Case 1)"
   deletion_window_in_days  = var.key_deletion_window
   key_usage                = "ENCRYPT_DECRYPT"
   customer_master_key_spec = "RSA_4096"
@@ -54,7 +54,7 @@ resource "aws_kms_key" "asymmetric" {
   })
 
   tags = {
-    Name     = "test_kms_asymmetric-${local.name_suffix}"
+    Name     = "test_asymmetric_kms-${local.name_suffix}"
     UseCase  = "third-party-no-aws"
     KeyType  = "RSA_4096"
     Purpose  = "3rd party encryption without AWS account"
@@ -64,6 +64,6 @@ resource "aws_kms_key" "asymmetric" {
 resource "aws_kms_alias" "asymmetric" {
   provider = aws.nvirginia
 
-  name          = "alias/aaditya-asymmetric-${var.profile}"
+  name          = "alias/test_asymmetric_kms-${local.name_suffix}"
   target_key_id = aws_kms_key.asymmetric.key_id
 }
