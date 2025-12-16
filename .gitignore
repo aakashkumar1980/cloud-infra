@@ -45,3 +45,4 @@ exported_car-sales.csv
 /aws/_learnings/vpc_connectivity/01_vpc_peering/02_different_region/.terraform.lock.hcl
 /aws/_learnings/vpc_connectivity/01_vpc_peering/02_different_region/_test/test_key-nvirginia-dev-terraform.pem
 /aws/_learnings/_aaditya_designers_corp/01_infra_setup/.terraform.lock.hcl
+/aws/_learnings/_aaditya_designers_corp/01_infra_setup/modules/security/kms/_test/terraform/.terraform.lock.hcl
