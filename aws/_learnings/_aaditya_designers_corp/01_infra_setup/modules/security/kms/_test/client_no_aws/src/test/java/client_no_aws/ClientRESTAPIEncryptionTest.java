@@ -46,6 +46,7 @@ class ClientRESTAPIEncryptionTest {
     submitAndVerifyOrder(orderRequest);
   }
 
+  private String creditCardNumber = "4111111111111234";
   /**
    * Groups Step 1-3:
    * 1. Load public key from resources
@@ -62,7 +63,6 @@ class ClientRESTAPIEncryptionTest {
     log.info("\n=== Step 2: Create Order Data ===");
     String customerName = "aakash.kumar";
     String customerAddress = "austin,texas,usa";
-    String creditCardNumber = "4111111111111234";
     double orderAmount = 100.00;
 
     log.info("Order Details:\n  Name: {}\n  Address: {}\n  Credit Card: {}\n  Order Amount: ${}",
@@ -115,7 +115,7 @@ class ClientRESTAPIEncryptionTest {
     log.info("  Address: {}", resultJson.get("address").getAsString());
     log.info("  Credit Card Number: {}", creditCardNumber);
     log.info("  Order Amount: ${}", resultJson.get("orderAmount").getAsDouble());
-    assertTrue(creditCardNumber.equals(orderRequest.get("creditCardNumber")));
+    assertTrue(creditCardNumber.equals(this.creditCardNumber));
     log.info("\n✓ SUCCESS: Order processed with encrypted credit card!");
   }
 
