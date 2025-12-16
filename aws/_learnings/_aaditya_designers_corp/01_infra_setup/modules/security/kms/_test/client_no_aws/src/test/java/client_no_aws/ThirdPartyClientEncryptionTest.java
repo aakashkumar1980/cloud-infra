@@ -1,6 +1,5 @@
 package client_no_aws;
 
-import client_no_aws.crypto.AesEncryptor;
 import client_no_aws.crypto.RsaEncryptor;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -23,10 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Flow:
  * 1. Load public key from resources (received via secure email from company)
  * 2. Create order data with credit card number
- * 3. Encrypt credit card number with AES-GCM
- * 4. Encrypt DEK with public key (RSA-OAEP)
- * 5. Submit order to company API
- * 6. Verify order processed successfully
+ * 3. Encrypt credit card number directly with RSA public key
+ * 4. Submit order to company API
+ * 5. Verify order processed successfully
  *
  * Prerequisites:
  * - Download public key from AWS KMS and place in src/test/resources/public-key.pem
@@ -46,7 +44,6 @@ class ThirdPartyClientEncryptionTest {
   private TestRestTemplate restTemplate;
 
   private final Gson gson = new Gson();
-  private final AesEncryptor aesEncryptor = new AesEncryptor();
   private final RsaEncryptor rsaEncryptor = new RsaEncryptor();
 
   private String baseUrl() {
@@ -99,36 +96,21 @@ class ThirdPartyClientEncryptionTest {
     System.out.println("  Credit Card: " + creditCardNumber);
     System.out.println("  Order Amount: $" + orderAmount);
 
-    // === Step 3: Encrypt credit card number with AES-GCM ===
-    System.out.println("\n=== Step 3: Encrypt Credit Card (AES-GCM) ===");
+    // === Step 3: Encrypt credit card with RSA public key ===
+    System.out.println("\n=== Step 3: Encrypt Credit Card (RSA-OAEP) ===");
 
-    // Generate random DEK
-    byte[] dek = aesEncryptor.generateDek();
-    System.out.println("✓ Generated random 256-bit DEK");
+    String encryptedCreditCard = rsaEncryptor.encrypt(creditCardNumber);
+    System.out.println("✓ Credit card encrypted with RSA-OAEP SHA-256");
+    System.out.println("  Encrypted (Base64): " + truncate(encryptedCreditCard, 50));
 
-    // Encrypt credit card with DEK
-    AesEncryptor.EncryptionResult aesResult = aesEncryptor.encrypt(creditCardNumber, dek);
-    System.out.println("✓ Credit card encrypted with AES-GCM");
-    System.out.println("  Encrypted credit card (Base64): " + truncate(aesResult.encryptedDataBase64(), 50));
-
-    // === Step 4: Encrypt DEK with public key (RSA-OAEP) ===
-    System.out.println("\n=== Step 4: Encrypt DEK (RSA-OAEP) ===");
-
-    String encryptedDek = rsaEncryptor.encryptDek(dek);
-    System.out.println("✓ DEK encrypted with company's public key");
-    System.out.println("  Encrypted DEK (Base64): " + truncate(encryptedDek, 50));
-
-    // === Step 5: Submit order to company API ===
-    System.out.println("\n=== Step 5: Submit Order to API ===");
+    // === Step 4: Submit order to company API ===
+    System.out.println("\n=== Step 4: Submit Order to API ===");
 
     JsonObject orderRequest = new JsonObject();
     orderRequest.addProperty("name", customerName);
     orderRequest.addProperty("address", customerAddress);
-    orderRequest.addProperty("creditCardNumber", aesResult.encryptedDataBase64());  // Encrypted
+    orderRequest.addProperty("creditCardNumber", encryptedCreditCard);
     orderRequest.addProperty("orderAmount", orderAmount);
-    orderRequest.addProperty("encryptedDek", encryptedDek);
-    orderRequest.addProperty("iv", aesResult.ivBase64());
-    orderRequest.addProperty("authTag", aesResult.authTagBase64());
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -143,8 +125,8 @@ class ThirdPartyClientEncryptionTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
     System.out.println("✓ Order submitted successfully");
 
-    // === Step 6: Verify response ===
-    System.out.println("\n=== Step 6: Verify Response ===");
+    // === Step 5: Verify response ===
+    System.out.println("\n=== Step 5: Verify Response ===");
 
     JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
     assertTrue(resultJson.get("success").getAsBoolean());

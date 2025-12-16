@@ -1,6 +1,5 @@
 package company_backend.controller;
 
-import company_backend.dto.DecryptRequest;
 import company_backend.dto.OrderRequest;
 import company_backend.dto.OrderResponse;
 import company_backend.service.DecryptionService;
@@ -16,6 +15,11 @@ import java.util.UUID;
  * REST Controller for Credit Card / Order Operations
  *
  * Use-Case: 3rd Party WITHOUT AWS Account submits orders with encrypted credit card
+ *
+ * Flow:
+ * 1. Client encrypts credit card with company's RSA public key
+ * 2. Client sends order with encrypted credit card
+ * 3. Server decrypts credit card using KMS (private key never leaves KMS)
  *
  * Endpoints:
  * - POST /api/v1/orders : Submit order with encrypted credit card number
@@ -36,7 +40,7 @@ public class CreditCardController {
   /**
    * POST /api/v1/orders
    *
-   * Submit an order with encrypted credit card number.
+   * Submit an order with RSA-encrypted credit card number.
    * The credit card is decrypted server-side using KMS.
    *
    * @param orderRequest Order details with encrypted credit card
@@ -47,15 +51,8 @@ public class CreditCardController {
     log.info("Order received from: {}", orderRequest.name());
 
     try {
-      // Decrypt the credit card number
-      DecryptRequest decryptRequest = new DecryptRequest(
-          orderRequest.encryptedDek(),
-          orderRequest.creditCardNumber(),  // This is the encrypted credit card
-          orderRequest.iv(),
-          orderRequest.authTag()
-      );
-
-      String decryptedCreditCard = decryptionService.decrypt(decryptRequest);
+      // Decrypt the credit card number using KMS
+      String decryptedCreditCard = decryptionService.decrypt(orderRequest.creditCardNumber());
       log.info("Credit card decrypted successfully");
 
       // Mask the credit card for response (show last 4 digits)

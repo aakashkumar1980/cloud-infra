@@ -8,12 +8,9 @@ import java.math.BigDecimal;
 /**
  * Order request from 3rd party client
  *
- * Contains order details with encrypted credit card number.
- * The credit card is encrypted using envelope encryption:
- * - creditCardNumber: Encrypted with AES-GCM (Base64)
- * - encryptedDek: DEK encrypted with RSA public key (Base64)
- * - iv: Initialization vector for AES-GCM (Base64)
- * - authTag: Authentication tag for integrity (Base64)
+ * Contains order details with RSA-encrypted credit card number.
+ * The credit card is encrypted directly with the company's public key (RSA-OAEP SHA-256).
+ * Server decrypts using private key in KMS.
  */
 public record OrderRequest(
     @NotBlank(message = "name is required")
@@ -23,18 +20,9 @@ public record OrderRequest(
     String address,
 
     @NotBlank(message = "creditCardNumber is required")
-    String creditCardNumber,
+    String creditCardNumber,  // RSA encrypted, Base64 encoded
 
     @NotNull(message = "orderAmount is required")
     @Positive(message = "orderAmount must be positive")
-    BigDecimal orderAmount,
-
-    @NotBlank(message = "encryptedDek is required")
-    String encryptedDek,
-
-    @NotBlank(message = "iv is required")
-    String iv,
-
-    @NotBlank(message = "authTag is required")
-    String authTag
+    BigDecimal orderAmount
 ) {}

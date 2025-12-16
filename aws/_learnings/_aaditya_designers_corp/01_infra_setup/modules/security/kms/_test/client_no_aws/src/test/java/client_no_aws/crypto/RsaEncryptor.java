@@ -13,12 +13,16 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * RSA Encryption for DEK (Test Helper)
+ * RSA Encryption (Test Helper)
  *
  * Uses standard Java crypto (NO AWS SDK).
- * Encrypts the DEK using the company's public key.
+ * Encrypts data using the company's public key.
  *
  * Algorithm: RSA-OAEP with SHA-256 (matches KMS RSAES_OAEP_SHA_256)
+ *
+ * Note: RSA encryption has size limits based on key size:
+ * - 4096-bit key with OAEP-SHA256: max ~446 bytes
+ * - Suitable for small PII data (credit cards, SSN, etc.)
  */
 public class RsaEncryptor {
 
@@ -62,16 +66,18 @@ public class RsaEncryptor {
   }
 
   /**
-   * Encrypt DEK using RSA-OAEP with SHA-256
+   * Encrypt string data using RSA-OAEP with SHA-256
    * This matches KMS encryption algorithm: RSAES_OAEP_SHA_256
    *
-   * @param dek Data Encryption Key to encrypt
-   * @return Encrypted DEK (Base64 encoded)
+   * @param plaintext String data to encrypt (e.g., credit card number)
+   * @return Encrypted data (Base64 encoded)
    */
-  public String encryptDek(byte[] dek) throws Exception {
+  public String encrypt(String plaintext) throws Exception {
     if (publicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadPublicKeyFromResources() first.");
     }
+
+    byte[] plaintextBytes = plaintext.getBytes(StandardCharsets.UTF_8);
 
     // Configure RSA-OAEP with SHA-256 (must match KMS algorithm)
     OAEPParameterSpec oaepParams = new OAEPParameterSpec(
@@ -84,8 +90,8 @@ public class RsaEncryptor {
     Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
     cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
 
-    byte[] encryptedDek = cipher.doFinal(dek);
+    byte[] encryptedData = cipher.doFinal(plaintextBytes);
 
-    return Base64.getEncoder().encodeToString(encryptedDek);
+    return Base64.getEncoder().encodeToString(encryptedData);
   }
 }
