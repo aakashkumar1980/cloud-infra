@@ -12,11 +12,11 @@
 # IAM User for Backend Application
 # -----------------------------------------------------------------------------
 resource "aws_iam_user" "kms_decrypt" {
-  name = "kms-decrypt-user-${var.name_suffix}"
+  name = "test_kms-decrypt-${var.name_suffix}"
   path = "/service-accounts/"
 
   tags = merge(var.tags, {
-    Name    = "kms-decrypt-user-${var.name_suffix}"
+    Name    = "test_kms-decrypt-${var.name_suffix}"
     Purpose = "Backend application KMS decrypt access"
   })
 }
@@ -25,7 +25,7 @@ resource "aws_iam_user" "kms_decrypt" {
 # IAM Policy - KMS Decrypt Only
 # -----------------------------------------------------------------------------
 resource "aws_iam_policy" "kms_decrypt" {
-  name        = "kms-decrypt-policy-${var.name_suffix}"
+  name        = "test_kms-decrypt-policy-${var.name_suffix}"
   description = "Allows KMS decrypt operations on specific key"
 
   policy = jsonencode({
