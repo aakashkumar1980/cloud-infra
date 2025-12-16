@@ -2,9 +2,7 @@ package company_backend.controller;
 
 import company_backend.dto.DecryptRequest;
 import company_backend.dto.DecryptResponse;
-import company_backend.dto.PublicKeyResponse;
 import company_backend.service.DecryptionService;
-import company_backend.service.PublicKeyService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,10 @@ import org.springframework.web.bind.annotation.*;
  * Use-Case 1: 3rd Party WITHOUT AWS Account
  *
  * Endpoints:
- * - GET  /api/v1/public-key : Get public key for 3rd party to encrypt their DEK
- * - POST /api/v1/decrypt    : Decrypt data sent by 3rd party
+ * - POST /api/v1/decrypt : Decrypt data sent by 3rd party
+ *
+ * Note: Public key is shared manually (downloaded and sent via secure email),
+ * NOT exposed via API for security reasons.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -26,31 +26,10 @@ public class EncryptionController {
 
     private static final Logger log = LoggerFactory.getLogger(EncryptionController.class);
 
-    private final PublicKeyService publicKeyService;
     private final DecryptionService decryptionService;
 
-    public EncryptionController(
-            PublicKeyService publicKeyService,
-            DecryptionService decryptionService
-    ) {
-        this.publicKeyService = publicKeyService;
+    public EncryptionController(DecryptionService decryptionService) {
         this.decryptionService = decryptionService;
-    }
-
-    /**
-     * GET /api/v1/public-key
-     *
-     * Returns the public key in PEM format.
-     * 3rd party clients call this once to get the key for encrypting their DEK.
-     */
-    @GetMapping("/public-key")
-    public ResponseEntity<PublicKeyResponse> getPublicKey() {
-        log.info("Public key requested");
-
-        String publicKeyPem = publicKeyService.getPublicKeyPem();
-        String keyId = publicKeyService.getKeyId();
-
-        return ResponseEntity.ok(PublicKeyResponse.of(publicKeyPem, keyId));
     }
 
     /**
