@@ -2,21 +2,25 @@
   "ABOUT": [
     "┌─────────────────────────────────────────────────────────────────┐",
     "│ Allow Policies                                                  │",
-    "│   ├── VPCAll     - VPCs, subnets, peering, IGW, NAT, routes, SG │",
-    "│   ├── EC2All     - Instances, volumes, key pairs, tagging       │",
-    "│   ├── KMSAll     - Key management and crypto operations         │",
-    "│   ├── SecretsAll - Secrets Manager lifecycle                    │",
-    "│   ├── IAMAll     - Roles, policies, instance profiles, SLR      │",
-    "│   ├── IAMSvcAcct - Service account users (/service-accounts/)   │",
-    "│   │     └── Only *kms-decrypt* policies can be attached         │",
-    "│   ├── LogsAll    - CloudWatch log groups and streams            │",
-    "│   └── SSMAll     - Parameter Store, Session Manager, documents  │",
+    "│   ├── VPCAll            - VPCs, subnets, IGW, NAT, routes, SG   │",
+    "│   ├── EC2All            - Instances, volumes, key pairs         │",
+    "│   ├── KMSAll            - Key management and crypto operations  │",
+    "│   ├── SecretsAll        - Secrets Manager lifecycle             │",
+    "│   ├── IAMRoles          - Create/manage roles, SLR              │",
+    "│   ├── IAMPassRole       - Pass *-role-* to EC2/Lambda/ECS only  │",
+    "│   ├── IAMPolicies       - Create/manage policies                │",
+    "│   ├── IAMInstanceProfiles - Instance profiles for EC2           │",
+    "│   ├── IAMSvcAcctUsers   - Users under /service-accounts/ only   │",
+    "│   ├── IAMSvcAcctKeys    - Access keys for service accounts      │",
+    "│   ├── IAMSvcAcctPolicy  - Attach only *kms-decrypt* policies    │",
+    "│   ├── LogsAll           - CloudWatch log groups and streams     │",
+    "│   └── SSMAll            - Parameter Store, Session Manager      │",
     "├─────────────────────────────────────────────────────────────────┤",
     "│ Deny Policies (Cost Protection)                                 │",
-    "│   ├── DenyOtherRegions - Only us-east-1, eu-west-2              │",
-    "│   ├── DenyBadEC2       - Only t3/t3a/t4g micro/small/med        │",
-    "│   ├── DenyBigVol       - Max 100GB EBS                          │",
-    "│   └── DenyIOPS         - Block io1/io2 IOPS volumes             │",
+    "│   ├── DenyOtherRegions  - Only us-east-1, eu-west-2             │",
+    "│   ├── DenyBadEC2        - Only t3/t3a/t4g micro/small/med       │",
+    "│   ├── DenyBigVol        - Max 100GB EBS                         │",
+    "│   └── DenyIOPS          - Block io1/io2 IOPS volumes            │",
     "└─────────────────────────────────────────────────────────────────┘"
   ],
   "Version": "2012-10-17",
@@ -76,20 +80,32 @@
       "secretsmanager:CancelRotateSecret", "secretsmanager:*ResourcePolicy"
     ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
-    {"Sid": "IAMAll", "Effect": "Allow", "Action": [
+    {"Sid": "IAMRoles", "Effect": "Allow", "Action": [
       "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
-      "iam:TagRole", "iam:UntagRole", "iam:UpdateRole*", "iam:PassRole",
-      "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy*",
-      "iam:ListPolic*", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
-      "iam:SetDefaultPolicyVersion", "iam:TagPolicy", "iam:UntagPolicy",
+      "iam:TagRole", "iam:UntagRole", "iam:UpdateRole*",
       "iam:AttachRolePolicy", "iam:DetachRolePolicy",
       "iam:ListAttachedRolePolicies", "iam:ListRolePolicies",
       "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+      "iam:CreateServiceLinkedRole", "iam:DeleteServiceLinkedRole"
+    ], "Resource": "*"},
+
+    {"Sid": "IAMPassRole", "Effect": "Allow", "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::*:role/*-role-*",
+      "Condition": {"StringEquals": {"iam:PassedToService": [
+        "ec2.amazonaws.com", "lambda.amazonaws.com", "ecs-tasks.amazonaws.com"
+      ]}}},
+
+    {"Sid": "IAMPolicies", "Effect": "Allow", "Action": [
+      "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy*",
+      "iam:ListPolic*", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+      "iam:SetDefaultPolicyVersion", "iam:TagPolicy", "iam:UntagPolicy"
+    ], "Resource": "*"},
+
+    {"Sid": "IAMInstanceProfiles", "Effect": "Allow", "Action": [
       "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile",
       "iam:GetInstanceProfile", "iam:ListInstanceProfile*",
       "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
-      "iam:TagInstanceProfile", "iam:UntagInstanceProfile",
-      "iam:CreateServiceLinkedRole", "iam:DeleteServiceLinkedRole"
+      "iam:TagInstanceProfile", "iam:UntagInstanceProfile"
     ], "Resource": "*"},
 
     {"Sid": "IAMSvcAcctUsers", "Effect": "Allow", "Action": [
