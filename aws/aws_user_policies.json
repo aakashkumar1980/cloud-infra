@@ -50,7 +50,9 @@
     ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
     {"Sid": "IAMRole", "Effect": "Allow", "Action": [
-      "iam:*Role", "iam:*Role*", "iam:*RolePolicy*", "iam:*ServiceLinkedRole"
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
+      "iam:TagRole", "iam:UntagRole", "iam:UpdateRole*",
+      "iam:*RolePolicy*", "iam:*ServiceLinkedRole*"
     ], "Resource": "*"},
 
     {"Sid": "IAMPass", "Effect": "Allow", "Action": "iam:PassRole",
