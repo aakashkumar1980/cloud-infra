@@ -1,35 +1,30 @@
 package company_backend.service;
 
-import company_backend.dto.DecryptRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.KmsClient;
-import software.amazon.awssdk.services.kms.model.DecryptRequest.Builder;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
 import software.amazon.awssdk.services.kms.model.DecryptResponse;
 import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
  * Decryption Service
  *
- * Handles the two-step decryption process:
- * 1. Decrypt the DEK using KMS (RSA private key in KMS)
- * 2. Decrypt the data using DEK (AES-GCM locally)
+ * Decrypts data that was encrypted with the company's RSA public key.
+ * Uses AWS KMS to decrypt with the private key (which never leaves KMS).
+ *
+ * Algorithm: RSA-OAEP with SHA-256 (RSAES_OAEP_SHA_256)
  */
 @Service
 public class DecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(DecryptionService.class);
-  private static final int GCM_TAG_LENGTH_BITS = 128;
 
   private final KmsClient kmsClient;
   private final String asymmetricKeyArn;
@@ -43,69 +38,28 @@ public class DecryptionService {
   }
 
   /**
-   * Decrypt data from 3rd party
+   * Decrypt RSA-encrypted data using KMS
    *
-   * @param request Contains encrypted DEK, encrypted data, IV, and auth tag
-   * @return Decrypted plaintext
+   * @param encryptedDataBase64 Data encrypted with public key (Base64 encoded)
+   * @return Decrypted plaintext string
    */
-  public String decrypt(DecryptRequest request) throws Exception {
-    log.info("Starting decryption process");
+  public String decrypt(String encryptedDataBase64) {
+    log.info("Decrypting data with KMS");
 
-    // Step 1: Decrypt DEK using KMS
-    byte[] encryptedDek = Base64.getDecoder().decode(request.encryptedDek());
-    byte[] plaintextDek = decryptDekWithKms(encryptedDek);
-    log.debug("DEK decrypted successfully, length: {} bytes", plaintextDek.length);
+    byte[] encryptedData = Base64.getDecoder().decode(encryptedDataBase64);
+    log.debug("Encrypted data size: {} bytes", encryptedData.length);
 
-    // Step 2: Decrypt data using DEK (AES-GCM)
-    byte[] encryptedData = Base64.getDecoder().decode(request.encryptedData());
-    byte[] iv = Base64.getDecoder().decode(request.iv());
-    byte[] authTag = Base64.getDecoder().decode(request.authTag());
+    DecryptRequest decryptRequest = DecryptRequest.builder()
+        .keyId(asymmetricKeyArn)
+        .ciphertextBlob(SdkBytes.fromByteArray(encryptedData))
+        .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
+        .build();
 
-    String plaintext = decryptDataWithDek(encryptedData, plaintextDek, iv, authTag);
+    DecryptResponse response = kmsClient.decrypt(decryptRequest);
+
+    String plaintext = new String(response.plaintext().asByteArray(), StandardCharsets.UTF_8);
     log.info("Data decrypted successfully");
 
     return plaintext;
-  }
-
-  /**
-   * Step 1: Decrypt DEK using KMS asymmetric key
-   * KMS uses the private key (which never leaves KMS) to decrypt
-   */
-  private byte[] decryptDekWithKms(byte[] encryptedDek) {
-    log.debug("Decrypting DEK with KMS, encrypted DEK size: {} bytes", encryptedDek.length);
-
-    Builder requestBuilder = software.amazon.awssdk.services.kms.model.DecryptRequest.builder()
-        .keyId(asymmetricKeyArn)
-        .ciphertextBlob(SdkBytes.fromByteArray(encryptedDek))
-        .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256);
-
-    DecryptResponse response = kmsClient.decrypt(requestBuilder.build());
-
-    return response.plaintext().asByteArray();
-  }
-
-  /**
-   * Step 2: Decrypt data using DEK (AES-GCM)
-   * This happens locally, not in KMS
-   */
-  private String decryptDataWithDek(byte[] encryptedData, byte[] dek, byte[] iv, byte[] authTag)
-      throws Exception {
-
-    // Combine encrypted data with auth tag (GCM expects them together)
-    ByteBuffer combined = ByteBuffer.allocate(encryptedData.length + authTag.length);
-    combined.put(encryptedData);
-    combined.put(authTag);
-    byte[] cipherTextWithTag = combined.array();
-
-    // Initialize AES-GCM cipher
-    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-    SecretKeySpec keySpec = new SecretKeySpec(dek, "AES");
-    GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
-
-    cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec);
-
-    byte[] plaintext = cipher.doFinal(cipherTextWithTag);
-
-    return new String(plaintext, StandardCharsets.UTF_8);
   }
 }
