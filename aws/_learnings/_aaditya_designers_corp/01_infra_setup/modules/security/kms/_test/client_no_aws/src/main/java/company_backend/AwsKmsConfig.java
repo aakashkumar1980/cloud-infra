@@ -3,33 +3,27 @@ package company_backend;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 
 /**
  * AWS KMS Configuration
  *
- * Creates KMS client bean using DefaultCredentialsProvider which automatically
- * tries credentials in this order:
+ * Creates KMS client bean using credentials from application properties.
  *
- * 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
- *    - Use in Docker/Kubernetes via secrets
+ * Credentials are injected via environment variables or system properties:
+ * - Local development: Pass as env vars or -D flags
+ *   Example: AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx ./gradlew bootRun
  *
- * 2. System properties (aws.accessKeyId, aws.secretAccessKey)
+ * - Production (Kubernetes): Credentials populated from AWS Secrets Manager
+ *   via External Secrets Operator or CSI Driver into environment variables
  *
- * 3. Web Identity Token (for EKS with IRSA)
- *    - Best practice for Kubernetes on AWS
- *
- * 4. ~/.aws/credentials file (profile-based)
- *    - Use for local development
- *
- * 5. EC2/ECS Instance Profile / Container Credentials
- *    - Automatic when running on AWS infrastructure
- *
- * For production Kubernetes:
- * - EKS: Use IAM Roles for Service Accounts (IRSA) - no credentials needed
- * - Non-EKS: Use environment variables from Kubernetes Secrets
+ * Properties:
+ * - aws.credentials.access-key-id: AWS Access Key ID
+ * - aws.credentials.secret-access-key: AWS Secret Access Key
+ * - aws.region: AWS Region (default: us-east-1)
  */
 @Configuration
 public class AwsKmsConfig {
@@ -37,11 +31,19 @@ public class AwsKmsConfig {
   @Value("${aws.region}")
   private String region;
 
+  @Value("${aws.credentials.access-key-id}")
+  private String accessKeyId;
+
+  @Value("${aws.credentials.secret-access-key}")
+  private String secretAccessKey;
+
   @Bean
   public KmsClient kmsClient() {
+    AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+
     return KmsClient.builder()
         .region(Region.of(region))
-        .credentialsProvider(DefaultCredentialsProvider.create())
+        .credentialsProvider(StaticCredentialsProvider.create(credentials))
         .build();
   }
 }

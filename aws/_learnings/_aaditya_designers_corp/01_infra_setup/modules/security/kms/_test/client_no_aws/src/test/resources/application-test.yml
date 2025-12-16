@@ -6,13 +6,15 @@ spring:
     name: company-backend-test
 
 # AWS Configuration for tests
-# These values should be set via environment variables or AWS credentials
+# Pass credentials via environment variables:
+#   AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx ./gradlew test
 aws:
-  region: us-east-1
+  region: ${AWS_REGION:us-east-1}
+  credentials:
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
   kms:
-    # For tests, you must set this via environment variable or in your test setup
-    # Example: export AWS_KMS_ASYMMETRIC_KEY_ARN=arn:aws:kms:us-east-1:xxx:key/xxx
-    asymmetric-key-arn: arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490
+    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490}
 
 logging:
   level:
