@@ -1,4 +1,4 @@
-package company_backend.service;
+package company_backend.rest_api_security.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,22 +14,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * Decryption Service
+ * API Decryption Service
  *
- * Decrypts data that was encrypted with the company's RSA public key.
+ * Direct RSA decryption for small PII data in REST API payloads.
+ * No envelope encryption metadata (DEK, IV, authTag) required.
+ *
  * Uses AWS KMS to decrypt with the private key (which never leaves KMS).
- *
  * Algorithm: RSA-OAEP with SHA-256 (RSAES_OAEP_SHA_256)
+ *
+ * Size limit: ~446 characters (4096-bit RSA key with OAEP-SHA256)
  */
 @Service
-public class DecryptionService {
+public class APIDecryptionService {
 
-  private static final Logger log = LoggerFactory.getLogger(DecryptionService.class);
+  private static final Logger log = LoggerFactory.getLogger(APIDecryptionService.class);
 
   private final KmsClient kmsClient;
   private final String asymmetricKeyArn;
 
-  public DecryptionService(
+  public APIDecryptionService(
       KmsClient kmsClient,
       @Value("${aws.kms.asymmetric-key-arn}") String asymmetricKeyArn
   ) {

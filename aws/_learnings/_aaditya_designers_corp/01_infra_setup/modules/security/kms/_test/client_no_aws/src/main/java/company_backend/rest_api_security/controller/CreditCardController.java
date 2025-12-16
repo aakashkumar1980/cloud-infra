@@ -2,7 +2,7 @@ package company_backend.rest_api_security.controller;
 
 import company_backend.rest_api_security.dto.OrderRequest;
 import company_backend.rest_api_security.dto.OrderResponse;
-import company_backend.service.DecryptionService;
+import company_backend.rest_api_security.service.APIDecryptionService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +31,10 @@ public class CreditCardController {
 
   private static final Logger log = LoggerFactory.getLogger(CreditCardController.class);
 
-  private final DecryptionService decryptionService;
+  private final APIDecryptionService apiDecryptionService;
 
-  public CreditCardController(DecryptionService decryptionService) {
-    this.decryptionService = decryptionService;
+  public CreditCardController(APIDecryptionService apiDecryptionService) {
+    this.apiDecryptionService = apiDecryptionService;
   }
 
   /**
@@ -52,7 +52,7 @@ public class CreditCardController {
 
     try {
       // Decrypt the credit card number using KMS
-      String decryptedCreditCard = decryptionService.decrypt(orderRequest.creditCardNumber());
+      String decryptedCreditCard = apiDecryptionService.decrypt(orderRequest.creditCardNumber());
       log.info("Credit card decrypted successfully");
 
       // Mask the credit card for response (show last 4 digits)
