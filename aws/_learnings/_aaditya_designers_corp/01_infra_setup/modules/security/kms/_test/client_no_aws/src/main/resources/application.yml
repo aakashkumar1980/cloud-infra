@@ -8,12 +8,18 @@ spring:
     name: company-backend
 
 # AWS Configuration
+# Credentials are injected via:
+# - Local: Environment variables or -D system properties
+# - Production: Kubernetes secrets (populated from AWS Secrets Manager)
 aws:
-  region: us-east-1
+  region: ${AWS_REGION:us-east-1}
+  credentials:
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
   kms:
     # Replace with your asymmetric key ARN from terraform output
     # Run: cd ../terraform && terraform output asymmetric_key_arn
-    asymmetric-key-arn: arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490
+    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490}
 
 logging:
   level:
