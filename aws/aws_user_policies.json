@@ -45,7 +45,8 @@
     ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
     {"Sid": "Secrets", "Effect": "Allow", "Action": [
-      "secretsmanager:*Secret*", "secretsmanager:Tag*", "secretsmanager:Untag*",
+      "secretsmanager:*Secret*", "secretsmanager:*ResourcePolicy",
+      "secretsmanager:Tag*", "secretsmanager:Untag*",
       "secretsmanager:List*", "secretsmanager:GetRandomPassword"
     ], "Resource": "*", "Condition": {"StringEquals": {"aws:RequestedRegion": ["eu-west-2", "us-east-1"]}}},
 
