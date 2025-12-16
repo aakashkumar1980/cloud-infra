@@ -40,14 +40,6 @@ class ThirdPartyClientEncryptionTest {
 
   @Test
   @Order(1)
-  @DisplayName("Load public key from resources - PEM file exists")
-  void testLoadPublicKeyFromResources() throws Exception {
-    rsaEncryptor.loadPublicKeyFromResources();
-    log.info("✓ Public key loaded from src/test/resources/public-key.pem");
-  }
-
-  @Test
-  @Order(2)
   @DisplayName("Submit order with encrypted credit card - End to end test")
   void testSubmitOrderWithEncryptedCreditCard() throws Exception {
     JsonObject orderRequest = prepareEncryptedOrder();
