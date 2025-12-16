@@ -2,20 +2,18 @@ package client_no_aws;
 
 import client_no_aws.crypto.AesEncryptor;
 import client_no_aws.crypto.RsaEncryptor;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.*;
-import org.springframework.test.context.ActiveProfiles;
+
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Third Party Client Test (Use-Case 1)
+ * Third Party Client Encryption Test (Use-Case 1)
  *
  * Simulates a 3rd party client WITHOUT AWS account.
  * Uses standard Java crypto (NO AWS SDK).
@@ -24,51 +22,23 @@ import static org.junit.jupiter.api.Assertions.*;
  * 1. Load public key from resources (received via secure email from company)
  * 2. Generate random DEK and encrypt data with AES-GCM
  * 3. Encrypt DEK with public key (RSA-OAEP)
- * 4. Send encrypted package to company API for decryption
- * 5. Verify decrypted data matches original
+ * 4. Save encrypted data to properties file for decryption test
  *
  * Prerequisites:
  * - Download public key from AWS KMS and place in src/test/resources/public-key.pem
  * - Command: aws kms get-public-key --key-id alias/test_asymmetric_kms-... --region us-east-1 --profile dev --output text --query PublicKey | base64 -d > public-key.der
  *   Then convert to PEM format or use AWS Console to download
  */
-@SpringBootTest(
-    classes = company_backend.CompanyBackendApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ThirdPartyClientEncryptionTest {
 
-  @LocalServerPort
-  private int port;
+  private static final String PROPERTIES_FILE = "src/test/resources/_temp/encryption-data.properties";
 
-  @Autowired
-  private TestRestTemplate restTemplate;
-
-  private final Gson gson = new Gson();
   private final AesEncryptor aesEncryptor = new AesEncryptor();
   private final RsaEncryptor rsaEncryptor = new RsaEncryptor();
 
-  private String baseUrl() {
-    return "http://localhost:" + port + "/api/v1";
-  }
-
   @Test
   @Order(1)
-  @DisplayName("Health check - API is running")
-  void testHealthCheck() {
-    ResponseEntity<String> response = restTemplate.getForEntity(
-        baseUrl() + "/health",
-        String.class
-    );
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("OK", response.getBody());
-  }
-
-  @Test
-  @Order(2)
   @DisplayName("Load public key from resources - PEM file exists")
   void testLoadPublicKeyFromResources() throws Exception {
     rsaEncryptor.loadPublicKeyFromResources();
@@ -76,8 +46,8 @@ class ThirdPartyClientEncryptionTest {
   }
 
   @Test
-  @Order(3)
-  @DisplayName("Full encryption/decryption flow - End to end test")
+  @Order(2)
+  @DisplayName("Full encryption flow - Encrypt and save to properties file")
   void testFullEncryptionFlow() throws Exception {
     // === Step 1: Load public key from resources ===
     System.out.println("\n=== Step 1: Load Public Key from Resources ===");
@@ -109,104 +79,23 @@ class ThirdPartyClientEncryptionTest {
     System.out.println("✓ DEK encrypted with company's public key");
     System.out.println("  Encrypted DEK (Base64): " + truncate(encryptedDek, 50));
 
-    // === Step 4: Send to company API for decryption ===
-    System.out.println("\n=== Step 4: Send to Company API ===");
+    // === Step 4: Save encrypted data to properties file ===
+    System.out.println("\n=== Step 4: Save to Properties File ===");
 
-    JsonObject decryptRequest = new JsonObject();
-    decryptRequest.addProperty("encryptedDek", encryptedDek);
-    decryptRequest.addProperty("encryptedData", aesResult.encryptedDataBase64());
-    decryptRequest.addProperty("iv", aesResult.ivBase64());
-    decryptRequest.addProperty("authTag", aesResult.authTagBase64());
+    Properties props = new Properties();
+    props.setProperty("encryptedDek", encryptedDek);
+    props.setProperty("encryptedData", aesResult.encryptedDataBase64());
+    props.setProperty("iv", aesResult.ivBase64());
+    props.setProperty("authTag", aesResult.authTagBase64());
+    props.setProperty("originalData", sensitiveData);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> request = new HttpEntity<>(gson.toJson(decryptRequest), headers);
+    Path propsPath = Paths.get(PROPERTIES_FILE);
+    try (OutputStream os = new FileOutputStream(propsPath.toFile())) {
+      props.store(os, "Encryption data for decryption test - Generated by ThirdPartyClientEncryptionTest");
+    }
 
-    ResponseEntity<String> decryptResponse = restTemplate.postForEntity(
-        baseUrl() + "/decrypt",
-        request,
-        String.class
-    );
-
-    assertEquals(HttpStatus.OK, decryptResponse.getStatusCode());
-    System.out.println("✓ Decrypt request successful");
-
-    // === Step 5: Verify decrypted data ===
-    System.out.println("\n=== Step 5: Verify Result ===");
-
-    JsonObject resultJson = gson.fromJson(decryptResponse.getBody(), JsonObject.class);
-    assertTrue(resultJson.get("success").getAsBoolean());
-    String decryptedData = resultJson.get("plaintext").getAsString();
-
-    System.out.println("Decrypted data: \"" + decryptedData + "\"");
-    assertEquals(sensitiveData, decryptedData);
-    System.out.println("✓ SUCCESS: Decrypted data matches original!");
-  }
-
-  @Test
-  @Order(4)
-  @DisplayName("Invalid encrypted DEK - Should fail decryption")
-  void testInvalidEncryptedDek() throws Exception {
-    // Load public key from resources
-    rsaEncryptor.loadPublicKeyFromResources();
-
-    byte[] dek = aesEncryptor.generateDek();
-    AesEncryptor.EncryptionResult aesResult = aesEncryptor.encrypt("test data", dek);
-
-    // Send with invalid (corrupted) encrypted DEK
-    JsonObject decryptRequest = new JsonObject();
-    decryptRequest.addProperty("encryptedDek", "InvalidBase64DEK==");
-    decryptRequest.addProperty("encryptedData", aesResult.encryptedDataBase64());
-    decryptRequest.addProperty("iv", aesResult.ivBase64());
-    decryptRequest.addProperty("authTag", aesResult.authTagBase64());
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> request = new HttpEntity<>(gson.toJson(decryptRequest), headers);
-
-    ResponseEntity<String> response = restTemplate.postForEntity(
-        baseUrl() + "/decrypt",
-        request,
-        String.class
-    );
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    System.out.println("✓ Invalid DEK correctly rejected");
-  }
-
-  @Test
-  @Order(5)
-  @DisplayName("Tampered auth tag - Should fail integrity check")
-  void testTamperedAuthTag() throws Exception {
-    // Load public key from resources
-    rsaEncryptor.loadPublicKeyFromResources();
-
-    byte[] dek = aesEncryptor.generateDek();
-    AesEncryptor.EncryptionResult aesResult = aesEncryptor.encrypt("secret message", dek);
-    String encryptedDek = rsaEncryptor.encryptDek(dek);
-
-    // Tamper with auth tag (flip a character)
-    String tamperedAuthTag = aesResult.authTagBase64().substring(0, 5) + "X" +
-        aesResult.authTagBase64().substring(6);
-
-    JsonObject decryptRequest = new JsonObject();
-    decryptRequest.addProperty("encryptedDek", encryptedDek);
-    decryptRequest.addProperty("encryptedData", aesResult.encryptedDataBase64());
-    decryptRequest.addProperty("iv", aesResult.ivBase64());
-    decryptRequest.addProperty("authTag", tamperedAuthTag);
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> request = new HttpEntity<>(gson.toJson(decryptRequest), headers);
-
-    ResponseEntity<String> response = restTemplate.postForEntity(
-        baseUrl() + "/decrypt",
-        request,
-        String.class
-    );
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    System.out.println("✓ Tampered auth tag correctly rejected (integrity check passed)");
+    System.out.println("✓ Encryption data saved to: " + PROPERTIES_FILE);
+    System.out.println("\n✓ SUCCESS: Encryption complete. Run CompanyBackendDecryptionTest to verify decryption.");
   }
 
   private String truncate(String str, int maxLen) {
