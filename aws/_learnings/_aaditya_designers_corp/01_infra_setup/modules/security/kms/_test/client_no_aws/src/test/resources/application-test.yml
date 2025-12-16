@@ -6,8 +6,12 @@ spring:
     name: company-backend-test
 
 # AWS Configuration for tests
-# Pass credentials via environment variables:
-#   AWS_ACCESS_KEY_ID=xxx AWS_SECRET_ACCESS_KEY=xxx ./gradlew test
+# Pass credentials via environment variables from terraform output:
+#   cd ../terraform
+#   AWS_ACCESS_KEY_ID=$(terraform output -raw iam_access_key_id) \
+#   AWS_SECRET_ACCESS_KEY=$(terraform output -raw iam_secret_access_key) \
+#   AWS_KMS_ASYMMETRIC_KEY_ARN=$(terraform output -raw asymmetric_key_arn) \
+#   cd ../client_no_aws && ./gradlew test
 aws:
   region: ${AWS_REGION:us-east-1}
   credentials:

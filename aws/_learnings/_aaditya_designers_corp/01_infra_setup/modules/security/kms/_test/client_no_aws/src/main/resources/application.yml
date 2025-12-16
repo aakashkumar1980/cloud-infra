@@ -9,16 +9,21 @@ spring:
 
 # AWS Configuration
 # Credentials are injected via:
-# - Local: Environment variables or -D system properties
-# - Production: Kubernetes secrets (populated from AWS Secrets Manager)
+# - Local: Environment variables from terraform output
+#     cd ../terraform
+#     export AWS_ACCESS_KEY_ID=$(terraform output -raw iam_access_key_id)
+#     export AWS_SECRET_ACCESS_KEY=$(terraform output -raw iam_secret_access_key)
+#     export AWS_KMS_ASYMMETRIC_KEY_ARN=$(terraform output -raw asymmetric_key_arn)
+#     cd ../client_no_aws && ./gradlew bootRun
+#
+# - Production: Kubernetes secrets (populated from AWS Secrets Manager via External Secrets Operator)
 aws:
   region: ${AWS_REGION:us-east-1}
   credentials:
     access-key-id: ${AWS_ACCESS_KEY_ID}
     secret-access-key: ${AWS_SECRET_ACCESS_KEY}
   kms:
-    # Replace with your asymmetric key ARN from terraform output
-    # Run: cd ../terraform && terraform output asymmetric_key_arn
+    # Get from terraform output: terraform output asymmetric_key_arn
     asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490}
 
 logging:
