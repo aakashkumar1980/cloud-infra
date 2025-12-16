@@ -46,6 +46,14 @@ class ThirdPartyClientEncryptionTest {
     log.info("✓ Public key loaded from src/test/resources/public-key.pem");
   }
 
+  @Test
+  @Order(2)
+  @DisplayName("Submit order with encrypted credit card - End to end test")
+  void testSubmitOrderWithEncryptedCreditCard() throws Exception {
+    JsonObject orderRequest = prepareEncryptedOrder();
+    submitAndVerifyOrder(orderRequest);
+  }
+
   /**
    * Groups Step 1-3:
    * 1. Load public key from resources
@@ -108,7 +116,16 @@ class ThirdPartyClientEncryptionTest {
     JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
     assertTrue(resultJson.get("success").getAsBoolean());
 
+    String orderId = resultJson.get("orderId").getAsString();
     String maskedCard = resultJson.get("creditCardNumber").getAsString();
+
+    log.info("Order Response:");
+    log.info("  Order ID: {}", orderId);
+    log.info("  Name: {}", resultJson.get("name").getAsString());
+    log.info("  Address: {}", resultJson.get("address").getAsString());
+    log.info("  Masked Credit Card: {}", maskedCard);
+    log.info("  Order Amount: ${}", resultJson.get("orderAmount").getAsDouble());
+
     assertTrue(maskedCard.endsWith("1234"), "Masked card should show last 4 digits");
 
     log.info("\n✓ SUCCESS: Order processed with encrypted credit card!");
