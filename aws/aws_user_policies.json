@@ -7,6 +7,8 @@
     "│   ├── KMSAll     - Key management and crypto operations         │",
     "│   ├── SecretsAll - Secrets Manager lifecycle                    │",
     "│   ├── IAMAll     - Roles, policies, instance profiles, SLR      │",
+    "│   ├── IAMSvcAcct - Service account users (/service-accounts/)   │",
+    "│   │     └── Only *kms-decrypt* policies can be attached         │",
     "│   ├── LogsAll    - CloudWatch log groups and streams            │",
     "│   └── SSMAll     - Parameter Store, Session Manager, documents  │",
     "├─────────────────────────────────────────────────────────────────┤",
@@ -89,6 +91,22 @@
       "iam:TagInstanceProfile", "iam:UntagInstanceProfile",
       "iam:CreateServiceLinkedRole", "iam:DeleteServiceLinkedRole"
     ], "Resource": "*"},
+
+    {"Sid": "IAMSvcAcctUsers", "Effect": "Allow", "Action": [
+      "iam:CreateUser", "iam:DeleteUser", "iam:GetUser", "iam:ListUsers",
+      "iam:TagUser", "iam:UntagUser"
+    ], "Resource": "arn:aws:iam::*:user/service-accounts/*"},
+
+    {"Sid": "IAMSvcAcctKeys", "Effect": "Allow", "Action": [
+      "iam:CreateAccessKey", "iam:DeleteAccessKey",
+      "iam:ListAccessKeys", "iam:UpdateAccessKey"
+    ], "Resource": "arn:aws:iam::*:user/service-accounts/*"},
+
+    {"Sid": "IAMSvcAcctPolicy", "Effect": "Allow", "Action": [
+      "iam:AttachUserPolicy", "iam:DetachUserPolicy",
+      "iam:ListAttachedUserPolicies"
+    ], "Resource": "arn:aws:iam::*:user/service-accounts/*",
+      "Condition": {"ArnLike": {"iam:PolicyArn": "arn:aws:iam::*:policy/*kms-decrypt*"}}},
 
     {"Sid": "LogsAll", "Effect": "Allow", "Action": [
       "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
