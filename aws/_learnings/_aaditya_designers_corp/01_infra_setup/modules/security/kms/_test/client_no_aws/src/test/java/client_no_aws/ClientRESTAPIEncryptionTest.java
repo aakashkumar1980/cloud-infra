@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
 )
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ThirdPartyClientEncryptionTest {
+class ClientRESTAPIEncryptionTest {
 
-  private static final Logger log = LoggerFactory.getLogger(ThirdPartyClientEncryptionTest.class);
+  private static final Logger log = LoggerFactory.getLogger(ClientRESTAPIEncryptionTest.class);
 
   @LocalServerPort
   private int port;
