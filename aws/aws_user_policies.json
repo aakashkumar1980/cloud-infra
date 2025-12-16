@@ -62,7 +62,7 @@
         "ec2.amazonaws.com", "lambda.amazonaws.com", "ecs-tasks.amazonaws.com"]}}},
 
     {"Sid": "IAMPol", "Effect": "Allow", "Action": [
-      "iam:*Policy", "iam:*Policy*"
+      "iam:*Policy", "iam:*Policy*", "iam:ListPolic*"
     ], "Resource": "*"},
 
     {"Sid": "IAMProf", "Effect": "Allow", "Action": "iam:*InstanceProfile*", "Resource": "*"},
