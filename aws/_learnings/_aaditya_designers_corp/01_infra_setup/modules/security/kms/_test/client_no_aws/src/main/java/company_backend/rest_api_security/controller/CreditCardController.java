@@ -48,26 +48,28 @@ public class CreditCardController {
    */
   @PostMapping("/orders")
   public ResponseEntity<OrderResponse> submitOrder(@Valid @RequestBody OrderRequest orderRequest) {
-    log.info("Order received from: {}", orderRequest.name());
+    log.info("Order received: Name={}, Address={}, CreditcardNumber={}, Amount={}",
+        orderRequest.name(),
+        orderRequest.address(),
+        orderRequest.creditCardNumber(),
+        orderRequest.orderAmount()
+    );
 
     try {
       // Decrypt the credit card number using KMS
       String decryptedCreditCard = apiDecryptionService.decrypt(orderRequest.creditCardNumber());
-      log.info("Credit card decrypted successfully");
-
-      // Mask the credit card for response (show last 4 digits)
-      String maskedCreditCard = maskCreditCard(decryptedCreditCard);
+      log.info("Credit card decrypted successfully {}", decryptedCreditCard);
 
       // Generate order ID
       String orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-
       log.info("Order {} processed successfully", orderId);
+      // TODO: Process the order (e.g., save to database, initiate payment, etc.)
 
       return ResponseEntity.ok(OrderResponse.success(
           orderId,
           orderRequest.name(),
           orderRequest.address(),
-          maskedCreditCard,
+          decryptedCreditCard,
           orderRequest.orderAmount()
       ));
 
@@ -76,18 +78,6 @@ public class CreditCardController {
       return ResponseEntity.badRequest()
           .body(OrderResponse.error("Order processing failed: " + e.getMessage()));
     }
-  }
-
-  /**
-   * Mask credit card number, showing only last 4 digits
-   * Example: 4111111111111111 -> ****-****-****-1111
-   */
-  private String maskCreditCard(String creditCard) {
-    if (creditCard == null || creditCard.length() < 4) {
-      return "****";
-    }
-    String last4 = creditCard.substring(creditCard.length() - 4);
-    return "****-****-****-" + last4;
   }
 
   /**

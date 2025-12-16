@@ -99,27 +99,23 @@ class ClientRESTAPIEncryptionTest {
         request,
         String.class
     );
-
     assertEquals(HttpStatus.OK, response.getStatusCode());
     log.info("✓ Order submitted successfully");
 
     log.info("\n=== Step 5: Verify Response ===");
-
     JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
     assertTrue(resultJson.get("success").getAsBoolean());
 
     String orderId = resultJson.get("orderId").getAsString();
-    String maskedCard = resultJson.get("creditCardNumber").getAsString();
+    String creditCardNumber = resultJson.get("creditCardNumber").getAsString();
 
-    log.info("Order Response:");
+    log.info("Order Resbermponse:");
     log.info("  Order ID: {}", orderId);
     log.info("  Name: {}", resultJson.get("name").getAsString());
     log.info("  Address: {}", resultJson.get("address").getAsString());
-    log.info("  Masked Credit Card: {}", maskedCard);
+    log.info("  Credit Card Number: {}", creditCardNumber);
     log.info("  Order Amount: ${}", resultJson.get("orderAmount").getAsDouble());
-
-    assertTrue(maskedCard.endsWith("1234"), "Masked card should show last 4 digits");
-
+    assertTrue(creditCardNumber.equals(orderRequest.get("creditCardNumber")));
     log.info("\n✓ SUCCESS: Order processed with encrypted credit card!");
   }
 
