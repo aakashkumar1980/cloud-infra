@@ -28,84 +28,84 @@ import java.util.Base64;
 @Service
 public class DecryptionService {
 
-    private static final Logger log = LoggerFactory.getLogger(DecryptionService.class);
-    private static final int GCM_TAG_LENGTH_BITS = 128;
+  private static final Logger log = LoggerFactory.getLogger(DecryptionService.class);
+  private static final int GCM_TAG_LENGTH_BITS = 128;
 
-    private final KmsClient kmsClient;
-    private final String asymmetricKeyArn;
+  private final KmsClient kmsClient;
+  private final String asymmetricKeyArn;
 
-    public DecryptionService(
-            KmsClient kmsClient,
-            @Value("${aws.kms.asymmetric-key-arn}") String asymmetricKeyArn
-    ) {
-        this.kmsClient = kmsClient;
-        this.asymmetricKeyArn = asymmetricKeyArn;
-    }
+  public DecryptionService(
+      KmsClient kmsClient,
+      @Value("${aws.kms.asymmetric-key-arn}") String asymmetricKeyArn
+  ) {
+    this.kmsClient = kmsClient;
+    this.asymmetricKeyArn = asymmetricKeyArn;
+  }
 
-    /**
-     * Decrypt data from 3rd party
-     *
-     * @param request Contains encrypted DEK, encrypted data, IV, and auth tag
-     * @return Decrypted plaintext
-     */
-    public String decrypt(DecryptRequest request) throws Exception {
-        log.info("Starting decryption process");
+  /**
+   * Decrypt data from 3rd party
+   *
+   * @param request Contains encrypted DEK, encrypted data, IV, and auth tag
+   * @return Decrypted plaintext
+   */
+  public String decrypt(DecryptRequest request) throws Exception {
+    log.info("Starting decryption process");
 
-        // Step 1: Decrypt DEK using KMS
-        byte[] encryptedDek = Base64.getDecoder().decode(request.encryptedDek());
-        byte[] plaintextDek = decryptDekWithKms(encryptedDek);
-        log.debug("DEK decrypted successfully, length: {} bytes", plaintextDek.length);
+    // Step 1: Decrypt DEK using KMS
+    byte[] encryptedDek = Base64.getDecoder().decode(request.encryptedDek());
+    byte[] plaintextDek = decryptDekWithKms(encryptedDek);
+    log.debug("DEK decrypted successfully, length: {} bytes", plaintextDek.length);
 
-        // Step 2: Decrypt data using DEK (AES-GCM)
-        byte[] encryptedData = Base64.getDecoder().decode(request.encryptedData());
-        byte[] iv = Base64.getDecoder().decode(request.iv());
-        byte[] authTag = Base64.getDecoder().decode(request.authTag());
+    // Step 2: Decrypt data using DEK (AES-GCM)
+    byte[] encryptedData = Base64.getDecoder().decode(request.encryptedData());
+    byte[] iv = Base64.getDecoder().decode(request.iv());
+    byte[] authTag = Base64.getDecoder().decode(request.authTag());
 
-        String plaintext = decryptDataWithDek(encryptedData, plaintextDek, iv, authTag);
-        log.info("Data decrypted successfully");
+    String plaintext = decryptDataWithDek(encryptedData, plaintextDek, iv, authTag);
+    log.info("Data decrypted successfully");
 
-        return plaintext;
-    }
+    return plaintext;
+  }
 
-    /**
-     * Step 1: Decrypt DEK using KMS asymmetric key
-     * KMS uses the private key (which never leaves KMS) to decrypt
-     */
-    private byte[] decryptDekWithKms(byte[] encryptedDek) {
-        log.debug("Decrypting DEK with KMS, encrypted DEK size: {} bytes", encryptedDek.length);
+  /**
+   * Step 1: Decrypt DEK using KMS asymmetric key
+   * KMS uses the private key (which never leaves KMS) to decrypt
+   */
+  private byte[] decryptDekWithKms(byte[] encryptedDek) {
+    log.debug("Decrypting DEK with KMS, encrypted DEK size: {} bytes", encryptedDek.length);
 
-        Builder requestBuilder = software.amazon.awssdk.services.kms.model.DecryptRequest.builder()
-                .keyId(asymmetricKeyArn)
-                .ciphertextBlob(SdkBytes.fromByteArray(encryptedDek))
-                .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256);
+    Builder requestBuilder = software.amazon.awssdk.services.kms.model.DecryptRequest.builder()
+        .keyId(asymmetricKeyArn)
+        .ciphertextBlob(SdkBytes.fromByteArray(encryptedDek))
+        .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256);
 
-        DecryptResponse response = kmsClient.decrypt(requestBuilder.build());
+    DecryptResponse response = kmsClient.decrypt(requestBuilder.build());
 
-        return response.plaintext().asByteArray();
-    }
+    return response.plaintext().asByteArray();
+  }
 
-    /**
-     * Step 2: Decrypt data using DEK (AES-GCM)
-     * This happens locally, not in KMS
-     */
-    private String decryptDataWithDek(byte[] encryptedData, byte[] dek, byte[] iv, byte[] authTag)
-            throws Exception {
+  /**
+   * Step 2: Decrypt data using DEK (AES-GCM)
+   * This happens locally, not in KMS
+   */
+  private String decryptDataWithDek(byte[] encryptedData, byte[] dek, byte[] iv, byte[] authTag)
+      throws Exception {
 
-        // Combine encrypted data with auth tag (GCM expects them together)
-        ByteBuffer combined = ByteBuffer.allocate(encryptedData.length + authTag.length);
-        combined.put(encryptedData);
-        combined.put(authTag);
-        byte[] cipherTextWithTag = combined.array();
+    // Combine encrypted data with auth tag (GCM expects them together)
+    ByteBuffer combined = ByteBuffer.allocate(encryptedData.length + authTag.length);
+    combined.put(encryptedData);
+    combined.put(authTag);
+    byte[] cipherTextWithTag = combined.array();
 
-        // Initialize AES-GCM cipher
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        SecretKeySpec keySpec = new SecretKeySpec(dek, "AES");
-        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
+    // Initialize AES-GCM cipher
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    SecretKeySpec keySpec = new SecretKeySpec(dek, "AES");
+    GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
 
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec);
+    cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec);
 
-        byte[] plaintext = cipher.doFinal(cipherTextWithTag);
+    byte[] plaintext = cipher.doFinal(cipherTextWithTag);
 
-        return new String(plaintext, StandardCharsets.UTF_8);
-    }
+    return new String(plaintext, StandardCharsets.UTF_8);
+  }
 }

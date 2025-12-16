@@ -1,6 +1,5 @@
 # Company Backend Configuration
 # Use-Case 1: 3rd Party WITHOUT AWS Account
-
 server:
   port: 8080
 
@@ -14,7 +13,7 @@ aws:
   kms:
     # Replace with your asymmetric key ARN from terraform output
     # Run: cd ../terraform && terraform output asymmetric_key_arn
-    asymmetric-key-arn: ${KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:YOUR_ACCOUNT_ID:key/YOUR_KEY_ID}
+    asymmetric-key-arn: arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490
 
 logging:
   level:

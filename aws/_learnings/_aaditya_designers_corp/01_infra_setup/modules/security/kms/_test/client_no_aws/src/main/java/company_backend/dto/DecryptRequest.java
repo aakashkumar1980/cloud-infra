@@ -14,15 +14,15 @@ import jakarta.validation.constraints.NotBlank;
  * All values are Base64 encoded
  */
 public record DecryptRequest(
-        @NotBlank(message = "encryptedDek is required")
-        String encryptedDek,
+    @NotBlank(message = "encryptedDek is required")
+    String encryptedDek,
 
-        @NotBlank(message = "encryptedData is required")
-        String encryptedData,
+    @NotBlank(message = "encryptedData is required")
+    String encryptedData,
 
-        @NotBlank(message = "iv is required")
-        String iv,
+    @NotBlank(message = "iv is required")
+    String iv,
 
-        @NotBlank(message = "authTag is required")
-        String authTag
+    @NotBlank(message = "authTag is required")
+    String authTag
 ) {}

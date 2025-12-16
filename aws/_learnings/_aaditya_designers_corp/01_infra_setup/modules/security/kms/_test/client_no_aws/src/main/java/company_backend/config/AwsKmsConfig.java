@@ -15,14 +15,14 @@ import software.amazon.awssdk.services.kms.KmsClient;
 @Configuration
 public class AwsKmsConfig {
 
-    @Value("${aws.region}")
-    private String region;
+  @Value("${aws.region}")
+  private String region;
 
-    @Bean
-    public KmsClient kmsClient() {
-        return KmsClient.builder()
-                .region(Region.of(region))
-                .credentialsProvider(ProfileCredentialsProvider.create("default"))
-                .build();
-    }
+  @Bean
+  public KmsClient kmsClient() {
+    return KmsClient.builder()
+        .region(Region.of(region))
+        .credentialsProvider(ProfileCredentialsProvider.create("default"))
+        .build();
+  }
 }
