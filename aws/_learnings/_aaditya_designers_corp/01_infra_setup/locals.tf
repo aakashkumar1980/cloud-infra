@@ -26,6 +26,7 @@ locals {
     lookup(local.tags_cfg.environment_tags, var.profile, {})
   )
 
+  # Increment component version if there are breaking changes to infra components like kms, secrets etc.
   component_version = "v1"
   # Name suffixes for each region
   name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}_${local.component_version}-${local.tags_common["managed_by"]}"
