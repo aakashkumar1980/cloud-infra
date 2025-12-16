@@ -1,7 +1,7 @@
-package company_backend.controller;
+package company_backend.rest_api_security.controller;
 
-import company_backend.dto.OrderRequest;
-import company_backend.dto.OrderResponse;
+import company_backend.rest_api_security.dto.OrderRequest;
+import company_backend.rest_api_security.dto.OrderResponse;
 import company_backend.service.DecryptionService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;

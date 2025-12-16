@@ -6,17 +6,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Company Backend Application
  *
- * Use-Case 1: 3rd Party WITHOUT AWS Account
+ * Packages:
+ * - rest_api_security : PII data protection for REST API payloads
+ * - file_security     : File encryption/decryption (coming soon)
  *
- * This backend provides:
- * - GET /api/v1/public-key : Export public key for 3rd party
- * - POST /api/v1/decrypt   : Decrypt data sent by 3rd party
+ * REST API Security (Use-Case: 3rd Party WITHOUT AWS Account):
+ * - POST /api/v1/orders : Submit order with RSA-encrypted credit card
+ * - GET /api/v1/health  : Health check
  *
- * The 3rd party client:
- * 1. Gets public key from this API (one-time)
- * 2. Encrypts their data locally using public key
- * 3. Sends encrypted data to this API
- * 4. This backend decrypts using KMS (private key never leaves KMS)
+ * Flow:
+ * 1. 3rd party receives public key via email (one-time)
+ * 2. Encrypts PII data (credit card) with public key
+ * 3. Sends order to this API
+ * 4. Backend decrypts using KMS (private key never leaves KMS)
  */
 @SpringBootApplication
 public class CompanyBackendApplication {
