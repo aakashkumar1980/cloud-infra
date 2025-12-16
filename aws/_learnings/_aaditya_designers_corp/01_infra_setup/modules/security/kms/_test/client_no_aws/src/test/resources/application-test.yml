@@ -16,5 +16,6 @@ aws:
 
 logging:
   level:
+    root: INFO
     company_backend: DEBUG
     client_no_aws: DEBUG
