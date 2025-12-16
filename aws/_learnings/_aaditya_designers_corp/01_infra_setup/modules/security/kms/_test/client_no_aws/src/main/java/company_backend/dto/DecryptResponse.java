@@ -5,14 +5,14 @@ package company_backend.dto;
  */
 public record DecryptResponse(
     String plaintext,
-    String status,
+    Boolean success,
     String message
 ) {
   public static DecryptResponse success(String plaintext) {
-    return new DecryptResponse(plaintext, "SUCCESS", "Data decrypted successfully");
+    return new DecryptResponse(plaintext, Boolean.TRUE, "Data decrypted successfully");
   }
 
   public static DecryptResponse error(String message) {
-    return new DecryptResponse(null, "ERROR", message);
+    return new DecryptResponse(null, Boolean.FALSE, message);
   }
 }
