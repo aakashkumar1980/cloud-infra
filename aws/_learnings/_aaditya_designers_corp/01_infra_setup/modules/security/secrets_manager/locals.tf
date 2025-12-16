@@ -12,7 +12,7 @@ locals {
   # Company Configuration
   # -------------------------------------------------------------------------
   company_domain      = "aadityadesigners.com"
-  secret_path_prefix  = "/aaditya_designers"
+  secret_path_prefix  = "/aaditya_designers_${var.component_version}"
 
   # -------------------------------------------------------------------------
   # Password Generation Settings

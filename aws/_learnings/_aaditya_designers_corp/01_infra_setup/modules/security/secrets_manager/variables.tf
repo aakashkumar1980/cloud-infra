@@ -12,3 +12,8 @@ variable "name_suffix" {
   description = "Suffix for resource naming in the Region"
 }
 
+variable "component_version" {
+  type        = string
+  description = "Version tag for the component"
+}
+

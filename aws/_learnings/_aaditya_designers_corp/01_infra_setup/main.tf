@@ -48,4 +48,5 @@ module "secrets_manager" {
 
   kms_key_arn = module.kms.nvirginia_key_arn
   name_suffix = local.name_suffix_nvirginia
+  component_version = local.component_version
 }

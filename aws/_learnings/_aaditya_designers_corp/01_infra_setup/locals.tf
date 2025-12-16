@@ -26,9 +26,10 @@ locals {
     lookup(local.tags_cfg.environment_tags, var.profile, {})
   )
 
+  component_version = "v1"
   # Name suffixes for each region
-  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}-${local.tags_common["managed_by"]}-v1"
-  name_suffix_london    = "${local.REGION_LONDON}-${var.profile}-${local.tags_common["company"]}-${local.tags_common["managed_by"]}-v1"
+  name_suffix_nvirginia = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}_${local.component_version}-${local.tags_common["managed_by"]}"
+  name_suffix_london    = "${local.REGION_LONDON}-${var.profile}-${local.tags_common["company"]}_${local.component_version}-${local.tags_common["managed_by"]}"
 
   # VPC names following base_network naming convention
   vpc_a_name = "vpc_a-${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["managed_by"]}"
