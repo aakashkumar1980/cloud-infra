@@ -3,6 +3,9 @@ package client_no_aws.crypto;
 import javax.crypto.Cipher;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.MGF1ParameterSpec;
@@ -19,12 +22,30 @@ import java.util.Base64;
  */
 public class RsaEncryptor {
 
+    private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
+
     private PublicKey publicKey;
 
     /**
-     * Load public key from PEM format
+     * Load public key from PEM file in resources folder
      *
-     * @param pemKey PEM-encoded public key from company API
+     * @throws IOException if file cannot be read
+     */
+    public void loadPublicKeyFromResources() throws Exception {
+        try (InputStream is = getClass().getResourceAsStream(PUBLIC_KEY_RESOURCE)) {
+            if (is == null) {
+                throw new IOException("Public key file not found: " + PUBLIC_KEY_RESOURCE +
+                        "\nPlease download the public key from AWS KMS and place it in src/test/resources/public-key.pem");
+            }
+            String pemKey = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            loadPublicKey(pemKey);
+        }
+    }
+
+    /**
+     * Load public key from PEM format string
+     *
+     * @param pemKey PEM-encoded public key
      */
     public void loadPublicKey(String pemKey) throws Exception {
         // Remove PEM headers and whitespace
@@ -49,7 +70,7 @@ public class RsaEncryptor {
      */
     public String encryptDek(byte[] dek) throws Exception {
         if (publicKey == null) {
-            throw new IllegalStateException("Public key not loaded. Call loadPublicKey() first.");
+            throw new IllegalStateException("Public key not loaded. Call loadPublicKeyFromResources() first.");
         }
 
         // Configure RSA-OAEP with SHA-256 (must match KMS algorithm)

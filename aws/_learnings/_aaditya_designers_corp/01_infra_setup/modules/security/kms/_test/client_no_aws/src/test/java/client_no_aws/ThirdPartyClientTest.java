@@ -21,11 +21,16 @@ import static org.junit.jupiter.api.Assertions.*;
  * Uses standard Java crypto (NO AWS SDK).
  *
  * Flow:
- * 1. Get public key from company API
+ * 1. Load public key from resources (received via secure email from company)
  * 2. Generate random DEK and encrypt data with AES-GCM
  * 3. Encrypt DEK with public key (RSA-OAEP)
  * 4. Send encrypted package to company API for decryption
  * 5. Verify decrypted data matches original
+ *
+ * Prerequisites:
+ * - Download public key from AWS KMS and place in src/test/resources/public-key.pem
+ * - Command: aws kms get-public-key --key-id alias/test_asymmetric_kms-... --region us-east-1 --profile dev --output text --query PublicKey | base64 -d > public-key.der
+ *   Then convert to PEM format or use AWS Console to download
  */
 @SpringBootTest(
         classes = company_backend.CompanyBackendApplication.class,
@@ -64,47 +69,21 @@ class ThirdPartyClientTest {
 
     @Test
     @Order(2)
-    @DisplayName("Get public key - Returns PEM format key")
-    void testGetPublicKey() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                baseUrl() + "/public-key",
-                String.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        JsonObject json = gson.fromJson(response.getBody(), JsonObject.class);
-        String publicKeyPem = json.get("publicKeyPem").getAsString();
-        String keyId = json.get("keyId").getAsString();
-
-        assertNotNull(publicKeyPem);
-        assertNotNull(keyId);
-        assertTrue(publicKeyPem.contains("-----BEGIN PUBLIC KEY-----"));
-        assertTrue(publicKeyPem.contains("-----END PUBLIC KEY-----"));
-
-        System.out.println("✓ Received public key");
-        System.out.println("  Key ID: " + keyId);
+    @DisplayName("Load public key from resources - PEM file exists")
+    void testLoadPublicKeyFromResources() throws Exception {
+        rsaEncryptor.loadPublicKeyFromResources();
+        System.out.println("✓ Public key loaded from src/test/resources/public-key.pem");
     }
 
     @Test
     @Order(3)
     @DisplayName("Full encryption/decryption flow - End to end test")
     void testFullEncryptionFlow() throws Exception {
-        // === Step 1: Get public key from company API ===
-        System.out.println("\n=== Step 1: Get Public Key ===");
+        // === Step 1: Load public key from resources ===
+        System.out.println("\n=== Step 1: Load Public Key from Resources ===");
 
-        ResponseEntity<String> keyResponse = restTemplate.getForEntity(
-                baseUrl() + "/public-key",
-                String.class
-        );
-        assertEquals(HttpStatus.OK, keyResponse.getStatusCode());
-
-        JsonObject keyJson = gson.fromJson(keyResponse.getBody(), JsonObject.class);
-        String publicKeyPem = keyJson.get("publicKeyPem").getAsString();
-        System.out.println("✓ Received public key from company API");
-
-        // Load public key for encryption
-        rsaEncryptor.loadPublicKey(publicKeyPem);
+        rsaEncryptor.loadPublicKeyFromResources();
+        System.out.println("✓ Public key loaded from src/test/resources/public-key.pem");
 
         // === Step 2: Encrypt data with AES-GCM ===
         System.out.println("\n=== Step 2: Encrypt Data (AES-GCM) ===");
@@ -168,13 +147,8 @@ class ThirdPartyClientTest {
     @Order(4)
     @DisplayName("Invalid encrypted DEK - Should fail decryption")
     void testInvalidEncryptedDek() throws Exception {
-        // Get public key and encrypt some data
-        ResponseEntity<String> keyResponse = restTemplate.getForEntity(
-                baseUrl() + "/public-key",
-                String.class
-        );
-        JsonObject keyJson = gson.fromJson(keyResponse.getBody(), JsonObject.class);
-        rsaEncryptor.loadPublicKey(keyJson.get("publicKeyPem").getAsString());
+        // Load public key from resources
+        rsaEncryptor.loadPublicKeyFromResources();
 
         byte[] dek = aesEncryptor.generateDek();
         AesEncryptor.EncryptionResult aesResult = aesEncryptor.encrypt("test data", dek);
@@ -204,13 +178,8 @@ class ThirdPartyClientTest {
     @Order(5)
     @DisplayName("Tampered auth tag - Should fail integrity check")
     void testTamperedAuthTag() throws Exception {
-        // Get public key and encrypt data properly
-        ResponseEntity<String> keyResponse = restTemplate.getForEntity(
-                baseUrl() + "/public-key",
-                String.class
-        );
-        JsonObject keyJson = gson.fromJson(keyResponse.getBody(), JsonObject.class);
-        rsaEncryptor.loadPublicKey(keyJson.get("publicKeyPem").getAsString());
+        // Load public key from resources
+        rsaEncryptor.loadPublicKeyFromResources();
 
         byte[] dek = aesEncryptor.generateDek();
         AesEncryptor.EncryptionResult aesResult = aesEncryptor.encrypt("secret message", dek);
