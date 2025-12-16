@@ -15,13 +15,14 @@ spring:
 aws:
   region: ${AWS_REGION:us-east-1}
   credentials:
-    access-key-id: ${AWS_ACCESS_KEY_ID}
-    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+    access-key-id:
+    secret-access-key:
   kms:
-    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/17eba7b8-309d-47c3-b09f-fba9ce759490}
+    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/7e747fbe-3f9f-49ee-bcbd-390520d6a43f}
 
 logging:
   level:
     root: INFO
     company_backend: DEBUG
     client_no_aws: DEBUG
+  pattern.console: "%d{HH:mm:ss.SSS} %-5level %c{2} - %m%n"
