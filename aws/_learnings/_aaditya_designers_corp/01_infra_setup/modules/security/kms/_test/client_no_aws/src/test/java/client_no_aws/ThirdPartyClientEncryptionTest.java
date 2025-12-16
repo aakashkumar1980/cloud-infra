@@ -12,6 +12,8 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Third Party Client Encryption Test (Use-Case 1)
@@ -37,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ThirdPartyClientEncryptionTest {
 
+  private static final Logger log = LoggerFactory.getLogger(ThirdPartyClientEncryptionTest.class);
+
   @LocalServerPort
   private int port;
 
@@ -61,7 +65,7 @@ class ThirdPartyClientEncryptionTest {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("OK", response.getBody());
-    System.out.println("✓ Health check passed");
+    log.info("✓ Health check passed");
   }
 
   @Test
@@ -69,7 +73,7 @@ class ThirdPartyClientEncryptionTest {
   @DisplayName("Load public key from resources - PEM file exists")
   void testLoadPublicKeyFromResources() throws Exception {
     rsaEncryptor.loadPublicKeyFromResources();
-    System.out.println("✓ Public key loaded from src/test/resources/public-key.pem");
+    log.info("✓ Public key loaded from src/test/resources/public-key.pem");
   }
 
   @Test
@@ -77,34 +81,31 @@ class ThirdPartyClientEncryptionTest {
   @DisplayName("Submit order with encrypted credit card - End to end test")
   void testSubmitOrderWithEncryptedCreditCard() throws Exception {
     // === Step 1: Load public key from resources ===
-    System.out.println("\n=== Step 1: Load Public Key from Resources ===");
+    log.info("\n=== Step 1: Load Public Key from Resources ===");
 
     rsaEncryptor.loadPublicKeyFromResources();
-    System.out.println("✓ Public key loaded from src/test/resources/public-key.pem");
+    log.info("✓ Public key loaded from src/test/resources/public-key.pem");
 
     // === Step 2: Create order data ===
-    System.out.println("\n=== Step 2: Create Order Data ===");
+    log.info("\n=== Step 2: Create Order Data ===");
 
     String customerName = "aakash.kumar";
     String customerAddress = "austin,texas,usa";
     String creditCardNumber = "4111111111111234";  // Test credit card number
     double orderAmount = 100.00;
 
-    System.out.println("Order Details:");
-    System.out.println("  Name: " + customerName);
-    System.out.println("  Address: " + customerAddress);
-    System.out.println("  Credit Card: " + creditCardNumber);
-    System.out.println("  Order Amount: $" + orderAmount);
+    log.info("Order Details:\n  Name: {}\n  Address: {}\n  Credit Card: {}\n  Order Amount: ${}",
+        customerName, customerAddress, creditCardNumber, orderAmount);
 
     // === Step 3: Encrypt credit card with RSA public key ===
-    System.out.println("\n=== Step 3: Encrypt Credit Card (RSA-OAEP) ===");
+    log.info("\n=== Step 3: Encrypt Credit Card (RSA-OAEP) ===");
 
     String encryptedCreditCard = rsaEncryptor.encrypt(creditCardNumber);
-    System.out.println("✓ Credit card encrypted with RSA-OAEP SHA-256");
-    System.out.println("  Encrypted (Base64): " + truncate(encryptedCreditCard, 50));
+    log.info("✓ Credit card encrypted with RSA-OAEP SHA-256\n  Encrypted (Base64): {}",
+        truncate(encryptedCreditCard, 50));
 
     // === Step 4: Submit order to company API ===
-    System.out.println("\n=== Step 4: Submit Order to API ===");
+    log.info("\n=== Step 4: Submit Order to API ===");
 
     JsonObject orderRequest = new JsonObject();
     orderRequest.addProperty("name", customerName);
@@ -123,10 +124,10 @@ class ThirdPartyClientEncryptionTest {
     );
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    System.out.println("✓ Order submitted successfully");
+    log.info("✓ Order submitted successfully");
 
     // === Step 5: Verify response ===
-    System.out.println("\n=== Step 5: Verify Response ===");
+    log.info("\n=== Step 5: Verify Response ===");
 
     JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
     assertTrue(resultJson.get("success").getAsBoolean());
@@ -134,16 +135,16 @@ class ThirdPartyClientEncryptionTest {
     String orderId = resultJson.get("orderId").getAsString();
     String maskedCard = resultJson.get("creditCardNumber").getAsString();
 
-    System.out.println("Order Response:");
-    System.out.println("  Order ID: " + orderId);
-    System.out.println("  Name: " + resultJson.get("name").getAsString());
-    System.out.println("  Address: " + resultJson.get("address").getAsString());
-    System.out.println("  Masked Credit Card: " + maskedCard);
-    System.out.println("  Order Amount: $" + resultJson.get("orderAmount").getAsDouble());
+    log.info("Order Response:\n  Order ID: {}\n  Name: {}\n  Address: {}\n  Masked Credit Card: {}\n  Order Amount: ${}",
+        orderId,
+        resultJson.get("name").getAsString(),
+        resultJson.get("address").getAsString(),
+        maskedCard,
+        resultJson.get("orderAmount").getAsDouble());
 
     // Verify masked card shows last 4 digits
     assertTrue(maskedCard.endsWith("1234"), "Masked card should show last 4 digits");
-    System.out.println("\n✓ SUCCESS: Order processed with encrypted credit card!");
+    log.info("\n✓ SUCCESS: Order processed with encrypted credit card!");
   }
 
   private String truncate(String str, int maxLen) {
