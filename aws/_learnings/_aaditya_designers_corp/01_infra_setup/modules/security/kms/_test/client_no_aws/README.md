@@ -93,7 +93,7 @@ client_no_aws/
 ./gradlew test
 
 # Or run specific test
-./gradlew test --tests "client_no_aws.ThirdPartyClientTest"
+./gradlew test --tests "client_no_aws.ThirdPartyClientEncryptionTest"
 ```
 
 ## API Endpoints

@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 )
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ThirdPartyClientTest {
+class ThirdPartyClientEncryptionTest {
 
   @LocalServerPort
   private int port;
