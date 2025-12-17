@@ -58,17 +58,17 @@ public class JweBuilder {
    * </ul>
    *
    * @param randomAESEncryptionKey       The AES secret key to wrap
-   * @param publicKey The server's RSA public key
+   * @param rsaPublicKey The server's RSA public key
    * @return JWE compact serialization string (for X-Encryption-Key header)
    * @throws RuntimeException if wrapping fails
    *
    * <h4>Example:</h4>
    * <pre>{@code
-   * String jwe = JweBuilder.wrapKey(aesKey, publicKey);
+   * String jwe = JweBuilder.wrapKey(randomAESEncryptionKey, rsaPublicKey);
    * httpHeaders.set("X-Encryption-Key", jwe);
    * }</pre>
    */
-  public static String wrapKey(SecretKey randomAESEncryptionKey, RSAPublicKey publicKey) {
+  public static String wrapKey(SecretKey randomAESEncryptionKey, RSAPublicKey rsaPublicKey) {
     try {
       // Build JWE header with algorithm specifications
       JWEHeader header = new JWEHeader.Builder(
@@ -80,7 +80,7 @@ public class JweBuilder {
       JWEObject jweObject = new JWEObject(header, new Payload(randomAESEncryptionKey.getEncoded()));
 
       // Encrypt (wrap) using RSA public key
-      jweObject.encrypt(new RSAEncrypter(publicKey));
+      jweObject.encrypt(new RSAEncrypter(rsaPublicKey));
 
       // Return compact serialization (Header.EncryptedKey.IV.Ciphertext.Tag)
       return jweObject.serialize();
