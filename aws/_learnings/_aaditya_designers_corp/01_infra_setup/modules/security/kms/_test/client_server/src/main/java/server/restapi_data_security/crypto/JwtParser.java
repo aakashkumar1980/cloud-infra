@@ -3,7 +3,11 @@ package server.restapi_data_security.crypto;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.util.Base64URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Base64;
 
 /**
  * JWT Parser - Extracts JWE components for two-step decryption via AWS KMS.
@@ -34,6 +38,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtParser {
 
+  private static final Logger log = LoggerFactory.getLogger(JwtParser.class);
+
   /**
    * Parses the JWE and extracts all components needed for decryption.
    *
@@ -44,12 +50,19 @@ public class JwtParser {
    */
   public JweComponents extractJweComponents(String jwtEncryptionMetadata) {
     try {
+      log.info("=== DEBUG: JwtParser.extractJweComponents ===");
+      log.info("DEBUG: JWE Token (first 100 chars): {}",
+          jwtEncryptionMetadata.length() > 100 ? jwtEncryptionMetadata.substring(0, 100) + "..." : jwtEncryptionMetadata);
+
       // Parse the JWT encryption metadata (JWE format)
       JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
       JWEHeader header = jweObject.getHeader();
 
       // Validate the algorithm
       String algorithm = header.getAlgorithm().getName();
+      String encMethod = header.getEncryptionMethod().getName();
+      log.info("DEBUG: JWE Header - alg={}, enc={}", algorithm, encMethod);
+
       if (!"RSA-OAEP-256".equals(algorithm)) {
         throw new IllegalArgumentException(
             "Unsupported key encryption algorithm: " + algorithm + ". Expected RSA-OAEP-256");
@@ -60,6 +73,12 @@ public class JwtParser {
       byte[] iv = jweObject.getIV().decode();
       byte[] ciphertext = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
+
+      log.info("DEBUG: JWE Components extracted:");
+      log.info("DEBUG:   encryptedCek size: {} bytes, base64: {}", encryptedCek.length, Base64.getEncoder().encodeToString(encryptedCek));
+      log.info("DEBUG:   iv size: {} bytes, base64: {}", iv.length, Base64.getEncoder().encodeToString(iv));
+      log.info("DEBUG:   ciphertext size: {} bytes, base64: {}", ciphertext.length, Base64.getEncoder().encodeToString(ciphertext));
+      log.info("DEBUG:   authTag size: {} bytes, base64: {}", authTag.length, Base64.getEncoder().encodeToString(authTag));
 
       return new JweComponents(encryptedCek, iv, ciphertext, authTag);
 

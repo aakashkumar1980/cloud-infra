@@ -3,6 +3,8 @@ package client.service;
 import client.crypto.AESEncryptionKeyGenerator;
 import client.crypto.FieldEncryptor;
 import client.crypto.JwtBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,7 @@ import java.util.Base64;
 @Service
 public class HybridEncryptionService {
 
+  private static final Logger log = LoggerFactory.getLogger(HybridEncryptionService.class);
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
   private final FieldEncryptor fieldEncryptor;
@@ -106,7 +109,14 @@ public class HybridEncryptionService {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
     this.aesEncryptionKey = aesEncryptionKeyGenerator.generateAESEncryptionKey();
+
+    log.info("=== DEBUG: CLIENT - generateAESEncryptionKeyAndAddItToJWTMetadata ===");
+    log.info("DEBUG: CLIENT - Generated AES key size: {} bytes", aesEncryptionKey.getEncoded().length);
+    log.info("DEBUG: CLIENT - Generated AES key base64: {}", Base64.getEncoder().encodeToString(aesEncryptionKey.getEncoded()));
+
     this.jwtEncryptionMetadata = jwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey(aesEncryptionKey, rsaPublicKey);
+    log.info("DEBUG: CLIENT - JWE metadata (first 100 chars): {}",
+        jwtEncryptionMetadata.length() > 100 ? jwtEncryptionMetadata.substring(0, 100) + "..." : jwtEncryptionMetadata);
   }
 
   /**

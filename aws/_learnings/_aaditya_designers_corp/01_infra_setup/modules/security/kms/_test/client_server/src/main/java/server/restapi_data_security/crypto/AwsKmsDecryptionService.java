@@ -92,22 +92,33 @@ public class AwsKmsDecryptionService {
    * @throws RuntimeException if decryption fails
    */
   public SecretKey decryptAESKeyFromJweComponents(JwtParser.JweComponents jweComponents) {
-    log.debug("Unwrapping AES key via KMS (encrypted CEK size: {} bytes)", jweComponents.encryptedCek().length);
+    log.info("=== DEBUG: AwsKmsDecryptionService.decryptAESKeyFromJweComponents ===");
+    log.info("DEBUG: Input - encrypted CEK size: {} bytes", jweComponents.encryptedCek().length);
 
     try {
       // STEP 6a: Decrypt CEK via KMS
+      log.info("DEBUG: Step 6a - Calling KMS to decrypt CEK...");
       byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());
-      log.debug("CEK decrypted successfully (CEK size: {} bytes)", cek.length);
+      log.info("DEBUG: Step 6a - CEK decrypted successfully:");
+      log.info("DEBUG:   CEK size: {} bytes", cek.length);
+      log.info("DEBUG:   CEK base64: {}", java.util.Base64.getEncoder().encodeToString(cek));
 
       // STEP 6b: Decrypt JWE payload using CEK to get original AES key
+      log.info("DEBUG: Step 6b - Decrypting JWE payload with CEK...");
+      log.info("DEBUG:   Using IV size: {} bytes", jweComponents.iv().length);
+      log.info("DEBUG:   Using ciphertext size: {} bytes", jweComponents.ciphertext().length);
+      log.info("DEBUG:   Using authTag size: {} bytes", jweComponents.authTag().length);
+
       byte[] aesKeyBytes = decryptJwePayload(cek, jweComponents.iv(),
           jweComponents.ciphertext(), jweComponents.authTag());
-      log.debug("AES key extracted successfully (key size: {} bytes)", aesKeyBytes.length);
+      log.info("DEBUG: Step 6b - AES key extracted successfully:");
+      log.info("DEBUG:   AES key size: {} bytes", aesKeyBytes.length);
+      log.info("DEBUG:   AES key base64: {}", java.util.Base64.getEncoder().encodeToString(aesKeyBytes));
 
       return new SecretKeySpec(aesKeyBytes, "AES");
 
     } catch (Exception e) {
-      log.error("Failed to unwrap AES key: {}", e.getMessage());
+      log.error("DEBUG: FAILED to unwrap AES key: {}", e.getMessage(), e);
       throw new RuntimeException("AES key unwrap failed: " + e.getMessage(), e);
     }
   }
