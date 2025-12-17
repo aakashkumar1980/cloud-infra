@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
     classes = server.ServerApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
+@org.springframework.context.annotation.ComponentScan(basePackages = {"client", "server"})
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ClientRESTAPIEncryptionTest {
@@ -49,8 +50,10 @@ class ClientRESTAPIEncryptionTest {
   @Autowired
   private TestRestTemplate restTemplate;
 
+  @Autowired
+  private HybridEncryptionService hybridEncryptionService;
+
   private final Gson gson = new Gson();
-  private final HybridEncryptionService hybridEncryptionService = new HybridEncryptionService();
 
   private String baseUrl() {
     return "http://localhost:" + port + "/api/v1";
