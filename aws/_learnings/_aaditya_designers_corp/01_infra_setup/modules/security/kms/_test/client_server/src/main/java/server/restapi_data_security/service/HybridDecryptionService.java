@@ -3,7 +3,7 @@ package server.restapi_data_security.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import server.restapi_data_security.crypto.AESEncryptionKeyUnwrapper;
+import server.restapi_data_security.crypto.AwsKmsDecryptionService;
 import server.restapi_data_security.crypto.FieldDecryptor;
 import server.restapi_data_security.crypto.JwtParser;
 
@@ -25,7 +25,7 @@ import javax.crypto.SecretKey;
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► AESEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS(encryptedKey)  │ │
+ * │  │ ► awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedKey)  │ │
  * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
  * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -53,16 +53,16 @@ public class HybridDecryptionService {
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
   private final JwtParser jwtParser;
-  private final AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper;
+  private final AwsKmsDecryptionService awsKmsDecryptionService;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
       JwtParser jwtParser,
-      AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper,
+      AwsKmsDecryptionService awsKmsDecryptionService,
       FieldDecryptor fieldDecryptor
   ) {
     this.jwtParser = jwtParser;
-    this.aesEncryptionKeyUnwrapper = aesEncryptionKeyUnwrapper;
+    this.awsKmsDecryptionService = awsKmsDecryptionService;
     this.fieldDecryptor = fieldDecryptor;
   }
 
@@ -119,7 +119,7 @@ public class HybridDecryptionService {
     byte[] encryptedAESEncryptionKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return aesEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS(encryptedAESEncryptionKey);
+    return awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedAESEncryptionKey);
   }
 
   /**

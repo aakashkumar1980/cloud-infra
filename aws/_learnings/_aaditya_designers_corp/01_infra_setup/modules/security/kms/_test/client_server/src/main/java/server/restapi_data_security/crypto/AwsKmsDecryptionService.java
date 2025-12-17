@@ -53,14 +53,14 @@ import javax.crypto.spec.SecretKeySpec;
  * <h3>Usage Example:</h3>
  * <pre>{@code
  * byte[] encryptedKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
- * SecretKey aesKey = aesEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS(encryptedKey);
+ * SecretKey aesKey = aesEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedKey);
  * String plaintext = fieldDecryptor.decrypt(encryptedField, aesKey);
  * }</pre>
  */
 @Component
-public class AESEncryptionKeyUnwrapper {
+public class AwsKmsDecryptionService {
 
-  private static final Logger log = LoggerFactory.getLogger(AESEncryptionKeyUnwrapper.class);
+  private static final Logger log = LoggerFactory.getLogger(AwsKmsDecryptionService.class);
 
   private final KmsClient kmsClient;
   private final String keyArn;
@@ -71,7 +71,7 @@ public class AESEncryptionKeyUnwrapper {
    * @param kmsClient The AWS KMS client (injected by Spring)
    * @param keyArn    The ARN of the asymmetric KMS key (from application.yml)
    */
-  public AESEncryptionKeyUnwrapper(
+  public AwsKmsDecryptionService(
       KmsClient kmsClient,
       @Value("${aws.kms.asymmetric-key-arn}") String keyArn
   ) {
@@ -86,7 +86,7 @@ public class AESEncryptionKeyUnwrapper {
    * @return The unwrapped AES-256 secret key
    * @throws RuntimeException if KMS decryption fails
    */
-  public SecretKey decryptEncryptedAESEncryptionKeyByKMS(byte[] encryptedAESEncryptionKey) {
+  public SecretKey decryptEncryptedAESEncryptionKeyByAWSKMS(byte[] encryptedAESEncryptionKey) {
     log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", encryptedAESEncryptionKey.length);
 
     try {
