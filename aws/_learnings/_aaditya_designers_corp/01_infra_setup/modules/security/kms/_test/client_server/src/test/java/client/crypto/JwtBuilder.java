@@ -40,12 +40,12 @@ public class JwtBuilder {
   /**
    * Wraps an AES key inside a JWE using RSA public key encryption.
    *
-   * @param randomAESEncryptionKey The AES secret key to wrap
+   * @param aesEncryptionKey The AES secret key to wrap
    * @param rsaPublicKey           The server's RSA public key
    * @return JWE compact serialization string (for X-Encryption-Key header)
    * @throws RuntimeException if wrapping fails
    */
-  public String wrapKey(SecretKey randomAESEncryptionKey, RSAPublicKey rsaPublicKey) {
+  public String wrapAndEncryptAESEncryptionKeyByRSAPublicKey(SecretKey aesEncryptionKey, RSAPublicKey rsaPublicKey) {
     try {
       // Build JWE header with algorithm specifications
       JWEHeader header = new JWEHeader.Builder(
@@ -54,7 +54,7 @@ public class JwtBuilder {
       ).contentType("JWT").build();
 
       // Create JWE object with the AES key bytes as payload
-      JWEObject jweObject = new JWEObject(header, new Payload(randomAESEncryptionKey.getEncoded()));
+      JWEObject jweObject = new JWEObject(header, new Payload(aesEncryptionKey.getEncoded()));
 
       // Encrypt (wrap) using RSA public key
       jweObject.encrypt(new RSAEncrypter(rsaPublicKey));

@@ -28,7 +28,7 @@ import java.util.Base64;
  * │                                 ▼                                            │
  * │  STEP 2+3: generateAESEncryptionKeyAndAddItToJWTMetadata()        │
  * │  ► fieldEncryptor.generateAESEncryptionKey() - Create 256-bit AES DEK  │
- * │  ► jwtBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
+ * │  ► jwtBuilder.wrapAndEncryptAESEncryptionKeyByRSAPublicKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
  * │  ► fieldEncryptor.encrypt(plaintext, dek)                                    │
@@ -105,7 +105,7 @@ public class HybridEncryptionService {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
     this.aesEncryptionKey = aesEncryptionKeyGenerator.generateAESEncryptionKey();
-    this.jwtEncryptionMetadata = jwtBuilder.wrapKey(aesEncryptionKey, rsaPublicKey);
+    this.jwtEncryptionMetadata = jwtBuilder.wrapAndEncryptAESEncryptionKeyByRSAPublicKey(aesEncryptionKey, rsaPublicKey);
   }
 
   /**

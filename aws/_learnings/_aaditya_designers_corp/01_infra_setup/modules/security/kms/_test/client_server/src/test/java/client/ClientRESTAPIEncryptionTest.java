@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <ol>
  *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
  *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateAESEncryptionKey()</li>
- *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapKey()</li>
+ *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapAndEncryptAESEncryptionKeyByRSAPublicKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  * </ol>
  *
@@ -76,7 +76,7 @@ class ClientRESTAPIEncryptionTest {
     // Step 2: Generate AES encryption key and wrap in JWE
     log.info("\n=== Step 2: Generate AES Key & Create JWE Metadata ===");
     hybridEncryptionService.generateAESEncryptionKeyAndAddItToJWTMetadata();
-    log.info("Generated 256-bit AES key and wrapped in JWE");
+    log.info("Generated 256-bit AES key and wrapped in JWE by encrypting with RSA-4096 public key");
 
     // Step 3: Define order data
     log.info("\n=== Step 3: Order Data ===");
