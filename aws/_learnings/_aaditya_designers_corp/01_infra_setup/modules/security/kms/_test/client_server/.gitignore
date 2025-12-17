@@ -31,3 +31,4 @@
 /build/test-results/test/TEST-client.ClientRESTAPIEncryptionTest.xml
 /build/tmp/compileJava/previous-compilation-data.bin
 /build/tmp/compileTestJava/previous-compilation-data.bin
+/build/classes/java/main/server/restapi_data_security/crypto/JwtParser$JweComponents.class
