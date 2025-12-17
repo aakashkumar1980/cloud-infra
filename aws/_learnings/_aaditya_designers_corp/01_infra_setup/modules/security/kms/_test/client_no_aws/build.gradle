@@ -25,6 +25,9 @@ dependencies {
     implementation 'software.amazon.awssdk:kms'
     implementation 'software.amazon.awssdk:auth'
 
+    // Nimbus JOSE+JWT - Industry standard JWE library
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 

@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * Order response after processing
  *
- * Contains order confirmation with decrypted credit card (masked for display).
+ * Contains order confirmation with decrypted PII fields (masked for display).
  */
 public record OrderResponse(
     Boolean success,
@@ -13,23 +13,40 @@ public record OrderResponse(
     String orderId,
     String name,
     String address,
-    String creditCardNumber,  // Decrypted and masked (e.g., ****-****-****-1234)
-    BigDecimal orderAmount
+    String dateOfBirth,       // Decrypted (could be masked if needed)
+    BigDecimal orderAmount,
+    CardDetailsResponse cardDetails
 ) {
-  public static OrderResponse success(String orderId, String name, String address,
-                                      String maskedCreditCard, BigDecimal orderAmount) {
+  /**
+   * Nested response for card details (masked)
+   */
+  public record CardDetailsResponse(
+      String creditCardNumber,  // Masked: ****-****-****-1234
+      String ssn                // Masked: ***-**-6789
+  ) {}
+
+  public static OrderResponse success(
+      String orderId,
+      String name,
+      String address,
+      String dateOfBirth,
+      BigDecimal orderAmount,
+      String maskedCreditCard,
+      String maskedSsn
+  ) {
     return new OrderResponse(
         Boolean.TRUE,
         "Order submitted successfully",
         orderId,
         name,
         address,
-        maskedCreditCard,
-        orderAmount
+        dateOfBirth,
+        orderAmount,
+        new CardDetailsResponse(maskedCreditCard, maskedSsn)
     );
   }
 
   public static OrderResponse error(String message) {
-    return new OrderResponse(Boolean.FALSE, message, null, null, null, null, null);
+    return new OrderResponse(Boolean.FALSE, message, null, null, null, null, null, null);
   }
 }
