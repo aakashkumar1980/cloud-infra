@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import server.restapi_data_security.crypto.FieldDecryptor;
-import server.restapi_data_security.crypto.JweParser;
+import server.restapi_data_security.crypto.JwtParser;
 import server.restapi_data_security.crypto.KmsKeyUnwrapper;
 
 import javax.crypto.SecretKey;
@@ -19,7 +19,7 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JweParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
@@ -52,16 +52,16 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final JweParser jweParser;
+  private final JwtParser jwtParser;
   private final KmsKeyUnwrapper kmsKeyUnwrapper;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
-      JweParser jweParser,
+      JwtParser jwtParser,
       KmsKeyUnwrapper kmsKeyUnwrapper,
       FieldDecryptor fieldDecryptor
   ) {
-    this.jweParser = jweParser;
+    this.jwtParser = jwtParser;
     this.kmsKeyUnwrapper = kmsKeyUnwrapper;
     this.fieldDecryptor = fieldDecryptor;
   }
@@ -115,8 +115,8 @@ public class HybridDecryptionService {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWE to extract encrypted key bytes
-    byte[] encryptedAESKey = jweParser.extractEncryptedAESKey(jwtEncryptionMetadata);
+    // STEP 5: Parse JWT metadata to extract encrypted key bytes
+    byte[] encryptedAESKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
     return kmsKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey);

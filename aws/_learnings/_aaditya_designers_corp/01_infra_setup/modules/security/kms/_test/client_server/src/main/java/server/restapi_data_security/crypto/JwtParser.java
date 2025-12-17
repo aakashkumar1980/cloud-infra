@@ -6,16 +6,16 @@ import com.nimbusds.jose.util.Base64URL;
 import org.springframework.stereotype.Component;
 
 /**
- * JWE Parser - Extracts the encrypted key from a JWE token.
+ * JWT Parser - Extracts the encrypted AES key from JWT encryption metadata.
  *
- * <h2>STEP 5 (BACKEND): Extract Encrypted Key from JWE</h2>
+ * <h2>STEP 5 (BACKEND): Extract Encrypted AES Key from JWT Metadata</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  JWE TOKEN STRUCTURE                                                   │
+ * │  JWT ENCRYPTION METADATA (JWE Format)                                  │
  * │                                                                        │
  * │  Header.EncryptedKey.IV.Ciphertext.AuthTag                            │
  * │    │         │                                                         │
- * │    │         └── RSA-encrypted DEK (THIS IS WHAT WE EXTRACT)          │
+ * │    │         └── RSA-encrypted AES key (THIS IS WHAT WE EXTRACT)      │
  * │    │                                                                   │
  * │    └── {"alg":"RSA-OAEP-256","enc":"A256GCM"}                         │
  * │                                                                        │
@@ -30,19 +30,19 @@ import org.springframework.stereotype.Component;
  * in hardware (HSM). The private key never leaves AWS.</p>
  */
 @Component
-public class JweParser {
+public class JwtParser {
 
   /**
-   * Extracts the encrypted AES key bytes from a JWE token.
+   * Extracts the encrypted AES key bytes from JWT encryption metadata.
    *
-   * @param jwtEncryptionMetadata The JWE token from the X-Encryption-Key header
+   * @param jwtEncryptionMetadata The JWT encryption metadata from X-Encryption-Key header
    * @return The encrypted key bytes (RSA-encrypted AES key)
-   * @throws IllegalArgumentException if the JWE format is invalid
+   * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if parsing fails
    */
   public byte[] extractEncryptedAESKey(String jwtEncryptionMetadata) {
     try {
-      // Parse the JWE token
+      // Parse the JWT encryption metadata (JWE format)
       JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
       JWEHeader header = jweObject.getHeader();
 
@@ -60,14 +60,14 @@ public class JweParser {
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to parse JWE token: " + e.getMessage(), e);
+      throw new RuntimeException("Failed to parse JWT encryption metadata: " + e.getMessage(), e);
     }
   }
 
   /**
-   * Validates a JWE token without extracting the key.
+   * Validates JWT encryption metadata without extracting the key.
    *
-   * @param jwtEncryptionMetadata The JWE token to validate
+   * @param jwtEncryptionMetadata The JWT encryption metadata to validate
    * @return true if valid, false otherwise
    */
   public boolean isValid(String jwtEncryptionMetadata) {
