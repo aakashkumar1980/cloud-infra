@@ -1,9 +1,9 @@
-package company_backend.rest_api_security.service;
+package server.restapi_data_security.service;
 
-import company_backend.rest_api_security.crypto.HybridDecryptionHelper;
-import company_backend.rest_api_security.dto.CardDetails;
-import company_backend.rest_api_security.dto.OrderRequest;
-import company_backend.rest_api_security.dto.OrderResponse;
+import server.restapi_data_security.crypto.HybridDecryptionHelper;
+import server.restapi_data_security.dto.CardDetails;
+import server.restapi_data_security.dto.OrderRequest;
+import server.restapi_data_security.dto.OrderResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

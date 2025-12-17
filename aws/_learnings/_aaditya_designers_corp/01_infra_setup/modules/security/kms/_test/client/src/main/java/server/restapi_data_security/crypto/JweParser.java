@@ -1,4 +1,4 @@
-package company_backend.rest_api_security.crypto;
+package server.restapi_data_security.crypto;
 
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
@@ -7,16 +7,20 @@ import com.nimbusds.jose.util.Base64URL;
 /**
  * JWE Parser - Extracts the encrypted key from a JWE token.
  *
- * <p>When a client sends an encrypted request, they include the wrapped
- * encryption key in the X-Encryption-Key header as a JWE (JSON Web Encryption)
- * token. This utility parses that token and extracts the encrypted key bytes
- * that can then be sent to AWS KMS for unwrapping.</p>
- *
- * <h3>JWE Structure:</h3>
+ * <h2>STEP 5 (BACKEND): Extract Encrypted Key from JWE</h2>
  * <pre>
- * Header.EncryptedKey.IV.Ciphertext.AuthTag
- *          ↑
- *          └── This is what we extract
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  JWE TOKEN STRUCTURE                                                   │
+ * │                                                                        │
+ * │  Header.EncryptedKey.IV.Ciphertext.AuthTag                            │
+ * │    │         │                                                         │
+ * │    │         └── RSA-encrypted DEK (THIS IS WHAT WE EXTRACT)          │
+ * │    │                                                                   │
+ * │    └── {"alg":"RSA-OAEP-256","enc":"A256GCM"}                         │
+ * │                                                                        │
+ * │  Input:  X-Encryption-Key header value (JWE compact serialization)    │
+ * │  Output: byte[] encryptedKey (for KMS unwrapping in Step 6)           │
+ * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
  * <h3>Why Parse Instead of Decrypt?</h3>

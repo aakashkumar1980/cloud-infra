@@ -1,4 +1,4 @@
-package client_no_aws.crypto;
+package client.crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -11,10 +11,30 @@ import java.util.Base64;
 /**
  * Field Encryptor - Encrypts individual fields using AES-256-GCM.
  *
- * <p>This utility provides symmetric encryption for sensitive data fields like
- * credit card numbers, SSN, dates of birth, etc. Each field is encrypted with
- * a unique IV (Initialization Vector) to ensure that identical values produce
- * different ciphertexts.</p>
+ * <h2>STEP 2 & 4 (CLIENT): Generate DEK and Encrypt PII Fields</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  CLIENT ENCRYPTION FLOW                                                │
+ * │                                                                        │
+ * │  STEP 2: generateKey()                                                 │
+ * │  ┌─────────────────────────────────────────────────────────────────┐  │
+ * │  │  Generate DEK (Data Encryption Key)                             │  │
+ * │  │  ► KeyGenerator.getInstance("AES")                              │  │
+ * │  │  ► keyGen.init(256, SecureRandom)                               │  │
+ * │  │  Output: 256-bit AES SecretKey                                  │  │
+ * │  └─────────────────────────────────────────────────────────────────┘  │
+ * │                                                                        │
+ * │  STEP 4: encrypt(plaintext, key)                                      │
+ * │  ┌─────────────────────────────────────────────────────────────────┐  │
+ * │  │  For each PII field (DOB, Credit Card, SSN):                    │  │
+ * │  │  1. Generate random 96-bit IV                                   │  │
+ * │  │  2. Initialize AES-256-GCM cipher                               │  │
+ * │  │  3. Encrypt plaintext → ciphertext + authTag                    │  │
+ * │  │  4. Format: BASE64(IV).BASE64(Ciphertext).BASE64(AuthTag)       │  │
+ * │  │  Output: "abc123.xyz789.def456" (~60 chars)                     │  │
+ * │  └─────────────────────────────────────────────────────────────────┘  │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  *
  * <h3>Output Format:</h3>
  * <pre>

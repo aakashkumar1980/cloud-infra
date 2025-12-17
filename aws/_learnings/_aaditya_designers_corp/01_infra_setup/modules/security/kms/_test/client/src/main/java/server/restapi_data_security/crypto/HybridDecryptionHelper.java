@@ -1,4 +1,4 @@
-package company_backend.rest_api_security.crypto;
+package server.restapi_data_security.crypto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
