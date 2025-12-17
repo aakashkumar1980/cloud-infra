@@ -35,7 +35,7 @@ import java.security.interfaces.RSAPublicKey;
  * can unwrap it using their private key stored in AWS KMS.</p>
  */
 @Component
-public class JweBuilder {
+public class JwtBuilder {
 
   /**
    * Wraps an AES key inside a JWE using RSA public key encryption.

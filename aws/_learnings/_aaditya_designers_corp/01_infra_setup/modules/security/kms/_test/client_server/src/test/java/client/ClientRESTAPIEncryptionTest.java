@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <ol>
  *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
  *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateRandomAESEncryptionKey()</li>
- *   <li>Wrap DEK in JWE for transport → JweBuilder.wrapKey()</li>
+ *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  * </ol>
  *

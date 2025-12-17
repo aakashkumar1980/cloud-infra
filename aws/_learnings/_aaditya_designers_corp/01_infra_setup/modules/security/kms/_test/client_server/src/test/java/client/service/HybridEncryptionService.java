@@ -1,7 +1,8 @@
 package client.service;
 
+import client.crypto.AESEncryptionKeyGenerator;
 import client.crypto.FieldEncryptor;
-import client.crypto.JweBuilder;
+import client.crypto.JwtBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,7 @@ import java.util.Base64;
  * │                                 ▼                                            │
  * │  STEP 2+3: generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()        │
  * │  ► fieldEncryptor.generateRandomAESEncryptionKey() - Create 256-bit AES DEK  │
- * │  ► jweBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
+ * │  ► jwtBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
  * │  ► fieldEncryptor.encrypt(plaintext, dek)                                    │
@@ -44,16 +45,20 @@ public class HybridEncryptionService {
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
   private final FieldEncryptor fieldEncryptor;
-  private final JweBuilder jweBuilder;
+  private final JwtBuilder jwtBuilder;
 
   private RSAPublicKey rsaPublicKey;
   private SecretKey randomAESEncryptionKey;
   private String jwtEncryptionMetadata;
+  private AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   @Autowired
-  public HybridEncryptionService(FieldEncryptor fieldEncryptor, JweBuilder jweBuilder) {
+  public HybridEncryptionService(FieldEncryptor fieldEncryptor,
+    JwtBuilder jwtBuilder,
+    AESEncryptionKeyGenerator aesEncryptionKeyGenerator) {
     this.fieldEncryptor = fieldEncryptor;
-    this.jweBuilder = jweBuilder;
+    this.jwtBuilder = jwtBuilder;
+    this.aesEncryptionKeyGenerator = aesEncryptionKeyGenerator;
   }
 
   /**
@@ -99,8 +104,8 @@ public class HybridEncryptionService {
     if (rsaPublicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
-    this.randomAESEncryptionKey = fieldEncryptor.generateRandomAESEncryptionKey();
-    this.jwtEncryptionMetadata = jweBuilder.wrapKey(randomAESEncryptionKey, rsaPublicKey);
+    this.randomAESEncryptionKey = aesEncryptionKeyGenerator.generateRandomAESEncryptionKey();
+    this.jwtEncryptionMetadata = jwtBuilder.wrapKey(randomAESEncryptionKey, rsaPublicKey);
   }
 
   /**
