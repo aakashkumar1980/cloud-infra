@@ -28,11 +28,12 @@ dependencies {
     // Nimbus JOSE+JWT - Industry standard JWE library
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
+    // JSON processing for client tests (NO AWS SDK in tests!)
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    // JSON processing for client tests (NO AWS SDK in tests!)
-    testImplementation 'com.google.code.gson:gson:2.10.1'
 }
 
 tasks.named('test') {

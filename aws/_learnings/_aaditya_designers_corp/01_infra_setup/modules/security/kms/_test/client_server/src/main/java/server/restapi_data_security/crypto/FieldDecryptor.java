@@ -19,7 +19,7 @@ import java.util.Base64;
  * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
  * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
- * │  Key:   randomAESEncryptionKey (unwrapped via KMS in Step 6)          │
+ * │  Key:   aesEncryptionKey (unwrapped via KMS in Step 6)                │
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Split encrypted string → iv, encryptedText, authTag               │
@@ -56,12 +56,12 @@ public class FieldDecryptor {
    * Decrypts an encrypted field value.
    *
    * @param encryptedField The encrypted string in format: iv.encryptedText.authTag
-   * @param randomAESEncryptionKey The AES secret key (unwrapped from JWE via KMS)
+   * @param aesEncryptionKey The AES secret key (unwrapped from JWE via KMS)
    * @return The decrypted plaintext string
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if decryption fails (wrong key or tampered data)
    */
-  public String decrypt(String encryptedField, SecretKey randomAESEncryptionKey) {
+  public String decrypt(String encryptedField, SecretKey aesEncryptionKey) {
     log.debug("[STEP 7] Decrypting field (length: {} chars)", encryptedField.length());
 
     // Validate and split the encrypted field
@@ -96,19 +96,19 @@ public class FieldDecryptor {
 
       /**
        * STEP 2: Combine encryptedText and authTag (GCM expects them together)
-       * Then decrypt using the randomAESEncryptionKey + IV
+       * Then decrypt using the aesEncryptionKey + IV
        */
       byte[] encryptedTextWithTag = new byte[encryptedText.length + authTag.length];
       System.arraycopy(encryptedText, 0, encryptedTextWithTag, 0, encryptedText.length);
       System.arraycopy(authTag, 0, encryptedTextWithTag, encryptedText.length, authTag.length);
 
       log.debug("[STEP 7] AES Key - Algorithm: {} | Size: {} bytes",
-          randomAESEncryptionKey.getAlgorithm(), randomAESEncryptionKey.getEncoded().length);
+          aesEncryptionKey.getAlgorithm(), aesEncryptionKey.getEncoded().length);
 
       // Initialize cipher for decryption
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, randomAESEncryptionKey, gcmSpec);
+      cipher.init(Cipher.DECRYPT_MODE, aesEncryptionKey, gcmSpec);
 
       // Decrypt and return plaintext
       byte[] plainText = cipher.doFinal(encryptedTextWithTag);

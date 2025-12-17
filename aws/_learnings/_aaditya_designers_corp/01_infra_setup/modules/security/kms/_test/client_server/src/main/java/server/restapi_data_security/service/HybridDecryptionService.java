@@ -3,7 +3,7 @@ package server.restapi_data_security.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import server.restapi_data_security.crypto.AESEncryptionKeyUnwrapper;
+import server.restapi_data_security.crypto.AwsKmsDecryptionService;
 import server.restapi_data_security.crypto.FieldDecryptor;
 import server.restapi_data_security.crypto.JwtParser;
 
@@ -19,13 +19,13 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JwtParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractAESEncryptionKey(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► AESEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey)  │ │
+ * │  │ ► awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedKey)  │ │
  * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
  * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -53,16 +53,16 @@ public class HybridDecryptionService {
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
   private final JwtParser jwtParser;
-  private final AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper;
+  private final AwsKmsDecryptionService awsKmsDecryptionService;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
       JwtParser jwtParser,
-      AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper,
+      AwsKmsDecryptionService awsKmsDecryptionService,
       FieldDecryptor fieldDecryptor
   ) {
     this.jwtParser = jwtParser;
-    this.aesEncryptionKeyUnwrapper = aesEncryptionKeyUnwrapper;
+    this.awsKmsDecryptionService = awsKmsDecryptionService;
     this.fieldDecryptor = fieldDecryptor;
   }
 
@@ -84,12 +84,12 @@ public class HybridDecryptionService {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
     // STEP 5+6: Extract and unwrap the AES key (1 KMS call)
-    SecretKey randomAESEncryptionKey = unwrapAESKeyFromJwtMetadata(jwtEncryptionMetadata);
+    SecretKey aesEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
 
     // STEP 7: Decrypt each field locally (no additional KMS calls)
-    String dob = fieldDecryptor.decrypt(encryptedDob, randomAESEncryptionKey);
-    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, randomAESEncryptionKey);
-    String ssn = fieldDecryptor.decrypt(encryptedSsn, randomAESEncryptionKey);
+    String dob = fieldDecryptor.decrypt(encryptedDob, aesEncryptionKey);
+    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, aesEncryptionKey);
+    String ssn = fieldDecryptor.decrypt(encryptedSsn, aesEncryptionKey);
 
     log.info("All fields decrypted successfully");
     return new DecryptedFields(dob, creditCard, ssn);
@@ -103,23 +103,23 @@ public class HybridDecryptionService {
    * @return The decrypted plaintext value
    */
   public String decryptField(String jwtEncryptionMetadata, String encryptedField) {
-    SecretKey randomAESEncryptionKey = unwrapAESKeyFromJwtMetadata(jwtEncryptionMetadata);
+    SecretKey randomAESEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
     return fieldDecryptor.decrypt(encryptedField, randomAESEncryptionKey);
   }
 
   /**
    * Extracts and unwraps the AES encryption key from the JWT metadata header.
    */
-  private SecretKey unwrapAESKeyFromJwtMetadata(String jwtEncryptionMetadata) {
+  private SecretKey extractAESEncryptionKeyFromJwtMetadata(String jwtEncryptionMetadata) {
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
     // STEP 5: Parse JWT metadata to extract encrypted key bytes
-    byte[] encryptedAESKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
+    byte[] encryptedAESEncryptionKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return aesEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey);
+    return awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedAESEncryptionKey);
   }
 
   /**
