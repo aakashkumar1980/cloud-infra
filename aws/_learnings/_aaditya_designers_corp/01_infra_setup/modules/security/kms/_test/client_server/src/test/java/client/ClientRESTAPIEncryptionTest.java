@@ -34,10 +34,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * </ol>
  */
 @SpringBootTest(
-    classes = server.ServerApplication.class,
+    classes = {server.ServerApplication.class, TestConfig.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@org.springframework.context.annotation.ComponentScan(basePackages = {"client", "server"})
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ClientRESTAPIEncryptionTest {
