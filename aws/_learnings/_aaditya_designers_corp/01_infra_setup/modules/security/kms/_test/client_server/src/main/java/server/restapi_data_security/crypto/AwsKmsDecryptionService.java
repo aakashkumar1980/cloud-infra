@@ -10,57 +10,56 @@ import software.amazon.awssdk.services.kms.model.DecryptRequest;
 import software.amazon.awssdk.services.kms.model.DecryptResponse;
 import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec;
 
+import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
  * AES Encryption Key Unwrapper - Unwraps the AES encryption key using AWS KMS.
  *
- * <h2>STEP 6 (BACKEND): Unwrap AES Key via AWS KMS (1 API Call)</h2>
+ * <h2>STEP 6 (BACKEND): Two-Step AES Key Unwrapping via AWS KMS</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  AES KEY UNWRAPPING VIA KMS                                            │
+ * │  AES KEY UNWRAPPING VIA KMS (Two-Step Process)                         │
  * │                                                                        │
+ * │  STEP 6a: Decrypt CEK via KMS                                         │
+ * │  ─────────────────────────────────────────────────────────────────────│
  * │  SERVER                               AWS KMS                          │
  * │    │                                    │                              │
  * │    │ ─── DecryptRequest ──────────────► │                              │
- * │    │     (encryptedAESKey, keyArn,      │                              │
+ * │    │     (encryptedCEK, keyArn,         │                              │
  * │    │      RSAES_OAEP_SHA_256)           │                              │
- * │    │                                    │                              │
  * │    │                                    │  ┌────────────────────────┐  │
  * │    │                                    │  │ RSA Private Key        │  │
  * │    │                                    │  │ (NEVER leaves HSM)     │  │
  * │    │                                    │  └────────────────────────┘  │
- * │    │                                    │                              │
  * │    │ ◄── DecryptResponse ────────────── │                              │
- * │    │     (plaintext AES key: 256-bit)   │                              │
- * │    │                                    │                              │
+ * │    │     (plaintext CEK: 256-bit)       │                              │
  * │                                                                        │
- * │  Input:  byte[] encryptedAESKey (from JwtParser Step 5)               │
- * │  Output: SecretKey randomAESEncryptionKey (for field decryption)      │
+ * │  STEP 6b: Decrypt JWE Payload Locally                                 │
+ * │  ─────────────────────────────────────────────────────────────────────│
+ * │  Using the decrypted CEK + IV + AuthTag from JWE:                     │
+ * │    ► Decrypt JWE ciphertext using AES-256-GCM                         │
+ * │    ► Output: Original AES encryption key (for field decryption)       │
  * │                                                                        │
  * │  NOTE: This is the ONLY KMS API call per request!                     │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
- * <h3>Why Use KMS?</h3>
- * <ul>
- *   <li><b>Security:</b> Private key NEVER leaves AWS KMS hardware (HSM)</li>
- *   <li><b>Audit:</b> All key usage is logged in CloudTrail</li>
- *   <li><b>Compliance:</b> Meets regulatory requirements (PCI-DSS, HIPAA)</li>
- * </ul>
- *
- * <h3>Usage Example:</h3>
- * <pre>{@code
- * byte[] encryptedKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
- * SecretKey aesKey = aesEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedKey);
- * String plaintext = fieldDecryptor.decrypt(encryptedField, aesKey);
- * }</pre>
+ * <h3>Why Two Steps?</h3>
+ * <p>JWE uses a two-layer encryption scheme:</p>
+ * <ol>
+ *   <li>A random CEK (Content Encryption Key) is RSA-encrypted</li>
+ *   <li>The payload (our AES key) is encrypted with CEK using A256GCM</li>
+ * </ol>
+ * <p>We must decrypt both layers to retrieve the original AES key.</p>
  */
 @Component
 public class AwsKmsDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(AwsKmsDecryptionService.class);
+  private static final int GCM_TAG_SIZE_BITS = 128;
 
   private final KmsClient kmsClient;
   private final String keyArn;
@@ -80,35 +79,72 @@ public class AwsKmsDecryptionService {
   }
 
   /**
-   * Unwraps an encrypted AES key using AWS KMS.
+   * Unwraps an AES key from JWE components using AWS KMS.
    *
-   * @param encryptedAESEncryptionKey The RSA-encrypted AES key bytes (from JwtParser)
+   * <p>This method performs two-step decryption:</p>
+   * <ol>
+   *   <li>Decrypt the CEK (Content Encryption Key) using KMS</li>
+   *   <li>Use the CEK to decrypt the JWE payload (original AES key)</li>
+   * </ol>
+   *
+   * @param jweComponents The JWE components from JwtParser
    * @return The unwrapped AES-256 secret key
-   * @throws RuntimeException if KMS decryption fails
+   * @throws RuntimeException if decryption fails
    */
-  public SecretKey decryptEncryptedAESEncryptionKeyByAWSKMS(byte[] encryptedAESEncryptionKey) {
-    log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", encryptedAESEncryptionKey.length);
+  public SecretKey decryptAESKeyFromJweComponents(JwtParser.JweComponents jweComponents) {
+    log.debug("Unwrapping AES key via KMS (encrypted CEK size: {} bytes)", jweComponents.encryptedCek().length);
 
     try {
-      // Build KMS decrypt request
-      DecryptRequest request = DecryptRequest.builder()
-          .keyId(keyArn)
-          .ciphertextBlob(SdkBytes.fromByteArray(encryptedAESEncryptionKey))
-          .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
-          .build();
+      // STEP 6a: Decrypt CEK via KMS
+      byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());
+      log.debug("CEK decrypted successfully (CEK size: {} bytes)", cek.length);
 
-      // Call KMS to unwrap the key
-      DecryptResponse response = kmsClient.decrypt(request);
-      byte[] keyBytes = response.plaintext().asByteArray();
+      // STEP 6b: Decrypt JWE payload using CEK to get original AES key
+      byte[] aesKeyBytes = decryptJwePayload(cek, jweComponents.iv(),
+          jweComponents.ciphertext(), jweComponents.authTag());
+      log.debug("AES key extracted successfully (key size: {} bytes)", aesKeyBytes.length);
 
-      log.debug("Key unwrapped successfully (key size: {} bytes)", keyBytes.length);
-
-      // Convert raw bytes to AES SecretKey
-      return new SecretKeySpec(keyBytes, "AES");
+      return new SecretKeySpec(aesKeyBytes, "AES");
 
     } catch (Exception e) {
-      log.error("Failed to unwrap key via KMS: {}", e.getMessage());
-      throw new RuntimeException("KMS key unwrap failed: " + e.getMessage(), e);
+      log.error("Failed to unwrap AES key: {}", e.getMessage());
+      throw new RuntimeException("AES key unwrap failed: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Decrypts the CEK using AWS KMS RSA decryption.
+   */
+  private byte[] decryptCekViaKms(byte[] encryptedCek) {
+    DecryptRequest request = DecryptRequest.builder()
+        .keyId(keyArn)
+        .ciphertextBlob(SdkBytes.fromByteArray(encryptedCek))
+        .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
+        .build();
+
+    DecryptResponse response = kmsClient.decrypt(request);
+    return response.plaintext().asByteArray();
+  }
+
+  /**
+   * Decrypts the JWE payload using the CEK.
+   *
+   * <p>Note: A256GCM in JWE places the auth tag at the end of ciphertext
+   * for the Cipher.doFinal() call.</p>
+   */
+  private byte[] decryptJwePayload(byte[] cek, byte[] iv, byte[] ciphertext, byte[] authTag)
+      throws Exception {
+    // Combine ciphertext and authTag (GCM expects them together)
+    byte[] ciphertextWithTag = new byte[ciphertext.length + authTag.length];
+    System.arraycopy(ciphertext, 0, ciphertextWithTag, 0, ciphertext.length);
+    System.arraycopy(authTag, 0, ciphertextWithTag, ciphertext.length, authTag.length);
+
+    // Decrypt using AES-256-GCM
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    SecretKey cekKey = new SecretKeySpec(cek, "AES");
+    GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_SIZE_BITS, iv);
+    cipher.init(Cipher.DECRYPT_MODE, cekKey, gcmSpec);
+
+    return cipher.doFinal(ciphertextWithTag);
   }
 }

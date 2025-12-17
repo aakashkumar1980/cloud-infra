@@ -115,11 +115,11 @@ public class HybridDecryptionService {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWT metadata to extract encrypted key bytes
-    byte[] encryptedAESEncryptionKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
+    // STEP 5: Parse JWT metadata to extract all JWE components
+    JwtParser.JweComponents jweComponents = jwtParser.extractJweComponents(jwtEncryptionMetadata);
 
-    // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedAESEncryptionKey);
+    // STEP 6: Unwrap via KMS (decrypt CEK, then decrypt JWE payload to get AES key)
+    return awsKmsDecryptionService.decryptAESKeyFromJweComponents(jweComponents);
   }
 
   /**
