@@ -38,13 +38,25 @@ public class OrderController {
       @RequestBody String requestBody
   ) {
     JsonObject orderRequest = gson.fromJson(requestBody, JsonObject.class);
-    String customerName = orderRequest.get("name").getAsString();
-    log.info("Order request received from: {}", customerName);
+
+    // Extract all fields for logging
+    String name = orderRequest.get("name").getAsString();
+    String address = orderRequest.get("address").getAsString();
+    String encryptedDob = orderRequest.get("dateOfBirth").getAsString();
+    String orderAmount = orderRequest.get("orderAmount").toString();
+    JsonObject cardDetails = orderRequest.getAsJsonObject("cardDetails");
+    String encryptedCard = cardDetails.get("creditCardNumber").getAsString();
+    String encryptedSsn = cardDetails.get("ssn").getAsString();
+
+    log.info("OrderRequest received: Name: {} | Address: {} | Amount: ${} | DOB: {} | Card: {} | SSN: {}",
+        name, address, orderAmount, truncate(encryptedDob), truncate(encryptedCard), truncate(encryptedSsn));
 
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       log.warn("Missing X-Encryption-Key header");
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Missing X-Encryption-Key header")));
     }
+
+    log.debug("X-Encryption-Key header (truncated): {}", truncate(jwtEncryptionMetadata));
 
     try {
       JsonObject response = orderService.processOrder(orderRequest, jwtEncryptionMetadata);
@@ -53,6 +65,10 @@ public class OrderController {
       log.error("Order processing failed: {}", e.getMessage(), e);
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Order processing failed: " + e.getMessage())));
     }
+  }
+
+  private String truncate(String str) {
+    return str != null && str.length() > 40 ? str.substring(0, 40) + "..." : str;
   }
 
   private JsonObject errorResponse(String message) {

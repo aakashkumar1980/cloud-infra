@@ -8,6 +8,7 @@ spring:
 logging:
   level:
     root: INFO
-    company_backend: DEBUG
-    client_no_aws: DEBUG
+    server: DEBUG
+    client: DEBUG
+    server.restapi_data_security: DEBUG
   pattern.console: "%d{HH:mm:ss.SSS} %-5level %c{2} - %m%n"

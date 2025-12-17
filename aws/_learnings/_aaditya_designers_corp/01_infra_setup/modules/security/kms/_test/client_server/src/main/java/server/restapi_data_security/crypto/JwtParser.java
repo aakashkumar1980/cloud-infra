@@ -3,6 +3,8 @@ package server.restapi_data_security.crypto;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.util.Base64URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +34,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtParser {
 
+  private static final Logger log = LoggerFactory.getLogger(JwtParser.class);
+
   /**
    * Extracts the encrypted AES key bytes from JWT encryption metadata.
    *
@@ -41,6 +45,9 @@ public class JwtParser {
    * @throws RuntimeException if parsing fails
    */
   public byte[] extractEncryptedAESKey(String jwtEncryptionMetadata) {
+    log.debug("[STEP 5] Parsing JWT encryption metadata (length: {} chars)",
+        jwtEncryptionMetadata != null ? jwtEncryptionMetadata.length() : 0);
+
     try {
       // Parse the JWT encryption metadata (JWE format)
       JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
@@ -48,6 +55,9 @@ public class JwtParser {
 
       // Validate the algorithm
       String algorithm = header.getAlgorithm().getName();
+      String encMethod = header.getEncryptionMethod().getName();
+      log.debug("[STEP 5] JWE Header - Algorithm: {}, Encryption: {}", algorithm, encMethod);
+
       if (!"RSA-OAEP-256".equals(algorithm)) {
         throw new IllegalArgumentException(
             "Unsupported key encryption algorithm: " + algorithm + ". Expected RSA-OAEP-256");
@@ -55,11 +65,15 @@ public class JwtParser {
 
       // Extract the encrypted key (second part of JWE)
       Base64URL encryptedKeyBase64 = jweObject.getEncryptedKey();
-      return encryptedKeyBase64.decode();
+      byte[] encryptedKey = encryptedKeyBase64.decode();
+
+      log.debug("[STEP 5] Extracted encrypted AES key: {} bytes", encryptedKey.length);
+      return encryptedKey;
 
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (Exception e) {
+      log.error("[STEP 5] Failed to parse JWT: {}", e.getMessage());
       throw new RuntimeException("Failed to parse JWT encryption metadata: " + e.getMessage(), e);
     }
   }
