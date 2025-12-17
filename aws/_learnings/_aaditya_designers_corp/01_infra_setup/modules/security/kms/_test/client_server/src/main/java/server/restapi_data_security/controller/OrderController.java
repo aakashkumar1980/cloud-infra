@@ -25,6 +25,11 @@ public class OrderController {
     this.orderService = orderService;
   }
 
+  @GetMapping("/health")
+  public ResponseEntity<String> health() {
+    return ResponseEntity.ok("OK");
+  }
+
   /**
    * Submits an order with encrypted PII fields.
    *
@@ -37,15 +42,24 @@ public class OrderController {
       @RequestHeader(value = JWT_ENCRYPTION_HEADER, required = false) String jwtEncryptionMetadata,
       @RequestBody String requestBody
   ) {
+    // Log received order request (for demo purposes only; avoid logging PII in production)
     JsonObject orderRequest = gson.fromJson(requestBody, JsonObject.class);
-    String customerName = orderRequest.get("name").getAsString();
-    log.info("Order request received from: {}", customerName);
+    log.info("OrderRequest received: Name: {} | Address: {} | DOB: {} | SSN: {} | Amount: ${} | Card: {}",
+        orderRequest.get("name").getAsString(),
+        orderRequest.get("address").getAsString(),
+        orderRequest.get("dateOfBirth").getAsString(),
+        orderRequest.get("orderAmount").getAsDouble(),
+        orderRequest.getAsJsonObject("cardDetails").get("creditCardNumber").getAsString(),
+        orderRequest.getAsJsonObject("cardDetails").get("ssn").getAsString()
+    );
 
+    // Validate presence of encryption header
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       log.warn("Missing X-Encryption-Key header");
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Missing X-Encryption-Key header")));
     }
 
+    // Process the order
     try {
       JsonObject response = orderService.processOrder(orderRequest, jwtEncryptionMetadata);
       return ResponseEntity.ok(gson.toJson(response));
@@ -60,10 +74,5 @@ public class OrderController {
     response.addProperty("success", false);
     response.addProperty("message", message);
     return response;
-  }
-
-  @GetMapping("/health")
-  public ResponseEntity<String> health() {
-    return ResponseEntity.ok("OK");
   }
 }

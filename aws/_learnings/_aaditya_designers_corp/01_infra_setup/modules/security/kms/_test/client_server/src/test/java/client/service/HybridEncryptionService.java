@@ -26,8 +26,8 @@ import java.util.Base64;
  * │  STEP 1: loadRSAPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
- * │  STEP 2+3: generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()        │
- * │  ► fieldEncryptor.generateRandomAESEncryptionKey() - Create 256-bit AES DEK  │
+ * │  STEP 2+3: generateAESEncryptionKeyAndAddItToJWTMetadata()        │
+ * │  ► fieldEncryptor.generateAESEncryptionKey() - Create 256-bit AES DEK  │
  * │  ► jwtBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
@@ -48,7 +48,7 @@ public class HybridEncryptionService {
   private final JwtBuilder jwtBuilder;
 
   private RSAPublicKey rsaPublicKey;
-  private SecretKey randomAESEncryptionKey;
+  private SecretKey aesEncryptionKey;
   private String jwtEncryptionMetadata;
   private AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
@@ -100,12 +100,12 @@ public class HybridEncryptionService {
   /**
    * Generates a fresh AES encryption key and wraps it in JWE format.
    */
-  public void generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() {
+  public void generateAESEncryptionKeyAndAddItToJWTMetadata() {
     if (rsaPublicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
-    this.randomAESEncryptionKey = aesEncryptionKeyGenerator.generateRandomAESEncryptionKey();
-    this.jwtEncryptionMetadata = jwtBuilder.wrapKey(randomAESEncryptionKey, rsaPublicKey);
+    this.aesEncryptionKey = aesEncryptionKeyGenerator.generateAESEncryptionKey();
+    this.jwtEncryptionMetadata = jwtBuilder.wrapKey(aesEncryptionKey, rsaPublicKey);
   }
 
   /**
@@ -115,10 +115,10 @@ public class HybridEncryptionService {
    * @return Encrypted string in format: iv.encryptedText.authTag
    */
   public String encryptField(String plaintext) {
-    if (randomAESEncryptionKey == null) {
-      throw new IllegalStateException("Call generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() first.");
+    if (aesEncryptionKey == null) {
+      throw new IllegalStateException("Call generateAESEncryptionKeyAndAddItToJWTMetadata() first.");
     }
-    return fieldEncryptor.encrypt(plaintext, randomAESEncryptionKey);
+    return fieldEncryptor.encrypt(plaintext, aesEncryptionKey);
   }
 
   /**
@@ -128,7 +128,7 @@ public class HybridEncryptionService {
    */
   public String getJwtEncryptionMetadata() {
     if (jwtEncryptionMetadata == null) {
-      throw new IllegalStateException("Call generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() first.");
+      throw new IllegalStateException("Call generateAESEncryptionKeyAndAddItToJWTMetadata() first.");
     }
     return jwtEncryptionMetadata;
   }
@@ -137,7 +137,7 @@ public class HybridEncryptionService {
    * Clears the current request state.
    */
   public void clear() {
-    this.randomAESEncryptionKey = null;
+    this.aesEncryptionKey = null;
     this.jwtEncryptionMetadata = null;
   }
 }

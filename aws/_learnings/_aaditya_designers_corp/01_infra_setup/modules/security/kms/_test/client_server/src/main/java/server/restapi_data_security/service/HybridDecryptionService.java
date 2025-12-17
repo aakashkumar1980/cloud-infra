@@ -19,13 +19,13 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JwtParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractAESEncryptedKey(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► AESEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey)  │ │
+ * │  │ ► AESEncryptionKeyUnwrapper.decryptAESEncryptedKey(encryptedKey)  │ │
  * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
  * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -84,7 +84,7 @@ public class HybridDecryptionService {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
     // STEP 5+6: Extract and unwrap the AES key (1 KMS call)
-    SecretKey randomAESEncryptionKey = unwrapAESKeyFromJwtMetadata(jwtEncryptionMetadata);
+    SecretKey randomAESEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
 
     // STEP 7: Decrypt each field locally (no additional KMS calls)
     String dob = fieldDecryptor.decrypt(encryptedDob, randomAESEncryptionKey);
@@ -103,23 +103,23 @@ public class HybridDecryptionService {
    * @return The decrypted plaintext value
    */
   public String decryptField(String jwtEncryptionMetadata, String encryptedField) {
-    SecretKey randomAESEncryptionKey = unwrapAESKeyFromJwtMetadata(jwtEncryptionMetadata);
+    SecretKey randomAESEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
     return fieldDecryptor.decrypt(encryptedField, randomAESEncryptionKey);
   }
 
   /**
    * Extracts and unwraps the AES encryption key from the JWT metadata header.
    */
-  private SecretKey unwrapAESKeyFromJwtMetadata(String jwtEncryptionMetadata) {
+  private SecretKey extractAESEncryptionKeyFromJwtMetadata(String jwtEncryptionMetadata) {
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
     // STEP 5: Parse JWT metadata to extract encrypted key bytes
-    byte[] encryptedAESKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
+    byte[] aesEncryptedKey = jwtParser.extractAESEncryptedKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return aesEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey);
+    return aesEncryptionKeyUnwrapper.decryptAESEncryptedKey(aesEncryptedKey);
   }
 
   /**

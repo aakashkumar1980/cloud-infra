@@ -21,15 +21,15 @@ import static org.junit.jupiter.api.Assertions.*;
  * <h3>Client Flow (Steps 1-4):</h3>
  * <ol>
  *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
- *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateRandomAESEncryptionKey()</li>
+ *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateAESEncryptionKey()</li>
  *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  * </ol>
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract encrypted key from JWE → JweParser.extractEncryptedAESKey()</li>
- *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.unwrapEncryptedAESKey()</li>
+ *   <li>Extract encrypted key from JWE → JweParser.extractAESEncryptedKey()</li>
+ *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.decryptAESEncryptedKey()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  * </ol>
  */
@@ -75,21 +75,23 @@ class ClientRESTAPIEncryptionTest {
 
     // Step 2: Generate AES encryption key and wrap in JWE
     log.info("\n=== Step 2: Generate AES Key & Create JWE Metadata ===");
-    hybridEncryptionService.generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata();
+    hybridEncryptionService.generateAESEncryptionKeyAndAddItToJWTMetadata();
     log.info("Generated 256-bit AES key and wrapped in JWE");
 
     // Step 3: Define order data
     log.info("\n=== Step 3: Order Data ===");
-    record OrderData(String name, String address, String dob, String creditCard, String ssn, double amount) {}
-    var order = new OrderData("aakash.kumar", "austin,texas,usa", "1990-05-15", "4111111111111234", "123-45-6789", 100.00);
-    log.info("Customer: {} | Address: {} | DOB: {} | Card: {} | SSN: {} | Amount: ${}",
-        order.name, order.address, order.dob, order.creditCard, order.ssn, order.amount);
+    record CardDetails(String creditCardNumber, String ssn) {}
+    var cardDetails = new CardDetails("4111111111111234", "123-45-6789");
+    record OrderData(String name, String address, String dob, double amount, CardDetails cardDetails) {}
+    var order = new OrderData("aakash.kumar", "austin,texas,usa", "1990-05-15", 100.00, cardDetails);
+    log.info("OrderData: Name: {} | Address: {} | DOB: {} | Amount: ${} | Card: {} | SSN: {}",
+        order.name, order.address, order.dob, order.amount, cardDetails.creditCardNumber, cardDetails.ssn);
 
     // Step 4: Encrypt PII fields
     log.info("\n=== Step 4: Encrypt PII Fields ===");
     String encryptedDob = hybridEncryptionService.encryptField(order.dob);
-    String encryptedCreditCard = hybridEncryptionService.encryptField(order.creditCard);
-    String encryptedSsn = hybridEncryptionService.encryptField(order.ssn);
+    String encryptedCreditCard = hybridEncryptionService.encryptField(cardDetails.creditCardNumber);
+    String encryptedSsn = hybridEncryptionService.encryptField(cardDetails.ssn);
     log.info("Encrypted DOB: {} | Card: {} | SSN: {}",
         truncate(encryptedDob, 30), truncate(encryptedCreditCard, 30), truncate(encryptedSsn, 30));
 
@@ -99,18 +101,17 @@ class ClientRESTAPIEncryptionTest {
     log.info("JWE Header: {}", truncate(jwtEncryptionMetadata, 50));
 
     // Build JSON payload
-    JsonObject cardDetails = new JsonObject();
-    cardDetails.addProperty("creditCardNumber", encryptedCreditCard);
-    cardDetails.addProperty("ssn", encryptedSsn);
+    JsonObject cardDetailsJson = new JsonObject();
+    cardDetailsJson.addProperty("creditCardNumber", encryptedCreditCard);
+    cardDetailsJson.addProperty("ssn", encryptedSsn);
+    JsonObject orderRequestJson = new JsonObject();
+    orderRequestJson.addProperty("name", order.name);
+    orderRequestJson.addProperty("address", order.address);
+    orderRequestJson.addProperty("dateOfBirth", encryptedDob);
+    orderRequestJson.addProperty("orderAmount", order.amount);
+    orderRequestJson.add("cardDetails", cardDetailsJson);
 
-    JsonObject orderRequest = new JsonObject();
-    orderRequest.addProperty("name", order.name);
-    orderRequest.addProperty("address", order.address);
-    orderRequest.addProperty("dateOfBirth", encryptedDob);
-    orderRequest.addProperty("orderAmount", order.amount);
-    orderRequest.add("cardDetails", cardDetails);
-
-    return new EncryptedOrder(jwtEncryptionMetadata, orderRequest);
+    return new EncryptedOrder(jwtEncryptionMetadata, orderRequestJson);
   }
 
   private void submitAndVerifyOrder(EncryptedOrder encryptedOrder) {

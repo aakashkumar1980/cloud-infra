@@ -52,8 +52,8 @@ import javax.crypto.spec.SecretKeySpec;
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code
- * byte[] encryptedKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
- * SecretKey aesKey = aesEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey);
+ * byte[] encryptedKey = jwtParser.extractAESEncryptedKey(jwtEncryptionMetadata);
+ * SecretKey aesKey = aesEncryptionKeyUnwrapper.decryptAESEncryptedKey(encryptedKey);
  * String plaintext = fieldDecryptor.decrypt(encryptedField, aesKey);
  * }</pre>
  */
@@ -82,18 +82,18 @@ public class AESEncryptionKeyUnwrapper {
   /**
    * Unwraps an encrypted AES key using AWS KMS.
    *
-   * @param encryptedAESKey The RSA-encrypted AES key bytes (from JwtParser)
+   * @param aesEncryptedKey The RSA-encrypted AES key bytes (from JwtParser)
    * @return The unwrapped AES-256 secret key
    * @throws RuntimeException if KMS decryption fails
    */
-  public SecretKey unwrapEncryptedAESKey(byte[] encryptedAESKey) {
-    log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", encryptedAESKey.length);
+  public SecretKey decryptAESEncryptedKey(byte[] aesEncryptedKey) {
+    log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", aesEncryptedKey.length);
 
     try {
       // Build KMS decrypt request
       DecryptRequest request = DecryptRequest.builder()
           .keyId(keyArn)
-          .ciphertextBlob(SdkBytes.fromByteArray(encryptedAESKey))
+          .ciphertextBlob(SdkBytes.fromByteArray(aesEncryptedKey))
           .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
           .build();
 

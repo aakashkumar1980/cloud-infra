@@ -17,7 +17,7 @@ public class AESEncryptionKeyGenerator {
    *
    * @return A new 256-bit AES secret key
    */
-  public SecretKey generateRandomAESEncryptionKey() {
+  public SecretKey generateAESEncryptionKey() {
     try {
       KeyGenerator keyGen = KeyGenerator.getInstance("AES");
       keyGen.init(KEY_SIZE_BITS, SECURE_RANDOM);

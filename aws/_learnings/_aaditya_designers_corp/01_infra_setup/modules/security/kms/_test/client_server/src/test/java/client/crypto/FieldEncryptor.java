@@ -17,7 +17,7 @@ import java.util.Base64;
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  CLIENT ENCRYPTION FLOW                                                │
  * │                                                                        │
- * │  STEP 2: generateRandomAESEncryptionKey()                             │
+ * │  STEP 2: generateAESEncryptionKey()                             │
  * │  ► KeyGenerator.getInstance("AES"), keyGen.init(256, SecureRandom)    │
  * │  ► Output: 256-bit AES SecretKey                                      │
  * │                                                                        │
