@@ -91,14 +91,14 @@ public class AwsKmsDecryptionService {
    * @return The unwrapped AES-256 secret key
    * @throws RuntimeException if decryption fails
    */
-  public SecretKey decryptAESKeyFromJweComponents(JwtParser.JweComponents jweComponents) {
-    log.info("=== DEBUG: AwsKmsDecryptionService.decryptAESKeyFromJweComponents ===");
-    log.info("DEBUG: Input - encrypted CEK size: {} bytes", jweComponents.encryptedCek().length);
+  public SecretKey extractAESEncryptedKeyAndDecryptViaAwsKms(JwtParser.JweComponents jweComponents) {
+    log.info("=== DEBUG: AwsKmsDecryptionService.extractAESEncryptedKeyAndDecryptViaAwsKms ===");
+    log.info("DEBUG: Input - encrypted CEK size: {} bytes", jweComponents.aesEncryptedKey().length);
 
     try {
       // STEP 6a: Decrypt CEK via KMS
       log.info("DEBUG: Step 6a - Calling KMS to decrypt CEK...");
-      byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());
+      byte[] cek = decryptAESEncryptedKeyViaKms(jweComponents.aesEncryptedKey());
       log.info("DEBUG: Step 6a - CEK decrypted successfully:");
       log.info("DEBUG:   CEK size: {} bytes", cek.length);
       log.info("DEBUG:   CEK base64: {}", java.util.Base64.getEncoder().encodeToString(cek));
@@ -127,7 +127,7 @@ public class AwsKmsDecryptionService {
   /**
    * Decrypts the CEK using AWS KMS RSA decryption.
    */
-  private byte[] decryptCekViaKms(byte[] encryptedCek) {
+  private byte[] decryptAESEncryptedKeyViaKms(byte[] encryptedCek) {
     DecryptRequest request = DecryptRequest.builder()
         .keyId(keyArn)
         .ciphertextBlob(SdkBytes.fromByteArray(encryptedCek))

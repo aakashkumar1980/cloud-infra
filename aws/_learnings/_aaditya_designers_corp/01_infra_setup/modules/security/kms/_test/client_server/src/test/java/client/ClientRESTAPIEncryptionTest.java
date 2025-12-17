@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract encrypted key from JWE → JweParser.extractAESEncryptionKey()</li>
+ *   <li>Extract encrypted key from JWE → JweParser.extractAESEncryptedKeyAndDecryptViaAwsKms()</li>
  *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.decryptEncryptedAESEncryptionKeyByAWSKMS()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  * </ol>

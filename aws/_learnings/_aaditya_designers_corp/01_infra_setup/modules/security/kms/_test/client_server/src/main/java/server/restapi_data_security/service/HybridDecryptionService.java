@@ -19,7 +19,7 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JwtParser.extractAESEncryptionKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractAESEncryptedKeyAndDecryptViaAwsKms(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
@@ -115,11 +115,11 @@ public class HybridDecryptionService {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWT metadata to extract all JWE components
+    // STEP 5: Parse JWT metadata to extract all JWE components like aesEncryptedKey, iv, ciphertext, authTag, aad
     JwtParser.JweComponents jweComponents = jwtParser.extractJweComponents(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (decrypt CEK, then decrypt JWE payload to get AES key)
-    return awsKmsDecryptionService.decryptAESKeyFromJweComponents(jweComponents);
+    return awsKmsDecryptionService.extractAESEncryptedKeyAndDecryptViaAwsKms(jweComponents);
   }
 
   /**

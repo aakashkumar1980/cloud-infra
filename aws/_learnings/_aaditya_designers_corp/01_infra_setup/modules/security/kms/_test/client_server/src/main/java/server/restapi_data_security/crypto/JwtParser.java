@@ -69,7 +69,7 @@ public class JwtParser {
       }
 
       // Extract all JWE components
-      byte[] encryptedCek = jweObject.getEncryptedKey().decode();
+      byte[] aesEncryptedKey = jweObject.getEncryptedKey().decode();
       byte[] iv = jweObject.getIV().decode();
       byte[] ciphertext = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
@@ -81,13 +81,13 @@ public class JwtParser {
       byte[] aad = protectedHeader.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
 
       log.info("DEBUG: JWE Components extracted:");
-      log.info("DEBUG:   encryptedCek size: {} bytes, base64: {}", encryptedCek.length, Base64.getEncoder().encodeToString(encryptedCek));
+      log.info("DEBUG:   aesEncryptedKey size: {} bytes, base64: {}", aesEncryptedKey.length, Base64.getEncoder().encodeToString(aesEncryptedKey));
       log.info("DEBUG:   iv size: {} bytes, base64: {}", iv.length, Base64.getEncoder().encodeToString(iv));
       log.info("DEBUG:   ciphertext size: {} bytes, base64: {}", ciphertext.length, Base64.getEncoder().encodeToString(ciphertext));
       log.info("DEBUG:   authTag size: {} bytes, base64: {}", authTag.length, Base64.getEncoder().encodeToString(authTag));
       log.info("DEBUG:   aad (protected header): {}", protectedHeader);
 
-      return new JweComponents(encryptedCek, iv, ciphertext, authTag, aad);
+      return new JweComponents(aesEncryptedKey, iv, ciphertext, authTag, aad);
 
     } catch (IllegalArgumentException e) {
       throw e;
@@ -114,11 +114,11 @@ public class JwtParser {
   /**
    * Record containing all JWE components needed for two-step decryption.
    *
-   * @param encryptedCek The RSA-encrypted Content Encryption Key (for KMS decryption)
+   * @param aesEncryptedKey The RSA-encrypted Content Encryption Key (for KMS decryption)
    * @param iv           The initialization vector for A256GCM content decryption
    * @param ciphertext   The encrypted payload (contains our original AES key)
    * @param authTag      The GCM authentication tag for content decryption
    * @param aad          The Additional Authenticated Data (ASCII bytes of Base64URL protected header)
    */
-  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
+  public record JweComponents(byte[] aesEncryptedKey, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
 }
