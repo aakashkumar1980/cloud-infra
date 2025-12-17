@@ -82,38 +82,18 @@ public class KmsKeyUnwrapper {
   /**
    * Unwraps an encrypted AES key using AWS KMS.
    *
-   * <p>Sends the RSA-encrypted key bytes to AWS KMS, which decrypts them
-   * using the private key stored in the HSM. Returns a usable AES SecretKey
-   * for decrypting the actual data fields.</p>
-   *
-   * <h4>Algorithm:</h4>
-   * <p>Uses RSA-OAEP with SHA-256 (RSAES_OAEP_SHA_256), which matches
-   * the algorithm used by the client to wrap the key.</p>
-   *
-   * @param encryptedKey The RSA-encrypted AES key bytes (from JweParser)
+   * @param encryptedAESKey The RSA-encrypted AES key bytes (from JweParser)
    * @return The unwrapped AES-256 secret key
    * @throws RuntimeException if KMS decryption fails
-   *
-   * <h4>KMS API Call:</h4>
-   * <p>This method makes exactly ONE call to AWS KMS. The returned key can
-   * then be used to decrypt multiple fields locally without additional
-   * KMS calls.</p>
-   *
-   * <h4>Example:</h4>
-   * <pre>{@code
-   * byte[] wrapped = JweParser.extractEncryptedKey(jweHeader);
-   * SecretKey key = kmsKeyUnwrapper.unwrap(wrapped);
-   * // key is now a 256-bit AES key
-   * }</pre>
    */
-  public SecretKey unwrap(byte[] encryptedKey) {
-    log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", encryptedKey.length);
+  public SecretKey unwrapEncryptedAESKey(byte[] encryptedAESKey) {
+    log.debug("Unwrapping key via KMS (encrypted key size: {} bytes)", encryptedAESKey.length);
 
     try {
       // Build KMS decrypt request
       DecryptRequest request = DecryptRequest.builder()
           .keyId(keyArn)
-          .ciphertextBlob(SdkBytes.fromByteArray(encryptedKey))
+          .ciphertextBlob(SdkBytes.fromByteArray(encryptedAESKey))
           .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
           .build();
 
