@@ -3,8 +3,6 @@ package client.service;
 import client.crypto.AESEncryptionKeyGenerator;
 import client.crypto.FieldEncryptor;
 import client.crypto.JwtBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +26,12 @@ import java.util.Base64;
  * │  STEP 1: loadRSAPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
- * │  STEP 2+3: generateAESEncryptionKeyAndAddItToJWTMetadata()        │
- * │  ► fieldEncryptor.generateAESEncryptionKey() - Create 256-bit AES DEK  │
- * │  ► jwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
+ * │  STEP 2+3: generateAesEncryptionKeyAndWrapInJwe()                            │
+ * │  ► aesEncryptionKeyGenerator.generateAESEncryptionKey() - Create AES key     │
+ * │  ► jwtBuilder.wrapAesKeyInJwe(aesEncryptionKey, rsaPublicKey) - Wrap in JWE  │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
- * │  ► fieldEncryptor.encrypt(plaintext, dek)                                    │
+ * │  ► fieldEncryptor.encrypt(plaintext, aesEncryptionKey)                       │
  * │  ► Output: "iv.encryptedText.authTag" (~60 chars per field)                  │
  * │                                 ▼                                            │
  * │  getJwtEncryptionMetadata()                                                  │
@@ -44,7 +42,6 @@ import java.util.Base64;
 @Service
 public class HybridEncryptionService {
 
-  private static final Logger log = LoggerFactory.getLogger(HybridEncryptionService.class);
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
   private final FieldEncryptor fieldEncryptor;
@@ -103,20 +100,19 @@ public class HybridEncryptionService {
 
   /**
    * Generates a fresh AES encryption key and wraps it in JWE format.
+   *
+   * <p>The aesEncryptionKey is wrapped inside a JWE where:</p>
+   * <ul>
+   *   <li>A random AES CEK encrypts the aesEncryptionKey payload</li>
+   *   <li>The CEK is RSA-encrypted with the public key → aesCekEncryptedKey</li>
+   * </ul>
    */
   public void generateAESEncryptionKeyAndAddItToJWTMetadata() {
     if (rsaPublicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
     this.aesEncryptionKey = aesEncryptionKeyGenerator.generateAESEncryptionKey();
-
-    log.info("=== DEBUG: CLIENT - generateAESEncryptionKeyAndAddItToJWTMetadata ===");
-    log.info("DEBUG: CLIENT - Generated AES key size: {} bytes", aesEncryptionKey.getEncoded().length);
-    log.info("DEBUG: CLIENT - Generated AES key base64: {}", Base64.getEncoder().encodeToString(aesEncryptionKey.getEncoded()));
-
     this.jwtEncryptionMetadata = jwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey(aesEncryptionKey, rsaPublicKey);
-    log.info("DEBUG: CLIENT - JWE metadata (first 100 chars): {}",
-        jwtEncryptionMetadata.length() > 100 ? jwtEncryptionMetadata.substring(0, 100) + "..." : jwtEncryptionMetadata);
   }
 
   /**

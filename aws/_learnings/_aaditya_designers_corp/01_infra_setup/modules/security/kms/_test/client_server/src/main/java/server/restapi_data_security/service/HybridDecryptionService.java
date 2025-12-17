@@ -18,21 +18,21 @@ import javax.crypto.SecretKey;
  * │                    SERVER DECRYPTION ORCHESTRATION                     │
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JwtParser.extractAESEncryptedKeyAndDecryptViaAwsKms(jwtEncryptionMetadata)        │ │
- * │  │ ► Output: byte[] encryptedAESKey                                 │ │
+ * │  │ STEP 5: extractJweComponents()                                   │ │
+ * │  │ ► JwtParser.extractJweComponents(jwtEncryptionMetadata)          │ │
+ * │  │ ► Output: JweComponents (aesCekEncryptedKey, iv, ciphertext...)  │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► awsKmsDecryptionService.decryptEncryptedAESEncryptionKeyByAWSKMS(encryptedKey)  │ │
- * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
- * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
+ * │  │ STEP 6: decryptAesCekAndExtractAesKey()                          │ │
+ * │  │ ► awsKmsDecryptionService.decryptAesCekAndExtractAesKey(jweComp) │ │
+ * │  │ ► 1 KMS API call to decrypt aesCekEncryptedKey in HSM            │ │
+ * │  │ ► Output: SecretKey aesEncryptionKey                             │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 7: decryptField()                                           │ │
- * │  │ ► FieldDecryptor.decrypt(encryptedField, randomAESEncryptionKey) │ │
+ * │  │ ► FieldDecryptor.decrypt(encryptedField, aesEncryptionKey)       │ │
  * │  │ ► Local AES-256-GCM decryption (no additional KMS calls)         │ │
  * │  │ ► Output: plaintext value                                        │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -83,10 +83,10 @@ public class HybridDecryptionService {
   ) {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
-    // STEP 5+6: Extract and unwrap the AES key (1 KMS call)
-    SecretKey aesEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
+    // STEP 5+6: Extract JWE components and decrypt AES CEK to get aesEncryptionKey (1 KMS call)
+    SecretKey aesEncryptionKey = extractAesEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
 
-    // STEP 7: Decrypt each field locally (no additional KMS calls)
+    // STEP 7: Decrypt each field locally using aesEncryptionKey (no additional KMS calls)
     String dob = fieldDecryptor.decrypt(encryptedDob, aesEncryptionKey);
     String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, aesEncryptionKey);
     String ssn = fieldDecryptor.decrypt(encryptedSsn, aesEncryptionKey);
@@ -103,23 +103,33 @@ public class HybridDecryptionService {
    * @return The decrypted plaintext value
    */
   public String decryptField(String jwtEncryptionMetadata, String encryptedField) {
-    SecretKey randomAESEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
-    return fieldDecryptor.decrypt(encryptedField, randomAESEncryptionKey);
+    SecretKey aesEncryptionKey = extractAesEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
+    return fieldDecryptor.decrypt(encryptedField, aesEncryptionKey);
   }
 
   /**
-   * Extracts and unwraps the AES encryption key from the JWT metadata header.
+   * Extracts and decrypts the AES encryption key from the JWT metadata header.
+   *
+   * <p>This method:</p>
+   * <ol>
+   *   <li>Parses the JWE to extract aesCekEncryptedKey, iv, ciphertext, authTag, aad</li>
+   *   <li>Decrypts aesCekEncryptedKey via KMS to get aesCekEncryptionKey</li>
+   *   <li>Uses aesCekEncryptionKey to decrypt the JWE payload → aesEncryptionKey</li>
+   * </ol>
+   *
+   * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
+   * @return The decrypted AES encryption key for field decryption
    */
-  private SecretKey extractAESEncryptionKeyFromJwtMetadata(String jwtEncryptionMetadata) {
+  private SecretKey extractAesEncryptionKeyFromJwtMetadata(String jwtEncryptionMetadata) {
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWT metadata to extract all JWE components like aesEncryptedKey, iv, ciphertext, authTag, aad
+    // STEP 5: Parse JWT metadata to extract JWE components (aesCekEncryptedKey, iv, ciphertext, authTag, aad)
     JwtParser.JweComponents jweComponents = jwtParser.extractJweComponents(jwtEncryptionMetadata);
 
-    // STEP 6: Unwrap via KMS (decrypt CEK, then decrypt JWE payload to get AES key)
-    return awsKmsDecryptionService.extractAESEncryptedKeyAndDecryptViaAwsKms(jweComponents);
+    // STEP 6: Decrypt aesCekEncryptedKey via KMS, then decrypt JWE payload to get aesEncryptionKey
+    return awsKmsDecryptionService.decryptAesCekAndExtractAesKey(jweComponents);
   }
 
   /**
