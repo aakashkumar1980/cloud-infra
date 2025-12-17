@@ -53,9 +53,10 @@ public class HybridEncryptionService {
   private AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   @Autowired
-  public HybridEncryptionService(FieldEncryptor fieldEncryptor,
-    JwtBuilder jwtBuilder,
-    AESEncryptionKeyGenerator aesEncryptionKeyGenerator) {
+  public HybridEncryptionService(
+      FieldEncryptor fieldEncryptor,
+      JwtBuilder jwtBuilder,
+      AESEncryptionKeyGenerator aesEncryptionKeyGenerator) {
     this.fieldEncryptor = fieldEncryptor;
     this.jwtBuilder = jwtBuilder;
     this.aesEncryptionKeyGenerator = aesEncryptionKeyGenerator;
