@@ -6,41 +6,43 @@ import com.nimbusds.jose.util.Base64URL;
 import org.springframework.stereotype.Component;
 
 /**
- * JWT Parser - Extracts the encrypted AES key from JWT encryption metadata.
+ * JWT Parser - Extracts JWE components for two-step decryption via AWS KMS.
  *
- * <h2>STEP 5 (BACKEND): Extract Encrypted AES Key from JWT Metadata</h2>
+ * <h2>STEP 5 (BACKEND): Extract JWE Components for KMS Decryption</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  JWT ENCRYPTION METADATA (JWE Format)                                  │
  * │                                                                        │
  * │  Header.EncryptedKey.IV.Ciphertext.AuthTag                            │
- * │    │         │                                                         │
- * │    │         └── RSA-encrypted AES key (THIS IS WHAT WE EXTRACT)      │
- * │    │                                                                   │
+ * │    │         │        │      │         │                               │
+ * │    │         │        │      │         └── GCM auth tag                │
+ * │    │         │        │      └── Encrypted AES key (our payload)       │
+ * │    │         │        └── IV for content encryption                    │
+ * │    │         └── RSA-encrypted CEK (Content Encryption Key)            │
  * │    └── {"alg":"RSA-OAEP-256","enc":"A256GCM"}                         │
  * │                                                                        │
- * │  Input:  X-Encryption-Key header value (JWE compact serialization)    │
- * │  Output: byte[] encryptedAESKey (for KMS unwrapping in Step 6)        │
+ * │  IMPORTANT: The JWE encrypts the AES key in TWO layers:               │
+ * │  1. A random CEK is generated and RSA-encrypted → EncryptedKey        │
+ * │  2. Our AES key is encrypted with CEK using A256GCM → Ciphertext      │
+ * │                                                                        │
+ * │  To get the original AES key:                                         │
+ * │  1. Send EncryptedKey to KMS → get decrypted CEK                      │
+ * │  2. Use CEK + IV + AuthTag to decrypt Ciphertext → original AES key   │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
- *
- * <h3>Why Parse Instead of Decrypt?</h3>
- * <p>We only need to extract the encrypted key bytes. The actual decryption
- * (unwrapping) is done by AWS KMS, which holds the private RSA key securely
- * in hardware (HSM). The private key never leaves AWS.</p>
  */
 @Component
 public class JwtParser {
 
   /**
-   * Extracts the encrypted AES key bytes from JWT encryption metadata.
+   * Parses the JWE and extracts all components needed for decryption.
    *
    * @param jwtEncryptionMetadata The JWT encryption metadata from X-Encryption-Key header
-   * @return The encrypted key bytes (RSA-encrypted AES key)
+   * @return JweComponents containing all parts needed for decryption
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if parsing fails
    */
-  public byte[] extractAESEncryptionKey(String jwtEncryptionMetadata) {
+  public JweComponents extractJweComponents(String jwtEncryptionMetadata) {
     try {
       // Parse the JWT encryption metadata (JWE format)
       JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
@@ -53,9 +55,13 @@ public class JwtParser {
             "Unsupported key encryption algorithm: " + algorithm + ". Expected RSA-OAEP-256");
       }
 
-      // Extract the encrypted key (second part of JWE)
-      Base64URL encryptedKeyBase64 = jweObject.getEncryptedKey();
-      return encryptedKeyBase64.decode();
+      // Extract all JWE components
+      byte[] encryptedCek = jweObject.getEncryptedKey().decode();
+      byte[] iv = jweObject.getIV().decode();
+      byte[] ciphertext = jweObject.getCipherText().decode();
+      byte[] authTag = jweObject.getAuthTag().decode();
+
+      return new JweComponents(encryptedCek, iv, ciphertext, authTag);
 
     } catch (IllegalArgumentException e) {
       throw e;
@@ -72,10 +78,20 @@ public class JwtParser {
    */
   public boolean isValid(String jwtEncryptionMetadata) {
     try {
-      extractAESEncryptionKey(jwtEncryptionMetadata);
+      extractJweComponents(jwtEncryptionMetadata);
       return true;
     } catch (Exception e) {
       return false;
     }
   }
+
+  /**
+   * Record containing all JWE components needed for two-step decryption.
+   *
+   * @param encryptedCek The RSA-encrypted Content Encryption Key (for KMS decryption)
+   * @param iv           The initialization vector for A256GCM content decryption
+   * @param ciphertext   The encrypted payload (contains our original AES key)
+   * @param authTag      The GCM authentication tag for content decryption
+   */
+  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag) {}
 }
