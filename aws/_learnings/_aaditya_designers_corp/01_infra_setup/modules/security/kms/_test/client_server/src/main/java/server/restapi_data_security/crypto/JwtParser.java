@@ -40,7 +40,7 @@ public class JwtParser {
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if parsing fails
    */
-  public byte[] extractAESEncryptedKey(String jwtEncryptionMetadata) {
+  public byte[] extractAESEncryptionKey(String jwtEncryptionMetadata) {
     try {
       // Parse the JWT encryption metadata (JWE format)
       JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
@@ -72,7 +72,7 @@ public class JwtParser {
    */
   public boolean isValid(String jwtEncryptionMetadata) {
     try {
-      extractAESEncryptedKey(jwtEncryptionMetadata);
+      extractAESEncryptionKey(jwtEncryptionMetadata);
       return true;
     } catch (Exception e) {
       return false;

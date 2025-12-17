@@ -45,7 +45,7 @@ public class JwtBuilder {
    * @return JWE compact serialization string (for X-Encryption-Key header)
    * @throws RuntimeException if wrapping fails
    */
-  public String wrapAndEncryptAESEncryptionKeyByRSAPublicKey(SecretKey aesEncryptionKey, RSAPublicKey rsaPublicKey) {
+  public String wrapByEncryptingAESEncryptionKeyByRSAPublicKey(SecretKey aesEncryptionKey, RSAPublicKey rsaPublicKey) {
     try {
       // Build JWE header with algorithm specifications
       JWEHeader header = new JWEHeader.Builder(

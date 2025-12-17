@@ -19,13 +19,13 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JwtParser.extractAESEncryptedKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractAESEncryptionKey(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► AESEncryptionKeyUnwrapper.decryptAESEncryptedKey(encryptedKey)  │ │
+ * │  │ ► AESEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS(encryptedKey)  │ │
  * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
  * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -84,12 +84,12 @@ public class HybridDecryptionService {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
     // STEP 5+6: Extract and unwrap the AES key (1 KMS call)
-    SecretKey randomAESEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
+    SecretKey aesEncryptionKey = extractAESEncryptionKeyFromJwtMetadata(jwtEncryptionMetadata);
 
     // STEP 7: Decrypt each field locally (no additional KMS calls)
-    String dob = fieldDecryptor.decrypt(encryptedDob, randomAESEncryptionKey);
-    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, randomAESEncryptionKey);
-    String ssn = fieldDecryptor.decrypt(encryptedSsn, randomAESEncryptionKey);
+    String dob = fieldDecryptor.decrypt(encryptedDob, aesEncryptionKey);
+    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, aesEncryptionKey);
+    String ssn = fieldDecryptor.decrypt(encryptedSsn, aesEncryptionKey);
 
     log.info("All fields decrypted successfully");
     return new DecryptedFields(dob, creditCard, ssn);
@@ -116,10 +116,10 @@ public class HybridDecryptionService {
     }
 
     // STEP 5: Parse JWT metadata to extract encrypted key bytes
-    byte[] aesEncryptedKey = jwtParser.extractAESEncryptedKey(jwtEncryptionMetadata);
+    byte[] encryptedAESEncryptionKey = jwtParser.extractAESEncryptionKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return aesEncryptionKeyUnwrapper.decryptAESEncryptedKey(aesEncryptedKey);
+    return aesEncryptionKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS(encryptedAESEncryptionKey);
   }
 
   /**

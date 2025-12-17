@@ -22,14 +22,14 @@ import static org.junit.jupiter.api.Assertions.*;
  * <ol>
  *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
  *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateAESEncryptionKey()</li>
- *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapAndEncryptAESEncryptionKeyByRSAPublicKey()</li>
+ *   <li>Wrap DEK in JWE for transport → JwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  * </ol>
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract encrypted key from JWE → JweParser.extractAESEncryptedKey()</li>
- *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.decryptAESEncryptedKey()</li>
+ *   <li>Extract encrypted key from JWE → JweParser.extractAESEncryptionKey()</li>
+ *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.decryptEncryptedAESEncryptionKeyByKMS()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  * </ol>
  */
