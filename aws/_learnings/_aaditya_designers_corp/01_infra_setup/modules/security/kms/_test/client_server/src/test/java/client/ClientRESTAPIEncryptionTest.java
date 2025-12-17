@@ -1,6 +1,6 @@
 package client;
 
-import client.crypto.HybridEncryptionHelper;
+import client.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
@@ -23,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <h3>Client Flow (Steps 1-4):</h3>
  * <ol>
- *   <li>Load company's RSA public key → HybridEncryptionHelper.loadPublicKeyFromResources()</li>
- *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateKey()</li>
+ *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
+ *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateRandomAESEncryptionKey()</li>
  *   <li>Wrap DEK in JWE for transport → JweBuilder.wrapKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  *   <li>Send: X-Encryption-Key header + encrypted body</li>
@@ -55,7 +55,7 @@ class ClientRESTAPIEncryptionTest {
   private TestRestTemplate restTemplate;
 
   private final Gson gson = new Gson();
-  private final HybridEncryptionHelper encryptionHelper = new HybridEncryptionHelper();
+  private final HybridEncryptionService hybridEncryptionService = new HybridEncryptionService();
 
   private String baseUrl() {
     return "http://localhost:" + port + "/api/v1";
@@ -75,7 +75,7 @@ class ClientRESTAPIEncryptionTest {
   /**
    * Prepares an order with encrypted PII fields.
    *
-   * <p>Uses the HybridEncryptionHelper to:</p>
+   * <p>Uses the HybridEncryptionService to:</p>
    * <ul>
    *   <li>Load the public key</li>
    *   <li>Generate a fresh encryption key</li>
@@ -86,12 +86,12 @@ class ClientRESTAPIEncryptionTest {
   private EncryptedOrder prepareEncryptedOrder() throws Exception {
     // Step 1: Load public key
     log.info("\n=== Step 1: Load Public Key from Resources ===");
-    encryptionHelper.loadPublicKeyFromResources();
+    hybridEncryptionService.loadRSAPublicKey();
     log.info("Public key loaded from src/test/resources/public-key.pem");
 
     // Step 2: Prepare for new request (generates encryption key)
     log.info("\n=== Step 2: Generate Encryption Key ===");
-    encryptionHelper.prepareForNewRequest();
+    hybridEncryptionService.generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata();
     log.info("Encryption key generated (256-bit AES)");
 
     // Step 3: Define order data
@@ -113,9 +113,9 @@ class ClientRESTAPIEncryptionTest {
 
     // Step 4: Encrypt PII fields
     log.info("\n=== Step 4: Encrypt PII Fields ===");
-    String encryptedDob = encryptionHelper.encryptField(dateOfBirth);
-    String encryptedCreditCard = encryptionHelper.encryptField(creditCardNumber);
-    String encryptedSsn = encryptionHelper.encryptField(ssn);
+    String encryptedDob = hybridEncryptionService.encryptField(dateOfBirth);
+    String encryptedCreditCard = hybridEncryptionService.encryptField(creditCardNumber);
+    String encryptedSsn = hybridEncryptionService.encryptField(ssn);
 
     log.info("Encrypted DOB: {}", truncate(encryptedDob, 40));
     log.info("Encrypted Credit Card: {}", truncate(encryptedCreditCard, 40));
@@ -123,8 +123,8 @@ class ClientRESTAPIEncryptionTest {
 
     // Step 5: Get the encryption header (JWE with wrapped key)
     log.info("\n=== Step 5: Get Encryption Header ===");
-    String encryptionHeader = encryptionHelper.getEncryptionHeader();
-    log.info("Header value: {}", truncate(encryptionHeader, 50));
+    String jwtEncryptionMetadata = hybridEncryptionService.getJwtEncryptionMetadata();
+    log.info("JWT Encryption Header value: {}", truncate(jwtEncryptionMetadata, 50));
 
     // Build JSON payload
     JsonObject cardDetails = new JsonObject();
@@ -138,7 +138,7 @@ class ClientRESTAPIEncryptionTest {
     orderRequest.addProperty("orderAmount", orderAmount);
     orderRequest.add("cardDetails", cardDetails);
 
-    return new EncryptedOrder(encryptionHeader, orderRequest);
+    return new EncryptedOrder(jwtEncryptionMetadata, orderRequest);
   }
 
   /**

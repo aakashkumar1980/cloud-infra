@@ -37,7 +37,7 @@ import java.security.interfaces.RSAPublicKey;
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code
- * SecretKey aesKey = FieldEncryptor.generateKey();
+ * SecretKey aesKey = FieldEncryptor.generateRandomAESEncryptionKey();
  * String jwe = JweBuilder.wrapKey(aesKey, rsaPublicKey);
  * // jwe = "eyJhbGciOiJSU0EtT0FFUC0yNTYi..."
  * // Send this as X-Encryption-Key header
@@ -57,7 +57,7 @@ public class JweBuilder {
    *   <li><b>A256GCM:</b> Content encryption algorithm indicator</li>
    * </ul>
    *
-   * @param key       The AES secret key to wrap
+   * @param randomAESEncryptionKey       The AES secret key to wrap
    * @param publicKey The server's RSA public key
    * @return JWE compact serialization string (for X-Encryption-Key header)
    * @throws RuntimeException if wrapping fails
@@ -68,7 +68,7 @@ public class JweBuilder {
    * httpHeaders.set("X-Encryption-Key", jwe);
    * }</pre>
    */
-  public static String wrapKey(SecretKey key, RSAPublicKey publicKey) {
+  public static String wrapKey(SecretKey randomAESEncryptionKey, RSAPublicKey publicKey) {
     try {
       // Build JWE header with algorithm specifications
       JWEHeader header = new JWEHeader.Builder(
@@ -77,7 +77,7 @@ public class JweBuilder {
       ).contentType("JWT").build();
 
       // Create JWE object with the AES key bytes as payload
-      JWEObject jweObject = new JWEObject(header, new Payload(key.getEncoded()));
+      JWEObject jweObject = new JWEObject(header, new Payload(randomAESEncryptionKey.getEncoded()));
 
       // Encrypt (wrap) using RSA public key
       jweObject.encrypt(new RSAEncrypter(publicKey));

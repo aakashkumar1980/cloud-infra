@@ -1,4 +1,7 @@
-package client.crypto;
+package client.service;
+
+import client.crypto.FieldEncryptor;
+import client.crypto.JweBuilder;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -18,15 +21,15 @@ import java.util.Base64;
  * │                    CLIENT ENCRYPTION ORCHESTRATION                     │
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 1: loadPublicKeyFromResources()                             │ │
+ * │  │ STEP 1: loadRSAPublicKey()                             │ │
  * │  │ ► Load RSA-4096 public key from PEM file                         │ │
  * │  │ ► Parse X.509 format and create RSAPublicKey object              │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 2+3: prepareForNewRequest()                                 │ │
- * │  │ ► FieldEncryptor.generateKey() - Create 256-bit AES DEK          │ │
- * │  │ ► JweBuilder.wrapKey(dek, publicKey) - Wrap DEK in JWE           │ │
+ * │  │ STEP 2+3: generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()                                 │ │
+ * │  │ ► FieldEncryptor.generateRandomAESEncryptionKey() - Create 256-bit AES DEK          │ │
+ * │  │ ► JweBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE           │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
@@ -36,7 +39,7 @@ import java.util.Base64;
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ getEncryptionHeader()                                            │ │
+ * │  │ getJwtEncryptionMetadata()                                            │ │
  * │  │ ► Returns JWE for X-Encryption-Key header                        │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                                                                        │
@@ -52,41 +55,41 @@ import java.util.Base64;
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code
- * HybridEncryptionHelper helper = new HybridEncryptionHelper();
- * helper.loadPublicKeyFromResources();  // Step 1
- * helper.prepareForNewRequest();        // Steps 2+3
+ * HybridEncryptionService helper = new HybridEncryptionService();
+ * helper.loadRSAPublicKey();  // Step 1
+ * helper.generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata();        // Steps 2+3
  *
  * // Step 4: Encrypt fields
  * String encryptedCard = helper.encryptField("4111111111111234");
  * String encryptedSsn = helper.encryptField("123-45-6789");
  *
  * // Get header for HTTP request
- * String headerValue = helper.getEncryptionHeader();
+ * String headerValue = helper.getJwtEncryptionMetadata();
  * httpHeaders.set("X-Encryption-Key", headerValue);
  * }</pre>
  */
-public class HybridEncryptionHelper {
+public class HybridEncryptionService {
 
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
-  private RSAPublicKey publicKey;
-  private SecretKey currentKey;
-  private String currentHeader;
+  private RSAPublicKey rsaPublicKey;
+  private SecretKey randomAESEncryptionKey;
+  private String jwtEncryptionMetadata;
 
   /**
+   * TODO: Move to AWS Secrets Manager
    * Loads the RSA public key from the default resource location.
-   *
    * <p>Looks for the public key at: src/test/resources/public-key.pem</p>
    *
    * @throws RuntimeException if the key file is not found or invalid
    */
-  public void loadPublicKeyFromResources() {
+  public void loadRSAPublicKey() {
     try (InputStream is = getClass().getResourceAsStream(PUBLIC_KEY_RESOURCE)) {
       if (is == null) {
         throw new IOException("Public key not found at: " + PUBLIC_KEY_RESOURCE);
       }
       String pemContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-      loadPublicKey(pemContent);
+      loadRSAPublicKey(pemContent);
     } catch (IOException e) {
       throw new RuntimeException("Failed to load public key from resources", e);
     }
@@ -105,7 +108,7 @@ public class HybridEncryptionHelper {
    * -----END PUBLIC KEY-----
    * </pre>
    */
-  public void loadPublicKey(String pemContent) {
+  public void loadRSAPublicKey(String pemContent) {
     try {
       // Remove PEM headers and whitespace
       String base64Key = pemContent
@@ -118,7 +121,7 @@ public class HybridEncryptionHelper {
       X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
       KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-      this.publicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
+      this.rsaPublicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse public key", e);
@@ -133,23 +136,22 @@ public class HybridEncryptionHelper {
    *
    * @throws IllegalStateException if public key has not been loaded
    */
-  public void prepareForNewRequest() {
-    if (publicKey == null) {
-      throw new IllegalStateException("Public key not loaded. Call loadPublicKey() first.");
+  public void generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() {
+    if (rsaPublicKey == null) {
+      throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
 
     // Generate new AES key for this request
-    this.currentKey = FieldEncryptor.generateKey();
-
+    this.randomAESEncryptionKey = FieldEncryptor.generateRandomAESEncryptionKey();
     // Wrap the key in JWE format
-    this.currentHeader = JweBuilder.wrapKey(currentKey, publicKey);
+    this.jwtEncryptionMetadata = JweBuilder.wrapKey(randomAESEncryptionKey, rsaPublicKey);
   }
 
   /**
    * Encrypts a sensitive field value.
    *
    * <p>Uses the current request's AES key to encrypt the field.
-   * Must call {@link #prepareForNewRequest()} before encrypting fields.</p>
+   * Must call {@link #generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()} before encrypting fields.</p>
    *
    * @param plaintext The sensitive value to encrypt (e.g., credit card number)
    * @return Encrypted string in format: iv.ciphertext.authTag
@@ -162,10 +164,10 @@ public class HybridEncryptionHelper {
    * }</pre>
    */
   public String encryptField(String plaintext) {
-    if (currentKey == null) {
-      throw new IllegalStateException("Not prepared for request. Call prepareForNewRequest() first.");
+    if (randomAESEncryptionKey == null) {
+      throw new IllegalStateException("Not prepared for request. Call generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() first.");
     }
-    return FieldEncryptor.encrypt(plaintext, currentKey);
+    return FieldEncryptor.encrypt(plaintext, randomAESEncryptionKey);
   }
 
   /**
@@ -179,15 +181,15 @@ public class HybridEncryptionHelper {
    *
    * <h4>Example:</h4>
    * <pre>{@code
-   * String headerValue = helper.getEncryptionHeader();
+   * String headerValue = helper.getJwtEncryptionMetadata();
    * httpHeaders.set("X-Encryption-Key", headerValue);
    * }</pre>
    */
-  public String getEncryptionHeader() {
-    if (currentHeader == null) {
-      throw new IllegalStateException("Not prepared for request. Call prepareForNewRequest() first.");
+  public String getJwtEncryptionMetadata() {
+    if (jwtEncryptionMetadata == null) {
+      throw new IllegalStateException("Not prepared for request. Call generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata() first.");
     }
-    return currentHeader;
+    return jwtEncryptionMetadata;
   }
 
   /**
@@ -197,7 +199,7 @@ public class HybridEncryptionHelper {
    * from memory. Optional but recommended for security.</p>
    */
   public void clear() {
-    this.currentKey = null;
-    this.currentHeader = null;
+    this.randomAESEncryptionKey = null;
+    this.jwtEncryptionMetadata = null;
   }
 }

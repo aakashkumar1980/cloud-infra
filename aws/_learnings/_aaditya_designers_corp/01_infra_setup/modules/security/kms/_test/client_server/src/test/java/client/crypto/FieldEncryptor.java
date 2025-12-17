@@ -16,7 +16,7 @@ import java.util.Base64;
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  CLIENT ENCRYPTION FLOW                                                │
  * │                                                                        │
- * │  STEP 2: generateKey()                                                 │
+ * │  STEP 2: generateRandomAESEncryptionKey()                                                 │
  * │  ┌─────────────────────────────────────────────────────────────────┐  │
  * │  │  Generate DEK (Data Encryption Key)                             │  │
  * │  │  ► KeyGenerator.getInstance("AES")                              │  │
@@ -52,7 +52,7 @@ import java.util.Base64;
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code
- * SecretKey key = FieldEncryptor.generateKey();
+ * SecretKey key = FieldEncryptor.generateRandomAESEncryptionKey();
  * String encrypted = FieldEncryptor.encrypt("4111111111111234", key);
  * // encrypted = "AAAA.BBBB.CCCC" (iv.ciphertext.authTag)
  * }</pre>
@@ -81,7 +81,7 @@ public class FieldEncryptor {
    * @return A new 256-bit AES secret key
    * @throws RuntimeException if key generation fails
    */
-  public static SecretKey generateKey() {
+  public static SecretKey generateRandomAESEncryptionKey() {
     try {
       KeyGenerator keyGen = KeyGenerator.getInstance("AES");
       keyGen.init(KEY_SIZE_BITS, SECURE_RANDOM);
@@ -98,8 +98,8 @@ public class FieldEncryptor {
    * the same value twice produces different ciphertexts. This prevents
    * attackers from detecting patterns in encrypted data.</p>
    *
-   * @param plaintext The sensitive data to encrypt (e.g., "4111111111111234")
-   * @param key       The AES secret key (from {@link #generateKey()})
+   * @param plainText The sensitive data to encrypt (e.g., "4111111111111234")
+   * @param randomAESEncryptionKey       The AES secret key (from {@link #generateRandomAESEncryptionKey()})
    * @return Encrypted string in format: BASE64(IV).BASE64(Ciphertext).BASE64(AuthTag)
    * @throws RuntimeException if encryption fails
    *
@@ -110,8 +110,13 @@ public class FieldEncryptor {
    * // Result: "rAnDoMiV.eNcRyPtEdDaTa.aUtHtAg"
    * }</pre>
    */
-  public static String encrypt(String plaintext, SecretKey key) {
+  public static String encrypt(String plainText, SecretKey randomAESEncryptionKey) {
     try {
+      /**
+       * STEP 1:
+       * - Generate a random IV salt so that the encrypted value for the same plainText comes different for security.
+       * - Then, encrypt the plainText using the "randomAESEncryptionKey" + IV
+       * **/
       // Generate random IV for this encryption
       byte[] iv = new byte[IV_SIZE_BYTES];
       SECURE_RANDOM.nextBytes(iv);
@@ -119,24 +124,26 @@ public class FieldEncryptor {
       // Initialize cipher with AES-GCM
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
-
+      cipher.init(Cipher.ENCRYPT_MODE, randomAESEncryptionKey, gcmSpec);
       // Encrypt the plaintext
-      byte[] plaintextBytes = plaintext.getBytes(StandardCharsets.UTF_8);
-      byte[] ciphertextWithTag = cipher.doFinal(plaintextBytes);
+      byte[] encryptedTextWithTag = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 
+      /**
+       * STEP 2:
+       * - Split ciphertext and auth tag
+       * - Encode the data in the IV.encryptedText.authTag format and return
+       */
       // Split ciphertext and auth tag (GCM appends 16-byte tag at the end)
       int tagSizeBytes = AUTH_TAG_SIZE_BITS / 8;
-      int ciphertextLength = ciphertextWithTag.length - tagSizeBytes;
-
-      byte[] ciphertext = new byte[ciphertextLength];
+      int encryptedTextLength = encryptedTextWithTag.length - tagSizeBytes;
+      byte[] encryptedText = new byte[encryptedTextLength];
       byte[] authTag = new byte[tagSizeBytes];
-      System.arraycopy(ciphertextWithTag, 0, ciphertext, 0, ciphertextLength);
-      System.arraycopy(ciphertextWithTag, ciphertextLength, authTag, 0, tagSizeBytes);
+      System.arraycopy(encryptedTextWithTag, 0, encryptedText, 0, encryptedTextLength);
+      System.arraycopy(encryptedTextWithTag, encryptedTextLength, authTag, 0, tagSizeBytes);
 
       // Format: IV.Ciphertext.AuthTag (all Base64 encoded)
       return Base64.getEncoder().encodeToString(iv) + "." +
-             Base64.getEncoder().encodeToString(ciphertext) + "." +
+             Base64.getEncoder().encodeToString(encryptedText) + "." +
              Base64.getEncoder().encodeToString(authTag);
 
     } catch (Exception e) {
