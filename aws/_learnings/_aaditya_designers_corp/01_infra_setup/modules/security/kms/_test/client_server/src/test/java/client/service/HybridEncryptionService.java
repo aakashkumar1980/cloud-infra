@@ -13,37 +13,27 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * Hybrid Encryption Helper - Main utility for encrypting REST API requests.
+ * Hybrid Encryption Service - Main utility for encrypting REST API requests.
  *
  * <h2>CLIENT STEPS 1-4: Complete Client-Side Encryption Flow</h2>
  * <pre>
- * ┌────────────────────────────────────────────────────────────────────────┐
- * │                    CLIENT ENCRYPTION ORCHESTRATION                     │
- * │                                                                        │
- * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 1: loadRSAPublicKey()                             │ │
- * │  │ ► Load RSA-4096 public key from PEM file                         │ │
- * │  │ ► Parse X.509 format and create RSAPublicKey object              │ │
- * │  └──────────────────────────────────────────────────────────────────┘ │
- * │                              ▼                                        │
- * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 2+3: generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()                                 │ │
- * │  │ ► FieldEncryptor.generateRandomAESEncryptionKey() - Create 256-bit AES DEK          │ │
- * │  │ ► JweBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE           │ │
- * │  └──────────────────────────────────────────────────────────────────┘ │
- * │                              ▼                                        │
- * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 4: encryptField(plaintext)                                  │ │
- * │  │ ► FieldEncryptor.encrypt(plaintext, dek)                         │ │
- * │  │ ► Output: "iv.ciphertext.authTag" (~60 chars per field)          │ │
- * │  └──────────────────────────────────────────────────────────────────┘ │
- * │                              ▼                                        │
- * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ getJwtEncryptionMetadata()                                            │ │
- * │  │ ► Returns JWE for X-Encryption-Key header                        │ │
- * │  └──────────────────────────────────────────────────────────────────┘ │
- * │                                                                        │
- * └────────────────────────────────────────────────────────────────────────┘
+ * ┌──────────────────────────────────────────────────────────────────────────────┐
+ * │                      CLIENT ENCRYPTION ORCHESTRATION                         │
+ * │                                                                              │
+ * │  STEP 1: loadRSAPublicKey()                                                  │
+ * │  ► Load RSA-4096 public key from PEM file                                    │
+ * │                                 ▼                                            │
+ * │  STEP 2+3: generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata()        │
+ * │  ► FieldEncryptor.generateRandomAESEncryptionKey() - Create 256-bit AES DEK  │
+ * │  ► JweBuilder.wrapKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
+ * │                                 ▼                                            │
+ * │  STEP 4: encryptField(plaintext)                                             │
+ * │  ► FieldEncryptor.encrypt(plaintext, dek)                                    │
+ * │  ► Output: "iv.encryptedText.authTag" (~60 chars per field)                  │
+ * │                                 ▼                                            │
+ * │  getJwtEncryptionMetadata()                                                  │
+ * │  ► Returns JWE for X-Encryption-Key header                                   │
+ * └──────────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
  * <h3>Benefits:</h3>
@@ -52,21 +42,6 @@ import java.util.Base64;
  *   <li><b>Fast:</b> AES is ~1000x faster than RSA</li>
  *   <li><b>Efficient:</b> Server makes only 1 KMS call to unwrap key</li>
  * </ul>
- *
- * <h3>Usage Example:</h3>
- * <pre>{@code
- * HybridEncryptionService helper = new HybridEncryptionService();
- * helper.loadRSAPublicKey();  // Step 1
- * helper.generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata();        // Steps 2+3
- *
- * // Step 4: Encrypt fields
- * String encryptedCard = helper.encryptField("4111111111111234");
- * String encryptedSsn = helper.encryptField("123-45-6789");
- *
- * // Get header for HTTP request
- * String headerValue = helper.getJwtEncryptionMetadata();
- * httpHeaders.set("X-Encryption-Key", headerValue);
- * }</pre>
  */
 public class HybridEncryptionService {
 

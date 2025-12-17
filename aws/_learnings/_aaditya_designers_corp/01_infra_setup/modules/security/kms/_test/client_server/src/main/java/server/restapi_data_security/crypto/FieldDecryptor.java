@@ -1,5 +1,7 @@
 package server.restapi_data_security.crypto;
 
+import org.springframework.stereotype.Component;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -18,10 +20,10 @@ import java.util.Base64;
  * │  Key:   DEK (unwrapped via KMS in Step 6)                             │
  * │                                                                        │
  * │  Process:                                                              │
- * │  1. Split encrypted string → iv, ciphertext, authTag                  │
+ * │  1. Split encrypted string → iv, encryptedText, authTag               │
  * │  2. Decode each part from Base64                                       │
  * │  3. Initialize AES-256-GCM cipher with IV                             │
- * │  4. Decrypt ciphertext and verify authTag                             │
+ * │  4. Decrypt encryptedText and verify authTag                          │
  * │                                                                        │
  * │  Output: Plaintext (e.g., "4111111111111234")                         │
  * └────────────────────────────────────────────────────────────────────────┘
@@ -29,7 +31,7 @@ import java.util.Base64;
  *
  * <h3>Expected Input Format:</h3>
  * <pre>
- * BASE64(IV).BASE64(Ciphertext).BASE64(AuthTag)
+ * BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
  * Example: "abc123.xyz789.def456"
  * </pre>
  *
@@ -39,14 +41,8 @@ import java.util.Base64;
  *   <li><b>No KMS Call:</b> Decryption happens locally using the unwrapped key</li>
  *   <li><b>Fast:</b> AES decryption is very fast (~GB/sec)</li>
  * </ul>
- *
- * <h3>Usage Example:</h3>
- * <pre>{@code
- * SecretKey key = KmsKeyUnwrapper.unwrap(encryptedKey);
- * String creditCard = FieldDecryptor.decrypt("abc.xyz.def", key);
- * // creditCard = "4111111111111234"
- * }</pre>
  */
+@Component
 public class FieldDecryptor {
 
   /** GCM authentication tag size in bits */
@@ -55,50 +51,44 @@ public class FieldDecryptor {
   /**
    * Decrypts an encrypted field value.
    *
-   * <p>Parses the encrypted string, extracts the IV, ciphertext, and auth tag,
-   * then decrypts using AES-256-GCM. If the data was tampered with, decryption
-   * will fail with an authentication error.</p>
-   *
-   * @param encryptedField The encrypted string in format: iv.ciphertext.authTag
-   * @param key            The AES secret key (unwrapped from JWE)
+   * @param encryptedField The encrypted string in format: iv.encryptedText.authTag
+   * @param randomAESEncryptionKey The AES secret key (unwrapped from JWE via KMS)
    * @return The decrypted plaintext string
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if decryption fails (wrong key or tampered data)
-   *
-   * <h4>Example:</h4>
-   * <pre>{@code
-   * String encrypted = "AAAA.BBBB.CCCC";
-   * String plaintext = FieldDecryptor.decrypt(encrypted, key);
-   * // plaintext = "4111111111111234"
-   * }</pre>
    */
-  public static String decrypt(String encryptedField, SecretKey key) {
+  public String decrypt(String encryptedField, SecretKey randomAESEncryptionKey) {
     // Validate and split the encrypted field
     String[] parts = encryptedField.split("\\.");
     if (parts.length != 3) {
       throw new IllegalArgumentException(
-          "Invalid encrypted field format. Expected: IV.Ciphertext.AuthTag, got " + parts.length + " parts");
+          "Invalid encrypted field format. Expected: IV.EncryptedText.AuthTag, got " + parts.length + " parts");
     }
 
     try {
-      // Decode each part from Base64
+      /**
+       * STEP 1: Decode each part from Base64
+       */
       byte[] iv = Base64.getDecoder().decode(parts[0]);
-      byte[] ciphertext = Base64.getDecoder().decode(parts[1]);
+      byte[] encryptedText = Base64.getDecoder().decode(parts[1]);
       byte[] authTag = Base64.getDecoder().decode(parts[2]);
 
-      // Combine ciphertext and auth tag (GCM expects them together)
-      byte[] ciphertextWithTag = new byte[ciphertext.length + authTag.length];
-      System.arraycopy(ciphertext, 0, ciphertextWithTag, 0, ciphertext.length);
-      System.arraycopy(authTag, 0, ciphertextWithTag, ciphertext.length, authTag.length);
+      /**
+       * STEP 2: Combine encryptedText and authTag (GCM expects them together)
+       * Then decrypt using the randomAESEncryptionKey + IV
+       */
+      byte[] encryptedTextWithTag = new byte[encryptedText.length + authTag.length];
+      System.arraycopy(encryptedText, 0, encryptedTextWithTag, 0, encryptedText.length);
+      System.arraycopy(authTag, 0, encryptedTextWithTag, encryptedText.length, authTag.length);
 
       // Initialize cipher for decryption
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+      cipher.init(Cipher.DECRYPT_MODE, randomAESEncryptionKey, gcmSpec);
 
       // Decrypt and return plaintext
-      byte[] plaintext = cipher.doFinal(ciphertextWithTag);
-      return new String(plaintext, StandardCharsets.UTF_8);
+      byte[] plainText = cipher.doFinal(encryptedTextWithTag);
+      return new String(plainText, StandardCharsets.UTF_8);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to decrypt field: " + e.getMessage(), e);

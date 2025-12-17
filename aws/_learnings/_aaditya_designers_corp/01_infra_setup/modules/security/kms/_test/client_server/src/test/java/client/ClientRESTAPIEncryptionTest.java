@@ -18,24 +18,19 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * End-to-End Test: Hybrid Encryption for REST API
  *
- * <p>Simulates a 3rd party client (NO AWS SDK) submitting an order with
- * encrypted PII fields using hybrid encryption.</p>
- *
  * <h3>Client Flow (Steps 1-4):</h3>
  * <ol>
  *   <li>Load company's RSA public key → HybridEncryptionService.loadRSAPublicKey()</li>
  *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateRandomAESEncryptionKey()</li>
  *   <li>Wrap DEK in JWE for transport → JweBuilder.wrapKey()</li>
  *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
- *   <li>Send: X-Encryption-Key header + encrypted body</li>
  * </ol>
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract encrypted key from JWE → JweParser.extractEncryptedKey()</li>
- *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.unwrap()</li>
+ *   <li>Extract encrypted key from JWE → JweParser.extractEncryptedAESKey()</li>
+ *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.unwrapEncryptedAESKey()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
- *   <li>Process order and return masked response</li>
  * </ol>
  */
 @SpringBootTest(
@@ -65,66 +60,40 @@ class ClientRESTAPIEncryptionTest {
   @Order(1)
   @DisplayName("Submit order with hybrid-encrypted PII - End to end test")
   void testSubmitOrderWithHybridEncryption() throws Exception {
-    // Prepare encrypted order and JWE header
     EncryptedOrder encryptedOrder = prepareEncryptedOrder();
-
-    // Submit and verify
     submitAndVerifyOrder(encryptedOrder);
   }
 
-  /**
-   * Prepares an order with encrypted PII fields.
-   *
-   * <p>Uses the HybridEncryptionService to:</p>
-   * <ul>
-   *   <li>Load the public key</li>
-   *   <li>Generate a fresh encryption key</li>
-   *   <li>Encrypt all PII fields</li>
-   *   <li>Create the JWE header</li>
-   * </ul>
-   */
   private EncryptedOrder prepareEncryptedOrder() throws Exception {
-    // Step 1: Load public key
-    log.info("\n=== Step 1: Load Public Key from Resources ===");
+    // Step 1: Load RSA public key
+    log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadRSAPublicKey();
-    log.info("Public key loaded from src/test/resources/public-key.pem");
+    log.info("Loaded from: src/test/resources/public-key.pem");
 
-    // Step 2: Prepare for new request (generates encryption key)
-    log.info("\n=== Step 2: Generate Encryption Key ===");
+    // Step 2: Generate AES encryption key and wrap in JWE
+    log.info("\n=== Step 2: Generate AES Key & Create JWE Metadata ===");
     hybridEncryptionService.generateLocalRandomAESEncryptionKeyAndAddItToJWTMetadata();
-    log.info("Encryption key generated (256-bit AES)");
+    log.info("Generated 256-bit AES key and wrapped in JWE");
 
     // Step 3: Define order data
-    log.info("\n=== Step 3: Create Order Data ===");
-    String customerName = "aakash.kumar";
-    String customerAddress = "austin,texas,usa";
-    String dateOfBirth = "1990-05-15";
-    String creditCardNumber = "4111111111111234";
-    String ssn = "123-45-6789";
-    double orderAmount = 100.00;
-
-    log.info("Order Details:");
-    log.info("  Name: {}", customerName);
-    log.info("  Address: {}", customerAddress);
-    log.info("  DOB: {}", dateOfBirth);
-    log.info("  Credit Card: {}", creditCardNumber);
-    log.info("  SSN: {}", ssn);
-    log.info("  Order Amount: ${}", orderAmount);
+    log.info("\n=== Step 3: Order Data ===");
+    record OrderData(String name, String address, String dob, String creditCard, String ssn, double amount) {}
+    var order = new OrderData("aakash.kumar", "austin,texas,usa", "1990-05-15", "4111111111111234", "123-45-6789", 100.00);
+    log.info("Customer: {} | Address: {} | DOB: {} | Card: {} | SSN: {} | Amount: ${}",
+        order.name, order.address, order.dob, order.creditCard, order.ssn, order.amount);
 
     // Step 4: Encrypt PII fields
     log.info("\n=== Step 4: Encrypt PII Fields ===");
-    String encryptedDob = hybridEncryptionService.encryptField(dateOfBirth);
-    String encryptedCreditCard = hybridEncryptionService.encryptField(creditCardNumber);
-    String encryptedSsn = hybridEncryptionService.encryptField(ssn);
+    String encryptedDob = hybridEncryptionService.encryptField(order.dob);
+    String encryptedCreditCard = hybridEncryptionService.encryptField(order.creditCard);
+    String encryptedSsn = hybridEncryptionService.encryptField(order.ssn);
+    log.info("Encrypted DOB: {} | Card: {} | SSN: {}",
+        truncate(encryptedDob, 30), truncate(encryptedCreditCard, 30), truncate(encryptedSsn, 30));
 
-    log.info("Encrypted DOB: {}", truncate(encryptedDob, 40));
-    log.info("Encrypted Credit Card: {}", truncate(encryptedCreditCard, 40));
-    log.info("Encrypted SSN: {}", truncate(encryptedSsn, 40));
-
-    // Step 5: Get the encryption header (JWE with wrapped key)
-    log.info("\n=== Step 5: Get Encryption Header ===");
+    // Step 5: Get JWE header
+    log.info("\n=== Step 5: Get JWT Encryption Metadata ===");
     String jwtEncryptionMetadata = hybridEncryptionService.getJwtEncryptionMetadata();
-    log.info("JWT Encryption Header value: {}", truncate(jwtEncryptionMetadata, 50));
+    log.info("JWE Header: {}", truncate(jwtEncryptionMetadata, 50));
 
     // Build JSON payload
     JsonObject cardDetails = new JsonObject();
@@ -132,85 +101,54 @@ class ClientRESTAPIEncryptionTest {
     cardDetails.addProperty("ssn", encryptedSsn);
 
     JsonObject orderRequest = new JsonObject();
-    orderRequest.addProperty("name", customerName);
-    orderRequest.addProperty("address", customerAddress);
+    orderRequest.addProperty("name", order.name);
+    orderRequest.addProperty("address", order.address);
     orderRequest.addProperty("dateOfBirth", encryptedDob);
-    orderRequest.addProperty("orderAmount", orderAmount);
+    orderRequest.addProperty("orderAmount", order.amount);
     orderRequest.add("cardDetails", cardDetails);
 
     return new EncryptedOrder(jwtEncryptionMetadata, orderRequest);
   }
 
-  /**
-   * Submits the order to the API and verifies the response.
-   */
   private void submitAndVerifyOrder(EncryptedOrder encryptedOrder) {
     log.info("\n=== Step 6: Submit Order to API ===");
 
-    // Build HTTP request with encryption header
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.set("X-Encryption-Key", encryptedOrder.header());
 
-    HttpEntity<String> request = new HttpEntity<>(
-        gson.toJson(encryptedOrder.payload()),
-        headers
-    );
+    HttpEntity<String> request = new HttpEntity<>(gson.toJson(encryptedOrder.payload()), headers);
+    log.info("POST /api/v1/orders | X-Encryption-Key: {}", truncate(encryptedOrder.header(), 40));
 
-    log.info("Request Headers:");
-    log.info("  Content-Type: application/json");
-    log.info("  X-Encryption-Key: {}", truncate(encryptedOrder.header(), 50));
-
-    // Send request
-    ResponseEntity<String> response = restTemplate.postForEntity(
-        baseUrl() + "/orders",
-        request,
-        String.class
-    );
+    ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", request, String.class);
 
     // Verify response
     log.info("\n=== Step 7: Verify Response ===");
-    log.info("Response Status: {}", response.getStatusCode());
-
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Expected 200 OK");
 
-    JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
-    assertTrue(resultJson.get("success").getAsBoolean(), "Expected success=true");
+    JsonObject result = gson.fromJson(response.getBody(), JsonObject.class);
+    assertTrue(result.get("success").getAsBoolean(), "Expected success=true");
 
-    // Extract response fields
-    String orderId = resultJson.get("orderId").getAsString();
-    String dateOfBirth = resultJson.get("dateOfBirth").getAsString();
-    JsonObject cardDetails = resultJson.getAsJsonObject("cardDetails");
-    String maskedCreditCard = cardDetails.get("creditCardNumber").getAsString();
+    String orderId = result.get("orderId").getAsString();
+    String dob = result.get("dateOfBirth").getAsString();
+    JsonObject cardDetails = result.getAsJsonObject("cardDetails");
+    String maskedCard = cardDetails.get("creditCardNumber").getAsString();
     String maskedSsn = cardDetails.get("ssn").getAsString();
 
-    // Log response
-    log.info("\nOrder Response:");
-    log.info("  Order ID: {}", orderId);
-    log.info("  Name: {}", resultJson.get("name").getAsString());
-    log.info("  Address: {}", resultJson.get("address").getAsString());
-    log.info("  DOB: {}", dateOfBirth);
-    log.info("  Order Amount: ${}", resultJson.get("orderAmount").getAsDouble());
-    log.info("  Masked Credit Card: {}", maskedCreditCard);
-    log.info("  Masked SSN: {}", maskedSsn);
+    log.info("Response - Status: {} | OrderId: {} | DOB: {} | Card: {} | SSN: {}",
+        response.getStatusCode(), orderId, dob, maskedCard, maskedSsn);
 
-    // Verify decryption worked correctly
-    assertEquals("1990-05-15", dateOfBirth, "DOB should be decrypted");
-    assertTrue(maskedCreditCard.endsWith("1234"), "Credit card should show last 4 digits");
+    // Verify decryption worked
+    assertEquals("1990-05-15", dob, "DOB should be decrypted");
+    assertTrue(maskedCard.endsWith("1234"), "Card should show last 4 digits");
     assertTrue(maskedSsn.endsWith("6789"), "SSN should show last 4 digits");
 
-    log.info("\n=== SUCCESS ===");
-    log.info("Order processed with hybrid encryption:");
-    log.info("  - 1 KMS API call (to unwrap key)");
-    log.info("  - 3 local decryptions (no additional KMS calls)");
+    log.info("\n=== SUCCESS === (1 KMS call to unwrap key, 3 local decryptions)");
   }
 
   private String truncate(String str, int maxLen) {
     return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
   }
 
-  /**
-   * Helper record to hold the encryption header and payload together.
-   */
   private record EncryptedOrder(String header, JsonObject payload) {}
 }
