@@ -14,10 +14,10 @@ import java.util.Base64;
  * <h2>STEP 7 (BACKEND): Decrypt PII Fields Locally</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  SERVER DECRYPTION FLOW                                                │
+ * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
  * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
- * │  Key:   DEK (unwrapped via KMS in Step 6)                             │
+ * │  Key:   randomAESEncryptionKey (unwrapped via KMS in Step 6)          │
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Split encrypted string → iv, encryptedText, authTag               │
