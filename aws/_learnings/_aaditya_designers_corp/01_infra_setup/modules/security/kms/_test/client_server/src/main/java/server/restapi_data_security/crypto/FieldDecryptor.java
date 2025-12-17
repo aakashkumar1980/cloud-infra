@@ -17,7 +17,7 @@ import java.util.Base64;
  * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
  * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
- * │  Key:   aesEncryptionKey (extracted via KMS in Step 6)                │
+ * │  Key:   dataEncryptionKey (DEK extracted via KMS in Step 6)           │
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Split encrypted string → iv, encryptedText, authTag               │
@@ -37,8 +37,8 @@ import java.util.Base64;
  *
  * <h3>Security Properties:</h3>
  * <ul>
- *   <li><b>Integrity Check:</b> The auth tag verifies data wasn't tampered with</li>
- *   <li><b>No KMS Call:</b> Decryption happens locally using the extracted key</li>
+ *   <li><b>Integrity Check:</b> Auth tag verifies data wasn't tampered with</li>
+ *   <li><b>No KMS Call:</b> Decryption happens locally using the DEK</li>
  *   <li><b>Fast:</b> AES decryption is very fast (~GB/sec)</li>
  * </ul>
  */
@@ -51,13 +51,13 @@ public class FieldDecryptor {
   /**
    * Decrypts an encrypted field value.
    *
-   * @param encryptedField   The encrypted string in format: iv.encryptedText.authTag
-   * @param aesEncryptionKey The AES secret key (extracted from JWE via KMS)
+   * @param encryptedField    The encrypted string in format: iv.encryptedText.authTag
+   * @param dataEncryptionKey The DEK (Data Encryption Key) extracted from JWE via KMS
    * @return The decrypted plaintext string
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if decryption fails (wrong key or tampered data)
    */
-  public String decrypt(String encryptedField, SecretKey aesEncryptionKey) {
+  public String decrypt(String encryptedField, SecretKey dataEncryptionKey) {
     // Validate and split the encrypted field
     String[] parts = encryptedField.split("\\.");
     if (parts.length != 3) {
@@ -79,7 +79,7 @@ public class FieldDecryptor {
       // Initialize cipher for decryption
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, aesEncryptionKey, gcmSpec);
+      cipher.init(Cipher.DECRYPT_MODE, dataEncryptionKey, gcmSpec);
 
       // Decrypt and return plaintext
       byte[] plainText = cipher.doFinal(encryptedTextWithTag);

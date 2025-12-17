@@ -13,17 +13,17 @@ public class AESEncryptionKeyGenerator {
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   /**
-   * Generates a new random AES-256 encryption key.
+   * Generates a new random Data Encryption Key (DEK).
    *
-   * @return A new 256-bit AES secret key
+   * @return A new 256-bit AES secret key (DEK)
    */
-  public SecretKey generateAESEncryptionKey() {
+  public SecretKey generateDataEncryptionKey() {
     try {
       KeyGenerator keyGen = KeyGenerator.getInstance("AES");
       keyGen.init(KEY_SIZE_BITS, SECURE_RANDOM);
       return keyGen.generateKey();
     } catch (Exception e) {
-      throw new RuntimeException("Failed to generate AES key", e);
+      throw new RuntimeException("Failed to generate DEK", e);
     }
   }
 }

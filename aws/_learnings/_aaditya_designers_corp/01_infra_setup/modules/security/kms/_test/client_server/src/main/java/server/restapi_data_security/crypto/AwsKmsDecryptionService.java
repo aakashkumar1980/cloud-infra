@@ -14,44 +14,43 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * AWS KMS Decryption Service - Decrypts the AES CEK (Content Encryption Key) using AWS KMS.
+ * AWS KMS Decryption Service - Extracts the Data Encryption Key (DEK) from JWE via KMS.
  *
- * <h2>STEP 6 (BACKEND): Two-Step AES CEK Decryption via AWS KMS</h2>
+ * <h2>STEP 6 (BACKEND): Extract DEK via AWS KMS</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  AES CEK DECRYPTION VIA KMS (Two-Step Process)                        │
+ * │  DEK EXTRACTION (Two-Step Process)                                    │
  * │                                                                        │
- * │  STEP 6a: Decrypt aesCekEncryptedKey via KMS                          │
+ * │  STEP 6a: Decrypt CEK via KMS                                         │
  * │  ─────────────────────────────────────────────────────────────────────│
  * │  SERVER                               AWS KMS                          │
  * │    │                                    │                              │
  * │    │ ─── DecryptRequest ──────────────► │                              │
- * │    │     (aesCekEncryptedKey, keyArn,   │                              │
+ * │    │     (encryptedCek, keyArn,         │                              │
  * │    │      RSAES_OAEP_SHA_256)           │                              │
  * │    │                                    │  ┌────────────────────────┐  │
  * │    │                                    │  │ RSA Private Key        │  │
  * │    │                                    │  │ (NEVER leaves HSM)     │  │
  * │    │                                    │  └────────────────────────┘  │
  * │    │ ◄── DecryptResponse ────────────── │                              │
- * │    │     (aesCekEncryptionKey: 256-bit) │                              │
+ * │    │     (cek: 256-bit)                 │                              │
  * │                                                                        │
  * │  STEP 6b: Decrypt JWE Payload Locally                                 │
  * │  ─────────────────────────────────────────────────────────────────────│
- * │  Using the aesCekEncryptionKey + IV + AuthTag from JWE:               │
+ * │  Using cek + IV + AuthTag from JWE:                                   │
  * │    ► Decrypt JWE ciphertext using AES-256-GCM                         │
- * │    ► Output: Original AES encryption key (for field decryption)       │
+ * │    ► Output: dataEncryptionKey (DEK for field decryption)             │
  * │                                                                        │
  * │  NOTE: This is the ONLY KMS API call per request!                     │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
  * <h3>Why Two Steps?</h3>
- * <p>JWE uses a two-layer encryption scheme:</p>
+ * <p>JWE uses two-layer encryption:</p>
  * <ol>
- *   <li>A random AES CEK is RSA-encrypted → aesCekEncryptedKey</li>
- *   <li>The payload (our AES key) is encrypted with aesCekEncryptionKey using A256GCM</li>
+ *   <li>CEK (Content Encryption Key) is RSA-encrypted → encryptedCek</li>
+ *   <li>DEK (Data Encryption Key) is encrypted with CEK → ciphertext</li>
  * </ol>
- * <p>We must decrypt both layers to retrieve the original AES key.</p>
  */
 @Component
 public class AwsKmsDecryptionService {
@@ -76,49 +75,49 @@ public class AwsKmsDecryptionService {
   }
 
   /**
-   * Decrypts the AES CEK from JWE components using AWS KMS and extracts the original AES key.
+   * Extracts the Data Encryption Key (DEK) from JWE components via AWS KMS.
    *
-   * <p>This method performs two-step decryption:</p>
+   * <p>Two-step process:</p>
    * <ol>
-   *   <li>Decrypt the aesCekEncryptedKey using KMS → aesCekEncryptionKey</li>
-   *   <li>Use the aesCekEncryptionKey to decrypt the JWE payload (original AES key)</li>
+   *   <li>Decrypt encryptedCek via KMS → cek</li>
+   *   <li>Decrypt JWE payload using cek → dataEncryptionKey</li>
    * </ol>
    *
    * @param jweComponents The JWE components from JwtParser
-   * @return The decrypted AES-256 secret key for field decryption
+   * @return The Data Encryption Key (DEK) for field decryption
    * @throws RuntimeException if decryption fails
    */
-  public SecretKey decryptAesCekAndExtractAesKey(JwtParser.JweComponents jweComponents) {
+  public SecretKey extractDataEncryptionKey(JwtParser.JweComponents jweComponents) {
     try {
-      // STEP 6a: Decrypt aesCekEncryptedKey via KMS to get aesCekEncryptionKey
-      byte[] aesCekEncryptionKey = decryptAesCekViaKms(jweComponents.aesCekEncryptedKey());
+      // STEP 6a: Decrypt encryptedCek via KMS to get cek
+      byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());
 
-      // STEP 6b: Decrypt JWE payload using aesCekEncryptionKey to get original AES key
-      byte[] aesKeyBytes = decryptJwePayload(
-          aesCekEncryptionKey,
+      // STEP 6b: Decrypt JWE payload using cek to get dataEncryptionKey
+      byte[] dekBytes = decryptJwePayload(
+          cek,
           jweComponents.iv(),
           jweComponents.ciphertext(),
           jweComponents.authTag(),
           jweComponents.aad()
       );
 
-      return new SecretKeySpec(aesKeyBytes, "AES");
+      return new SecretKeySpec(dekBytes, "AES");
 
     } catch (Exception e) {
-      throw new RuntimeException("AES CEK decryption failed: " + e.getMessage(), e);
+      throw new RuntimeException("Failed to extract Data Encryption Key: " + e.getMessage(), e);
     }
   }
 
   /**
-   * Decrypts the aesCekEncryptedKey using AWS KMS RSA decryption.
+   * Decrypts the encryptedCek using AWS KMS RSA decryption.
    *
-   * @param aesCekEncryptedKey The RSA-encrypted AES CEK
-   * @return The decrypted aesCekEncryptionKey (plaintext CEK bytes)
+   * @param encryptedCek The RSA-encrypted Content Encryption Key
+   * @return The plaintext CEK bytes
    */
-  private byte[] decryptAesCekViaKms(byte[] aesCekEncryptedKey) {
+  private byte[] decryptCekViaKms(byte[] encryptedCek) {
     DecryptRequest request = DecryptRequest.builder()
         .keyId(keyArn)
-        .ciphertextBlob(SdkBytes.fromByteArray(aesCekEncryptedKey))
+        .ciphertextBlob(SdkBytes.fromByteArray(encryptedCek))
         .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
         .build();
 
@@ -127,20 +126,20 @@ public class AwsKmsDecryptionService {
   }
 
   /**
-   * Decrypts the JWE payload using the aesCekEncryptionKey.
+   * Decrypts the JWE payload using the CEK to extract the DEK.
    *
    * <p>JWE uses AAD (Additional Authenticated Data) which is the ASCII bytes
-   * of the Base64URL-encoded protected header. This must be provided to the
-   * cipher for GCM authentication to succeed.</p>
+   * of the Base64URL-encoded protected header. This must be provided for GCM
+   * authentication to succeed.</p>
    *
-   * @param aesCekEncryptionKey The decrypted AES CEK (Content Encryption Key)
-   * @param iv                  The initialization vector for A256GCM
-   * @param ciphertext          The encrypted payload
-   * @param authTag             The GCM authentication tag
-   * @param aad                 The Additional Authenticated Data
-   * @return The decrypted payload (original AES key bytes)
+   * @param cek        The Content Encryption Key (decrypted via KMS)
+   * @param iv         Initialization vector for A256GCM
+   * @param ciphertext Encrypted payload containing the DEK
+   * @param authTag    GCM authentication tag
+   * @param aad        Additional Authenticated Data
+   * @return The DEK bytes (Data Encryption Key)
    */
-  private byte[] decryptJwePayload(byte[] aesCekEncryptionKey, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad)
+  private byte[] decryptJwePayload(byte[] cek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad)
       throws Exception {
     // Combine ciphertext and authTag (GCM expects them together)
     byte[] ciphertextWithTag = new byte[ciphertext.length + authTag.length];
@@ -149,7 +148,7 @@ public class AwsKmsDecryptionService {
 
     // Decrypt using AES-256-GCM with AAD
     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-    SecretKey cekKey = new SecretKeySpec(aesCekEncryptionKey, "AES");
+    SecretKey cekKey = new SecretKeySpec(cek, "AES");
     GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_SIZE_BITS, iv);
     cipher.init(Cipher.DECRYPT_MODE, cekKey, gcmSpec);
 

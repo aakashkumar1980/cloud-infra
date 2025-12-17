@@ -5,28 +5,27 @@ import com.nimbusds.jose.JWEObject;
 import org.springframework.stereotype.Component;
 
 /**
- * JWT Parser - Extracts JWE components for two-step decryption via AWS KMS.
+ * JWT Parser - Extracts JWE components for decryption via AWS KMS.
  *
- * <h2>STEP 5 (BACKEND): Extract JWE Components for KMS Decryption</h2>
+ * <h2>STEP 5 (BACKEND): Extract JWE Components</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  JWT ENCRYPTION METADATA (JWE Format)                                  │
+ * │  JWE FORMAT: Header.EncryptedKey.IV.Ciphertext.AuthTag                │
  * │                                                                        │
- * │  Header.EncryptedKey.IV.Ciphertext.AuthTag                            │
- * │    │         │        │      │         │                               │
- * │    │         │        │      │         └── GCM auth tag                │
- * │    │         │        │      └── Encrypted AES CEK (our payload)       │
- * │    │         │        └── IV for content encryption                    │
- * │    │         └── RSA-encrypted AES CEK (aesCekEncryptedKey)            │
- * │    └── {"alg":"RSA-OAEP-256","enc":"A256GCM"}                         │
+ * │  Components:                                                           │
+ * │  ├── Header: {"alg":"RSA-OAEP-256","enc":"A256GCM"}                   │
+ * │  ├── EncryptedKey: RSA-encrypted CEK (encryptedCek)                   │
+ * │  ├── IV: Initialization vector for A256GCM                            │
+ * │  ├── Ciphertext: Encrypted DEK (our Data Encryption Key)              │
+ * │  └── AuthTag: GCM authentication tag                                  │
  * │                                                                        │
- * │  IMPORTANT: The JWE encrypts the AES CEK in TWO layers:               │
- * │  1. A random AES CEK is RSA-encrypted → aesCekEncryptedKey            │
- * │  2. Our AES key is encrypted with CEK using A256GCM → Ciphertext      │
+ * │  Two-Layer Encryption:                                                │
+ * │  1. CEK (Content Encryption Key) is RSA-encrypted → encryptedCek      │
+ * │  2. DEK (Data Encryption Key) is encrypted with CEK → Ciphertext      │
  * │                                                                        │
- * │  To get the original AES key:                                         │
- * │  1. Send aesCekEncryptedKey to KMS → get aesCekEncryptionKey          │
- * │  2. Use aesCekEncryptionKey + IV + AuthTag to decrypt Ciphertext      │
+ * │  To extract DEK:                                                       │
+ * │  1. Decrypt encryptedCek via KMS → cek                                │
+ * │  2. Decrypt Ciphertext using cek → dataEncryptionKey                  │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  */
@@ -55,7 +54,7 @@ public class JwtParser {
       }
 
       // Extract all JWE components
-      byte[] aesCekEncryptedKey = jweObject.getEncryptedKey().decode();
+      byte[] encryptedCek = jweObject.getEncryptedKey().decode();
       byte[] iv = jweObject.getIV().decode();
       byte[] ciphertext = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
@@ -66,7 +65,7 @@ public class JwtParser {
       String protectedHeader = jwtEncryptionMetadata.split("\\.")[0];
       byte[] aad = protectedHeader.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
 
-      return new JweComponents(aesCekEncryptedKey, iv, ciphertext, authTag, aad);
+      return new JweComponents(encryptedCek, iv, ciphertext, authTag, aad);
 
     } catch (IllegalArgumentException e) {
       throw e;
@@ -91,13 +90,13 @@ public class JwtParser {
   }
 
   /**
-   * Record containing all JWE components needed for two-step decryption.
+   * Record containing all JWE components needed for decryption.
    *
-   * @param aesCekEncryptedKey The RSA-encrypted AES CEK (Content Encryption Key) for KMS decryption
-   * @param iv                 The initialization vector for A256GCM content decryption
-   * @param ciphertext         The encrypted payload (contains our original AES key)
-   * @param authTag            The GCM authentication tag for content decryption
-   * @param aad                The Additional Authenticated Data (ASCII bytes of Base64URL protected header)
+   * @param encryptedCek RSA-encrypted CEK (Content Encryption Key) - decrypted via KMS
+   * @param iv           Initialization vector for A256GCM
+   * @param ciphertext   Encrypted payload containing the DEK (Data Encryption Key)
+   * @param authTag      GCM authentication tag
+   * @param aad          Additional Authenticated Data (ASCII bytes of Base64URL protected header)
    */
-  public record JweComponents(byte[] aesCekEncryptedKey, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
+  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
 }
