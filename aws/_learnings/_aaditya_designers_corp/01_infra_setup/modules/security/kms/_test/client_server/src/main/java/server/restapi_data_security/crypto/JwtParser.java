@@ -74,13 +74,20 @@ public class JwtParser {
       byte[] ciphertext = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
 
+      // Extract the protected header for AAD (Additional Authenticated Data)
+      // JWE AAD = ASCII(BASE64URL(UTF8(JWE Protected Header)))
+      // The first part of the JWE token (before the first dot) is the Base64URL-encoded header
+      String protectedHeader = jwtEncryptionMetadata.split("\\.")[0];
+      byte[] aad = protectedHeader.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+
       log.info("DEBUG: JWE Components extracted:");
       log.info("DEBUG:   encryptedCek size: {} bytes, base64: {}", encryptedCek.length, Base64.getEncoder().encodeToString(encryptedCek));
       log.info("DEBUG:   iv size: {} bytes, base64: {}", iv.length, Base64.getEncoder().encodeToString(iv));
       log.info("DEBUG:   ciphertext size: {} bytes, base64: {}", ciphertext.length, Base64.getEncoder().encodeToString(ciphertext));
       log.info("DEBUG:   authTag size: {} bytes, base64: {}", authTag.length, Base64.getEncoder().encodeToString(authTag));
+      log.info("DEBUG:   aad (protected header): {}", protectedHeader);
 
-      return new JweComponents(encryptedCek, iv, ciphertext, authTag);
+      return new JweComponents(encryptedCek, iv, ciphertext, authTag, aad);
 
     } catch (IllegalArgumentException e) {
       throw e;
@@ -111,6 +118,7 @@ public class JwtParser {
    * @param iv           The initialization vector for A256GCM content decryption
    * @param ciphertext   The encrypted payload (contains our original AES key)
    * @param authTag      The GCM authentication tag for content decryption
+   * @param aad          The Additional Authenticated Data (ASCII bytes of Base64URL protected header)
    */
-  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag) {}
+  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
 }

@@ -108,9 +108,10 @@ public class AwsKmsDecryptionService {
       log.info("DEBUG:   Using IV size: {} bytes", jweComponents.iv().length);
       log.info("DEBUG:   Using ciphertext size: {} bytes", jweComponents.ciphertext().length);
       log.info("DEBUG:   Using authTag size: {} bytes", jweComponents.authTag().length);
+      log.info("DEBUG:   Using AAD size: {} bytes", jweComponents.aad().length);
 
       byte[] aesKeyBytes = decryptJwePayload(cek, jweComponents.iv(),
-          jweComponents.ciphertext(), jweComponents.authTag());
+          jweComponents.ciphertext(), jweComponents.authTag(), jweComponents.aad());
       log.info("DEBUG: Step 6b - AES key extracted successfully:");
       log.info("DEBUG:   AES key size: {} bytes", aesKeyBytes.length);
       log.info("DEBUG:   AES key base64: {}", java.util.Base64.getEncoder().encodeToString(aesKeyBytes));
@@ -140,21 +141,28 @@ public class AwsKmsDecryptionService {
   /**
    * Decrypts the JWE payload using the CEK.
    *
+   * <p>JWE uses AAD (Additional Authenticated Data) which is the ASCII bytes
+   * of the Base64URL-encoded protected header. This must be provided to the
+   * cipher for GCM authentication to succeed.</p>
+   *
    * <p>Note: A256GCM in JWE places the auth tag at the end of ciphertext
    * for the Cipher.doFinal() call.</p>
    */
-  private byte[] decryptJwePayload(byte[] cek, byte[] iv, byte[] ciphertext, byte[] authTag)
+  private byte[] decryptJwePayload(byte[] cek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad)
       throws Exception {
     // Combine ciphertext and authTag (GCM expects them together)
     byte[] ciphertextWithTag = new byte[ciphertext.length + authTag.length];
     System.arraycopy(ciphertext, 0, ciphertextWithTag, 0, ciphertext.length);
     System.arraycopy(authTag, 0, ciphertextWithTag, ciphertext.length, authTag.length);
 
-    // Decrypt using AES-256-GCM
+    // Decrypt using AES-256-GCM with AAD
     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
     SecretKey cekKey = new SecretKeySpec(cek, "AES");
     GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_SIZE_BITS, iv);
     cipher.init(Cipher.DECRYPT_MODE, cekKey, gcmSpec);
+
+    // CRITICAL: Must provide AAD before decryption for GCM authentication
+    cipher.updateAAD(aad);
 
     return cipher.doFinal(ciphertextWithTag);
   }
