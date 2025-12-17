@@ -1,4 +1,4 @@
-package company_backend.rest_api_security.crypto;
+package server.restapi_data_security.crypto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +16,32 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * KMS Key Unwrapper - Unwraps the encryption key using AWS KMS.
  *
- * <p>When a client sends an encrypted request, they wrap the AES encryption
- * key using the server's RSA public key. This utility sends that wrapped key
- * to AWS KMS, which uses the private RSA key (stored securely in hardware)
- * to unwrap it.</p>
+ * <h2>STEP 6 (BACKEND): Unwrap DEK via AWS KMS (1 API Call)</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  KMS KEY UNWRAPPING                                                    │
+ * │                                                                        │
+ * │  SERVER                               AWS KMS                          │
+ * │    │                                    │                              │
+ * │    │ ─── DecryptRequest ──────────────► │                              │
+ * │    │     (encryptedKey, keyArn,         │                              │
+ * │    │      RSAES_OAEP_SHA_256)           │                              │
+ * │    │                                    │                              │
+ * │    │                                    │  ┌────────────────────────┐  │
+ * │    │                                    │  │ RSA Private Key        │  │
+ * │    │                                    │  │ (NEVER leaves HSM)     │  │
+ * │    │                                    │  └────────────────────────┘  │
+ * │    │                                    │                              │
+ * │    │ ◄── DecryptResponse ────────────── │                              │
+ * │    │     (plaintext DEK: 256-bit AES)   │                              │
+ * │    │                                    │                              │
+ * │                                                                        │
+ * │  Input:  byte[] encryptedKey (from JweParser Step 5)                  │
+ * │  Output: SecretKey DEK (for field decryption in Step 7)               │
+ * │                                                                        │
+ * │  NOTE: This is the ONLY KMS API call per request!                     │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  *
  * <h3>Why Use KMS?</h3>
  * <ul>
@@ -27,17 +49,6 @@ import javax.crypto.spec.SecretKeySpec;
  *   <li><b>Audit:</b> All key usage is logged in CloudTrail</li>
  *   <li><b>Compliance:</b> Meets regulatory requirements (PCI-DSS, HIPAA)</li>
  * </ul>
- *
- * <h3>Flow:</h3>
- * <pre>
- * Client                    Server                    AWS KMS
- *   │                         │                          │
- *   │ ─── encrypted key ────► │                          │
- *   │                         │ ─── unwrap request ────► │
- *   │                         │                          │ (uses private key
- *   │                         │ ◄─── plaintext key ───── │  in HSM hardware)
- *   │                         │                          │
- * </pre>
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code

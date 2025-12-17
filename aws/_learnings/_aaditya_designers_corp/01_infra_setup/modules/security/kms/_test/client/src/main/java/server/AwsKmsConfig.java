@@ -1,4 +1,4 @@
-package company_backend;
+package server;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

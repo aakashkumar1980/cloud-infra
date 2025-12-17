@@ -1,8 +1,8 @@
-package company_backend.rest_api_security.controller;
+package server.restapi_data_security.controller;
 
-import company_backend.rest_api_security.dto.OrderRequest;
-import company_backend.rest_api_security.dto.OrderResponse;
-import company_backend.rest_api_security.service.OrderService;
+import server.restapi_data_security.dto.OrderRequest;
+import server.restapi_data_security.dto.OrderResponse;
+import server.restapi_data_security.service.OrderService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package company_backend.rest_api_security.crypto;
+package server.restapi_data_security.crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -9,9 +9,23 @@ import java.util.Base64;
 /**
  * Field Decryptor - Decrypts individual fields using AES-256-GCM.
  *
- * <p>This utility decrypts sensitive data fields that were encrypted by the
- * client using the {@code FieldEncryptor}. It uses the same AES-256-GCM
- * algorithm to ensure compatibility.</p>
+ * <h2>STEP 7 (BACKEND): Decrypt PII Fields Locally</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  SERVER DECRYPTION FLOW                                                │
+ * │                                                                        │
+ * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
+ * │  Key:   DEK (unwrapped via KMS in Step 6)                             │
+ * │                                                                        │
+ * │  Process:                                                              │
+ * │  1. Split encrypted string → iv, ciphertext, authTag                  │
+ * │  2. Decode each part from Base64                                       │
+ * │  3. Initialize AES-256-GCM cipher with IV                             │
+ * │  4. Decrypt ciphertext and verify authTag                             │
+ * │                                                                        │
+ * │  Output: Plaintext (e.g., "4111111111111234")                         │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  *
  * <h3>Expected Input Format:</h3>
  * <pre>

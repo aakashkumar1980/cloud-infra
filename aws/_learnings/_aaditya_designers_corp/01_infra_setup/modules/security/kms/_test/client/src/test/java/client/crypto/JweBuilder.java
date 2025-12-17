@@ -1,4 +1,4 @@
-package client_no_aws.crypto;
+package client.crypto;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSAEncrypter;
@@ -9,25 +9,31 @@ import java.security.interfaces.RSAPublicKey;
 /**
  * JWE Builder - Wraps the encryption key for secure transport.
  *
- * <p>JWE (JSON Web Encryption) is an industry standard format for securely
- * transmitting encrypted data. This utility wraps the AES encryption key
- * using RSA, so it can be safely sent to the server.</p>
+ * <h2>STEP 3 (CLIENT): Wrap DEK for Transport</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  JWE KEY WRAPPING                                                      │
+ * │                                                                        │
+ * │  Input:  DEK (256-bit AES key from Step 2)                            │
+ * │          RSA Public Key (from Step 1)                                 │
+ * │                                                                        │
+ * │  Process:                                                              │
+ * │  1. Create JWE header: {"alg":"RSA-OAEP-256","enc":"A256GCM"}         │
+ * │  2. Encrypt DEK bytes with RSA public key                             │
+ * │  3. Build JWE compact serialization                                   │
+ * │                                                                        │
+ * │  Output: JWE Token for X-Encryption-Key header                        │
+ * │  Format: Header.EncryptedKey.IV.Ciphertext.AuthTag                    │
+ * │              │         │                                               │
+ * │              │         └── RSA-encrypted DEK (server extracts this)   │
+ * │              └── {"alg":"RSA-OAEP-256","enc":"A256GCM"}               │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  *
  * <h3>Why Wrap the Key?</h3>
  * <p>The AES key used to encrypt fields cannot be sent in plaintext.
  * We wrap (encrypt) it using the server's RSA public key. Only the server
  * can unwrap it using their private key stored in AWS KMS.</p>
- *
- * <h3>JWE Structure:</h3>
- * <pre>
- * Header.EncryptedKey.IV.Ciphertext.AuthTag
- *   │         │        │      │        │
- *   │         │        │      │        └── Integrity check
- *   │         │        │      └── Encrypted payload
- *   │         │        └── Initialization vector
- *   │         └── The wrapped AES key (RSA encrypted)
- *   └── Algorithm info (RSA-OAEP-256, A256GCM)
- * </pre>
  *
  * <h3>Usage Example:</h3>
  * <pre>{@code

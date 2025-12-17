@@ -1,4 +1,4 @@
-package client_no_aws.crypto;
+package client.crypto;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -12,18 +12,36 @@ import java.util.Base64;
 /**
  * Hybrid Encryption Helper - Main utility for encrypting REST API requests.
  *
- * <p>This helper orchestrates the hybrid encryption flow, combining the speed
- * of AES with the security of RSA key exchange. It provides a simple API for
- * encrypting sensitive fields before sending them to the server.</p>
- *
- * <h3>What is Hybrid Encryption?</h3>
- * <p>Instead of encrypting each field with RSA (slow, large output), we:</p>
- * <ol>
- *   <li>Generate ONE random AES key (called DEK - Data Encryption Key)</li>
- *   <li>Encrypt ALL fields with this fast AES key (small output)</li>
- *   <li>Wrap the AES key with RSA (only once)</li>
- *   <li>Send: wrapped key in header + encrypted fields in body</li>
- * </ol>
+ * <h2>CLIENT STEPS 1-4: Complete Client-Side Encryption Flow</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │                    CLIENT ENCRYPTION ORCHESTRATION                     │
+ * │                                                                        │
+ * │  ┌──────────────────────────────────────────────────────────────────┐ │
+ * │  │ STEP 1: loadPublicKeyFromResources()                             │ │
+ * │  │ ► Load RSA-4096 public key from PEM file                         │ │
+ * │  │ ► Parse X.509 format and create RSAPublicKey object              │ │
+ * │  └──────────────────────────────────────────────────────────────────┘ │
+ * │                              ▼                                        │
+ * │  ┌──────────────────────────────────────────────────────────────────┐ │
+ * │  │ STEP 2+3: prepareForNewRequest()                                 │ │
+ * │  │ ► FieldEncryptor.generateKey() - Create 256-bit AES DEK          │ │
+ * │  │ ► JweBuilder.wrapKey(dek, publicKey) - Wrap DEK in JWE           │ │
+ * │  └──────────────────────────────────────────────────────────────────┘ │
+ * │                              ▼                                        │
+ * │  ┌──────────────────────────────────────────────────────────────────┐ │
+ * │  │ STEP 4: encryptField(plaintext)                                  │ │
+ * │  │ ► FieldEncryptor.encrypt(plaintext, dek)                         │ │
+ * │  │ ► Output: "iv.ciphertext.authTag" (~60 chars per field)          │ │
+ * │  └──────────────────────────────────────────────────────────────────┘ │
+ * │                              ▼                                        │
+ * │  ┌──────────────────────────────────────────────────────────────────┐ │
+ * │  │ getEncryptionHeader()                                            │ │
+ * │  │ ► Returns JWE for X-Encryption-Key header                        │ │
+ * │  └──────────────────────────────────────────────────────────────────┘ │
+ * │                                                                        │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  *
  * <h3>Benefits:</h3>
  * <ul>
@@ -35,10 +53,10 @@ import java.util.Base64;
  * <h3>Usage Example:</h3>
  * <pre>{@code
  * HybridEncryptionHelper helper = new HybridEncryptionHelper();
- * helper.loadPublicKey(pemString);
- * helper.prepareForNewRequest();
+ * helper.loadPublicKeyFromResources();  // Step 1
+ * helper.prepareForNewRequest();        // Steps 2+3
  *
- * // Encrypt fields
+ * // Step 4: Encrypt fields
  * String encryptedCard = helper.encryptField("4111111111111234");
  * String encryptedSsn = helper.encryptField("123-45-6789");
  *

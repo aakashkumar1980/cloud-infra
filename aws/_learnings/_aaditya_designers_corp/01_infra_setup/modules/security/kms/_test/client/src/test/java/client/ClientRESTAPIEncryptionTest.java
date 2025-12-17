@@ -1,6 +1,6 @@
-package client_no_aws;
+package client;
 
-import client_no_aws.crypto.HybridEncryptionHelper;
+import client.crypto.HybridEncryptionHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
@@ -21,24 +21,25 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>Simulates a 3rd party client (NO AWS SDK) submitting an order with
  * encrypted PII fields using hybrid encryption.</p>
  *
- * <h3>Client Flow:</h3>
+ * <h3>Client Flow (Steps 1-4):</h3>
  * <ol>
- *   <li>Load company's RSA public key</li>
- *   <li>Generate random encryption key (DEK)</li>
- *   <li>Encrypt PII fields with DEK</li>
- *   <li>Wrap DEK in JWE for transport</li>
+ *   <li>Load company's RSA public key → HybridEncryptionHelper.loadPublicKeyFromResources()</li>
+ *   <li>Generate random encryption key (DEK) → FieldEncryptor.generateKey()</li>
+ *   <li>Wrap DEK in JWE for transport → JweBuilder.wrapKey()</li>
+ *   <li>Encrypt PII fields with DEK → FieldEncryptor.encrypt()</li>
  *   <li>Send: X-Encryption-Key header + encrypted body</li>
  * </ol>
  *
- * <h3>Server Flow:</h3>
+ * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract JWE from header, unwrap DEK via KMS (1 API call)</li>
- *   <li>Decrypt each field locally using DEK</li>
+ *   <li>Extract encrypted key from JWE → JweParser.extractEncryptedKey()</li>
+ *   <li>Unwrap DEK via KMS (1 API call) → KmsKeyUnwrapper.unwrap()</li>
+ *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  *   <li>Process order and return masked response</li>
  * </ol>
  */
 @SpringBootTest(
-    classes = company_backend.CompanyBackendApplication.class,
+    classes = server.ServerApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("test")

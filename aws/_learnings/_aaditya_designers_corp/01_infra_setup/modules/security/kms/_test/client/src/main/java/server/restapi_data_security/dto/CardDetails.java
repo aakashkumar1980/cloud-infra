@@ -1,4 +1,4 @@
-package company_backend.rest_api_security.dto;
+package server.restapi_data_security.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
