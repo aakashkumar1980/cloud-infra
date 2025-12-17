@@ -116,12 +116,10 @@ class ClientRESTAPIEncryptionTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.set("X-Encryption-Key", encryptedOrder.header());
-
     HttpEntity<String> request = new HttpEntity<>(gson.toJson(encryptedOrder.payload()), headers);
     log.info("POST /api/v1/orders | X-Encryption-Key: {}", truncate(encryptedOrder.header(), 40));
 
     ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", request, String.class);
-
     // Verify response
     log.info("\n=== Step 7: Verify Response ===");
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Expected 200 OK");
