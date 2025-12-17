@@ -67,6 +67,8 @@ class ClientRESTAPIEncryptionTest {
   }
 
   private EncryptedOrder prepareEncryptedOrder() throws Exception {
+    hybridEncryptionService.clear();
+
     // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadRSAPublicKey();
