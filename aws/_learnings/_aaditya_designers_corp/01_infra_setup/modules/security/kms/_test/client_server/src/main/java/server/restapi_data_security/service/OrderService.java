@@ -1,8 +1,6 @@
 package server.restapi_data_security.service;
 
-import server.restapi_data_security.dto.CardDetails;
-import server.restapi_data_security.dto.OrderRequest;
-import server.restapi_data_security.dto.OrderResponse;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,20 +24,26 @@ public class OrderService {
   /**
    * Processes an order with encrypted PII fields.
    *
-   * @param request               The order request with encrypted fields
+   * @param request               The order request as JsonObject with encrypted fields
    * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE)
-   * @return Order response with masked sensitive data
+   * @return Order response as JsonObject with masked sensitive data
    */
-  public OrderResponse processOrder(OrderRequest request, String jwtEncryptionMetadata) {
-    log.info("Processing order for: {}", request.name());
+  public JsonObject processOrder(JsonObject request, String jwtEncryptionMetadata) {
+    String customerName = request.get("name").getAsString();
+    log.info("Processing order for: {}", customerName);
+
+    // Extract encrypted fields
+    String encryptedDob = request.get("dateOfBirth").getAsString();
+    JsonObject cardDetails = request.getAsJsonObject("cardDetails");
+    String encryptedCreditCard = cardDetails.get("creditCardNumber").getAsString();
+    String encryptedSsn = cardDetails.get("ssn").getAsString();
 
     // Decrypt all PII fields (1 KMS call for all fields)
-    CardDetails encryptedCard = request.cardDetails();
     HybridDecryptionService.DecryptedFields decrypted = hybridDecryptionService.decryptAll(
         jwtEncryptionMetadata,
-        request.dateOfBirth(),
-        encryptedCard.creditCardNumber(),
-        encryptedCard.ssn()
+        encryptedDob,
+        encryptedCreditCard,
+        encryptedSsn
     );
 
     log.debug("Decrypted - DOB: {}, Card: {}..., SSN: {}...",
@@ -51,16 +55,22 @@ public class OrderService {
     String orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     log.info("Order {} created successfully", orderId);
 
-    // Mask sensitive data and return response
-    return OrderResponse.success(
-        orderId,
-        request.name(),
-        request.address(),
-        decrypted.dateOfBirth(),
-        request.orderAmount(),
-        maskCreditCard(decrypted.creditCard()),
-        maskSsn(decrypted.ssn())
-    );
+    // Build response with masked sensitive data
+    JsonObject cardDetailsResponse = new JsonObject();
+    cardDetailsResponse.addProperty("creditCardNumber", maskCreditCard(decrypted.creditCard()));
+    cardDetailsResponse.addProperty("ssn", maskSsn(decrypted.ssn()));
+
+    JsonObject response = new JsonObject();
+    response.addProperty("success", true);
+    response.addProperty("message", "Order submitted successfully");
+    response.addProperty("orderId", orderId);
+    response.addProperty("name", customerName);
+    response.addProperty("address", request.get("address").getAsString());
+    response.addProperty("dateOfBirth", decrypted.dateOfBirth());
+    response.addProperty("orderAmount", request.get("orderAmount").getAsBigDecimal());
+    response.add("cardDetails", cardDetailsResponse);
+
+    return response;
   }
 
   private String maskCreditCard(String creditCard) {

@@ -3,9 +3,9 @@ package server.restapi_data_security.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import server.restapi_data_security.crypto.AESEncryptionKeyUnwrapper;
 import server.restapi_data_security.crypto.FieldDecryptor;
-import server.restapi_data_security.crypto.JweParser;
-import server.restapi_data_security.crypto.KmsKeyUnwrapper;
+import server.restapi_data_security.crypto.JwtParser;
 
 import javax.crypto.SecretKey;
 
@@ -19,13 +19,13 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: extractEncryptedAESKeyFromJwtMetadata()                  │ │
- * │  │ ► JweParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
+ * │  │ ► JwtParser.extractEncryptedAESKey(jwtEncryptionMetadata)        │ │
  * │  │ ► Output: byte[] encryptedAESKey                                 │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 6: unwrapAESKeyViaKMS()                                     │ │
- * │  │ ► KmsKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey)         │ │
+ * │  │ ► AESEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey)  │ │
  * │  │ ► 1 KMS API call to decrypt using RSA private key in HSM        │ │
  * │  │ ► Output: SecretKey randomAESEncryptionKey                       │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -52,17 +52,17 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final JweParser jweParser;
-  private final KmsKeyUnwrapper kmsKeyUnwrapper;
+  private final JwtParser jwtParser;
+  private final AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
-      JweParser jweParser,
-      KmsKeyUnwrapper kmsKeyUnwrapper,
+      JwtParser jwtParser,
+      AESEncryptionKeyUnwrapper aesEncryptionKeyUnwrapper,
       FieldDecryptor fieldDecryptor
   ) {
-    this.jweParser = jweParser;
-    this.kmsKeyUnwrapper = kmsKeyUnwrapper;
+    this.jwtParser = jwtParser;
+    this.aesEncryptionKeyUnwrapper = aesEncryptionKeyUnwrapper;
     this.fieldDecryptor = fieldDecryptor;
   }
 
@@ -115,11 +115,11 @@ public class HybridDecryptionService {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWE to extract encrypted key bytes
-    byte[] encryptedAESKey = jweParser.extractEncryptedAESKey(jwtEncryptionMetadata);
+    // STEP 5: Parse JWT metadata to extract encrypted key bytes
+    byte[] encryptedAESKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
 
     // STEP 6: Unwrap via KMS (this is the only KMS API call)
-    return kmsKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey);
+    return aesEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedAESKey);
   }
 
   /**
