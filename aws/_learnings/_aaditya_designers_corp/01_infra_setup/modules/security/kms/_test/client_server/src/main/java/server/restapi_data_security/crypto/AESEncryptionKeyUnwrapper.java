@@ -14,17 +14,17 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * KMS Key Unwrapper - Unwraps the encryption key using AWS KMS.
+ * AES Encryption Key Unwrapper - Unwraps the AES encryption key using AWS KMS.
  *
- * <h2>STEP 6 (BACKEND): Unwrap DEK via AWS KMS (1 API Call)</h2>
+ * <h2>STEP 6 (BACKEND): Unwrap AES Key via AWS KMS (1 API Call)</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  KMS KEY UNWRAPPING                                                    │
+ * │  AES KEY UNWRAPPING VIA KMS                                            │
  * │                                                                        │
  * │  SERVER                               AWS KMS                          │
  * │    │                                    │                              │
  * │    │ ─── DecryptRequest ──────────────► │                              │
- * │    │     (encryptedKey, keyArn,         │                              │
+ * │    │     (encryptedAESKey, keyArn,      │                              │
  * │    │      RSAES_OAEP_SHA_256)           │                              │
  * │    │                                    │                              │
  * │    │                                    │  ┌────────────────────────┐  │
@@ -33,11 +33,11 @@ import javax.crypto.spec.SecretKeySpec;
  * │    │                                    │  └────────────────────────┘  │
  * │    │                                    │                              │
  * │    │ ◄── DecryptResponse ────────────── │                              │
- * │    │     (plaintext DEK: 256-bit AES)   │                              │
+ * │    │     (plaintext AES key: 256-bit)   │                              │
  * │    │                                    │                              │
  * │                                                                        │
- * │  Input:  byte[] encryptedKey (from JwtParser Step 5)                  │
- * │  Output: SecretKey DEK (for field decryption in Step 7)               │
+ * │  Input:  byte[] encryptedAESKey (from JwtParser Step 5)               │
+ * │  Output: SecretKey randomAESEncryptionKey (for field decryption)      │
  * │                                                                        │
  * │  NOTE: This is the ONLY KMS API call per request!                     │
  * └────────────────────────────────────────────────────────────────────────┘
@@ -53,25 +53,25 @@ import javax.crypto.spec.SecretKeySpec;
  * <h3>Usage Example:</h3>
  * <pre>{@code
  * byte[] encryptedKey = jwtParser.extractEncryptedAESKey(jwtEncryptionMetadata);
- * SecretKey aesKey = kmsKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey);
+ * SecretKey aesKey = aesEncryptionKeyUnwrapper.unwrapEncryptedAESKey(encryptedKey);
  * String plaintext = fieldDecryptor.decrypt(encryptedField, aesKey);
  * }</pre>
  */
 @Component
-public class KmsKeyUnwrapper {
+public class AESEncryptionKeyUnwrapper {
 
-  private static final Logger log = LoggerFactory.getLogger(KmsKeyUnwrapper.class);
+  private static final Logger log = LoggerFactory.getLogger(AESEncryptionKeyUnwrapper.class);
 
   private final KmsClient kmsClient;
   private final String keyArn;
 
   /**
-   * Creates a new KMS Key Unwrapper.
+   * Creates a new AES Encryption Key Unwrapper.
    *
    * @param kmsClient The AWS KMS client (injected by Spring)
    * @param keyArn    The ARN of the asymmetric KMS key (from application.yml)
    */
-  public KmsKeyUnwrapper(
+  public AESEncryptionKeyUnwrapper(
       KmsClient kmsClient,
       @Value("${aws.kms.asymmetric-key-arn}") String keyArn
   ) {
