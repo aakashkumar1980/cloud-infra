@@ -1,6 +1,6 @@
 package client_no_aws;
 
-import client_no_aws.crypto.HybridEncryptor;
+import client_no_aws.crypto.HybridEncryptionHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
@@ -18,19 +18,24 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * End-to-End Test: Hybrid Encryption for REST API
  *
- * Simulates a 3rd party client (NO AWS SDK) submitting an order with
- * encrypted PII fields using hybrid encryption.
+ * <p>Simulates a 3rd party client (NO AWS SDK) submitting an order with
+ * encrypted PII fields using hybrid encryption.</p>
  *
- * Encryption Flow (Client):
- * 1. Load company's RSA public key
- * 2. Generate random DEK (AES-256 key)
- * 3. Encrypt PII fields with DEK using AES-256-GCM
- * 4. Wrap DEK in JWE using RSA public key
- * 5. Send: X-Encryption-Key header (JWE) + body with encrypted fields
+ * <h3>Client Flow:</h3>
+ * <ol>
+ *   <li>Load company's RSA public key</li>
+ *   <li>Generate random encryption key (DEK)</li>
+ *   <li>Encrypt PII fields with DEK</li>
+ *   <li>Wrap DEK in JWE for transport</li>
+ *   <li>Send: X-Encryption-Key header + encrypted body</li>
+ * </ol>
  *
- * Decryption Flow (Server):
- * 1. EncryptionFilter extracts JWE, unwraps DEK via KMS (1 API call)
- * 2. Controller decrypts each field locally using DEK
+ * <h3>Server Flow:</h3>
+ * <ol>
+ *   <li>Extract JWE from header, unwrap DEK via KMS (1 API call)</li>
+ *   <li>Decrypt each field locally using DEK</li>
+ *   <li>Process order and return masked response</li>
+ * </ol>
  */
 @SpringBootTest(
     classes = company_backend.CompanyBackendApplication.class,
@@ -49,7 +54,7 @@ class ClientRESTAPIEncryptionTest {
   private TestRestTemplate restTemplate;
 
   private final Gson gson = new Gson();
-  private final HybridEncryptor hybridEncryptor = new HybridEncryptor();
+  private final HybridEncryptionHelper encryptionHelper = new HybridEncryptionHelper();
 
   private String baseUrl() {
     return "http://localhost:" + port + "/api/v1";
@@ -67,23 +72,28 @@ class ClientRESTAPIEncryptionTest {
   }
 
   /**
-   * Prepare order with encrypted PII fields
+   * Prepares an order with encrypted PII fields.
    *
-   * Steps:
-   * 1. Load RSA public key
-   * 2. Generate DEK
-   * 3. Encrypt each PII field with AES-GCM
-   * 4. Create JWE containing DEK
+   * <p>Uses the HybridEncryptionHelper to:</p>
+   * <ul>
+   *   <li>Load the public key</li>
+   *   <li>Generate a fresh encryption key</li>
+   *   <li>Encrypt all PII fields</li>
+   *   <li>Create the JWE header</li>
+   * </ul>
    */
   private EncryptedOrder prepareEncryptedOrder() throws Exception {
+    // Step 1: Load public key
     log.info("\n=== Step 1: Load Public Key from Resources ===");
-    hybridEncryptor.loadPublicKeyFromResources();
+    encryptionHelper.loadPublicKeyFromResources();
     log.info("Public key loaded from src/test/resources/public-key.pem");
 
-    log.info("\n=== Step 2: Generate DEK (AES-256 key) ===");
-    hybridEncryptor.generateDek();
-    log.info("DEK generated (256-bit AES key)");
+    // Step 2: Prepare for new request (generates encryption key)
+    log.info("\n=== Step 2: Generate Encryption Key ===");
+    encryptionHelper.prepareForNewRequest();
+    log.info("Encryption key generated (256-bit AES)");
 
+    // Step 3: Define order data
     log.info("\n=== Step 3: Create Order Data ===");
     String customerName = "aakash.kumar";
     String customerAddress = "austin,texas,usa";
@@ -100,18 +110,20 @@ class ClientRESTAPIEncryptionTest {
     log.info("  SSN: {}", ssn);
     log.info("  Order Amount: ${}", orderAmount);
 
-    log.info("\n=== Step 4: Encrypt PII Fields (AES-256-GCM) ===");
-    String encryptedDob = hybridEncryptor.encryptField(dateOfBirth);
-    String encryptedCreditCard = hybridEncryptor.encryptField(creditCardNumber);
-    String encryptedSsn = hybridEncryptor.encryptField(ssn);
+    // Step 4: Encrypt PII fields
+    log.info("\n=== Step 4: Encrypt PII Fields ===");
+    String encryptedDob = encryptionHelper.encryptField(dateOfBirth);
+    String encryptedCreditCard = encryptionHelper.encryptField(creditCardNumber);
+    String encryptedSsn = encryptionHelper.encryptField(ssn);
 
     log.info("Encrypted DOB: {}", truncate(encryptedDob, 40));
     log.info("Encrypted Credit Card: {}", truncate(encryptedCreditCard, 40));
     log.info("Encrypted SSN: {}", truncate(encryptedSsn, 40));
 
-    log.info("\n=== Step 5: Create JWE with DEK ===");
-    String jwe = hybridEncryptor.createJweWithDek();
-    log.info("JWE created: {}", truncate(jwe, 50));
+    // Step 5: Get the encryption header (JWE with wrapped key)
+    log.info("\n=== Step 5: Get Encryption Header ===");
+    String encryptionHeader = encryptionHelper.getEncryptionHeader();
+    log.info("Header value: {}", truncate(encryptionHeader, 50));
 
     // Build JSON payload
     JsonObject cardDetails = new JsonObject();
@@ -125,18 +137,19 @@ class ClientRESTAPIEncryptionTest {
     orderRequest.addProperty("orderAmount", orderAmount);
     orderRequest.add("cardDetails", cardDetails);
 
-    return new EncryptedOrder(jwe, orderRequest);
+    return new EncryptedOrder(encryptionHeader, orderRequest);
   }
 
   /**
-   * Submit order and verify response
+   * Submits the order to the API and verifies the response.
    */
   private void submitAndVerifyOrder(EncryptedOrder encryptedOrder) {
     log.info("\n=== Step 6: Submit Order to API ===");
 
+    // Build HTTP request with encryption header
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("X-Encryption-Key", encryptedOrder.jwe());
+    headers.set("X-Encryption-Key", encryptedOrder.header());
 
     HttpEntity<String> request = new HttpEntity<>(
         gson.toJson(encryptedOrder.payload()),
@@ -145,14 +158,16 @@ class ClientRESTAPIEncryptionTest {
 
     log.info("Request Headers:");
     log.info("  Content-Type: application/json");
-    log.info("  X-Encryption-Key: {}", truncate(encryptedOrder.jwe(), 50));
+    log.info("  X-Encryption-Key: {}", truncate(encryptedOrder.header(), 50));
 
+    // Send request
     ResponseEntity<String> response = restTemplate.postForEntity(
         baseUrl() + "/orders",
         request,
         String.class
     );
 
+    // Verify response
     log.info("\n=== Step 7: Verify Response ===");
     log.info("Response Status: {}", response.getStatusCode());
 
@@ -161,12 +176,14 @@ class ClientRESTAPIEncryptionTest {
     JsonObject resultJson = gson.fromJson(response.getBody(), JsonObject.class);
     assertTrue(resultJson.get("success").getAsBoolean(), "Expected success=true");
 
+    // Extract response fields
     String orderId = resultJson.get("orderId").getAsString();
     String dateOfBirth = resultJson.get("dateOfBirth").getAsString();
     JsonObject cardDetails = resultJson.getAsJsonObject("cardDetails");
     String maskedCreditCard = cardDetails.get("creditCardNumber").getAsString();
     String maskedSsn = cardDetails.get("ssn").getAsString();
 
+    // Log response
     log.info("\nOrder Response:");
     log.info("  Order ID: {}", orderId);
     log.info("  Name: {}", resultJson.get("name").getAsString());
@@ -176,14 +193,15 @@ class ClientRESTAPIEncryptionTest {
     log.info("  Masked Credit Card: {}", maskedCreditCard);
     log.info("  Masked SSN: {}", maskedSsn);
 
-    // Verify decryption worked (check masked values)
+    // Verify decryption worked correctly
     assertEquals("1990-05-15", dateOfBirth, "DOB should be decrypted");
     assertTrue(maskedCreditCard.endsWith("1234"), "Credit card should show last 4 digits");
     assertTrue(maskedSsn.endsWith("6789"), "SSN should show last 4 digits");
 
-    log.info("\nSUCCESS: Order processed with hybrid-encrypted PII!");
-    log.info("  - 1 KMS API call (to unwrap DEK)");
-    log.info("  - 3 local AES decryptions (no additional KMS calls)");
+    log.info("\n=== SUCCESS ===");
+    log.info("Order processed with hybrid encryption:");
+    log.info("  - 1 KMS API call (to unwrap key)");
+    log.info("  - 3 local decryptions (no additional KMS calls)");
   }
 
   private String truncate(String str, int maxLen) {
@@ -191,7 +209,7 @@ class ClientRESTAPIEncryptionTest {
   }
 
   /**
-   * Helper record to hold JWE and payload together
+   * Helper record to hold the encryption header and payload together.
    */
-  private record EncryptedOrder(String jwe, JsonObject payload) {}
+  private record EncryptedOrder(String header, JsonObject payload) {}
 }
