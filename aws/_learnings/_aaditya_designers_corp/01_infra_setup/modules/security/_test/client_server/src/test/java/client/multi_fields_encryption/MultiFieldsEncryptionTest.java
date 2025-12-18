@@ -14,6 +14,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -67,6 +71,16 @@ class MultiFieldsEncryptionTest {
     submitAndVerifyOrder(encryptedOrder);
   }
 
+  private JsonObject loadSampleOrder() {
+    try (var reader = new InputStreamReader(
+        Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("sample-order.json")),
+        StandardCharsets.UTF_8)) {
+      return gson.fromJson(reader, JsonObject.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to load sample-order.json", e);
+    }
+  }
+
   private EncryptedOrder prepareEncryptedOrder() {
     hybridEncryptionService.clear();
 
@@ -80,20 +94,21 @@ class MultiFieldsEncryptionTest {
     hybridEncryptionService.generateAndWrapDek();
     log.info("Generated 256-bit AES DEK, RSA-encrypted directly (no intermediate CEK)");
 
-    // Step 3: Define order data
-    log.info("\n=== Step 3: Order Data ===");
-    record CardDetails(String creditCardNumber, String ssn) {}
-    var cardDetails = new CardDetails("4111111111111234", "123-45-6789");
-    record OrderData(String name, String address, String dob, double amount, CardDetails cardDetails) {}
-    var order = new OrderData("aakash.kumar", "austin,texas,usa", "1990-05-15", 100.00, cardDetails);
+    // Step 3: Load order data from JSON
+    log.info("\n=== Step 3: Order Data (from sample-order.json) ===");
+    JsonObject order = loadSampleOrder();
+    JsonObject cardDetails = order.getAsJsonObject("cardDetails");
     log.info("OrderData: Name={} | DOB={} | Card={} | SSN={}",
-        order.name, order.dob, cardDetails.creditCardNumber, cardDetails.ssn);
+        order.get("name").getAsString(),
+        order.get("dateOfBirth").getAsString(),
+        cardDetails.get("creditCardNumber").getAsString(),
+        cardDetails.get("ssn").getAsString());
 
     // Step 4: Encrypt PII fields
     log.info("\n=== Step 4: Encrypt PII Fields with DEK ===");
-    String encryptedDob = hybridEncryptionService.encryptField(order.dob);
-    String encryptedCreditCard = hybridEncryptionService.encryptField(cardDetails.creditCardNumber);
-    String encryptedSsn = hybridEncryptionService.encryptField(cardDetails.ssn);
+    String encryptedDob = hybridEncryptionService.encryptField(order.get("dateOfBirth").getAsString());
+    String encryptedCreditCard = hybridEncryptionService.encryptField(cardDetails.get("creditCardNumber").getAsString());
+    String encryptedSsn = hybridEncryptionService.encryptField(cardDetails.get("ssn").getAsString());
     log.info("Encrypted DOB={} | Card={} | SSN={}",
         truncate(encryptedDob, 25), truncate(encryptedCreditCard, 25), truncate(encryptedSsn, 25));
 
@@ -102,16 +117,16 @@ class MultiFieldsEncryptionTest {
     String encryptedDek = hybridEncryptionService.getEncryptedDek();
     log.info("X-Encryption-Key: {} (BASE64 RSA-encrypted DEK)", truncate(encryptedDek, 40));
 
-    // Build JSON payload
-    JsonObject cardDetailsJson = new JsonObject();
-    cardDetailsJson.addProperty("creditCardNumber", encryptedCreditCard);
-    cardDetailsJson.addProperty("ssn", encryptedSsn);
+    // Build JSON payload with encrypted fields
+    JsonObject encryptedCardDetails = new JsonObject();
+    encryptedCardDetails.addProperty("creditCardNumber", encryptedCreditCard);
+    encryptedCardDetails.addProperty("ssn", encryptedSsn);
     JsonObject orderRequestJson = new JsonObject();
-    orderRequestJson.addProperty("name", order.name);
-    orderRequestJson.addProperty("address", order.address);
+    orderRequestJson.addProperty("name", order.get("name").getAsString());
+    orderRequestJson.addProperty("address", order.get("address").getAsString());
     orderRequestJson.addProperty("dateOfBirth", encryptedDob);
-    orderRequestJson.addProperty("orderAmount", order.amount);
-    orderRequestJson.add("cardDetails", cardDetailsJson);
+    orderRequestJson.addProperty("orderAmount", order.get("orderAmount").getAsDouble());
+    orderRequestJson.add("cardDetails", encryptedCardDetails);
 
     return new EncryptedOrder(encryptedDek, orderRequestJson);
   }

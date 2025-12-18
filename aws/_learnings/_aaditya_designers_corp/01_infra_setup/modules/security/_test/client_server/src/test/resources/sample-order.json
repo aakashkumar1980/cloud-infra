@@ -1,0 +1,10 @@
+{
+  "name": "aakash.kumar",
+  "address": "austin,texas,usa",
+  "dateOfBirth": "1990-05-15",
+  "orderAmount": 100.00,
+  "cardDetails": {
+    "creditCardNumber": "4111111111111234",
+    "ssn": "123-45-6789"
+  }
+}

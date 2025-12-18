@@ -14,6 +14,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -68,25 +72,25 @@ class AllFieldsEncryptionTest {
     submitAndVerifyOrder(jwePayload);
   }
 
+  private JsonObject loadSampleOrder() {
+    try (var reader = new InputStreamReader(
+        Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("sample-order.json")),
+        StandardCharsets.UTF_8)) {
+      return gson.fromJson(reader, JsonObject.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to load sample-order.json", e);
+    }
+  }
+
   private String prepareJwePayload() {
     // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadRSAPublicKey();
     log.info("Loaded RSA-4096 public key");
 
-    // Step 2: Build JSON payload with plaintext PII
-    log.info("\n=== Step 2: Build JSON Payload (plaintext) ===");
-    JsonObject cardDetails = new JsonObject();
-    cardDetails.addProperty("creditCardNumber", "4111111111111234");
-    cardDetails.addProperty("ssn", "123-45-6789");
-
-    JsonObject orderRequest = new JsonObject();
-    orderRequest.addProperty("name", "aakash.kumar");
-    orderRequest.addProperty("address", "austin,texas,usa");
-    orderRequest.addProperty("dateOfBirth", "1990-05-15");
-    orderRequest.addProperty("orderAmount", 100.00);
-    orderRequest.add("cardDetails", cardDetails);
-
+    // Step 2: Load JSON payload from file (plaintext PII)
+    log.info("\n=== Step 2: Load JSON Payload (from sample-order.json) ===");
+    JsonObject orderRequest = loadSampleOrder();
     String jsonPayload = gson.toJson(orderRequest);
     log.info("JSON payload: {}", truncate(jsonPayload, 60));
 
