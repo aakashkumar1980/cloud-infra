@@ -2,7 +2,7 @@ package client.service;
 
 import client.crypto.AESEncryptionKeyGenerator;
 import client.crypto.FieldEncryptor;
-import client.crypto.JweBuilder;
+import client.crypto.JweMetadataBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +34,7 @@ import java.util.Base64;
  * │  ► fieldEncryptor.encrypt(plaintext, aesDataEncryptionKey)                   │
  * │  ► Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"                │
  * │                                 ▼                                            │
- * │  getJweEncryptionMetadata()                                                  │
+ * │  getJweMetadata()                                                  │
  * │  ► Returns JWE for X-Encryption-Key header                                   │
  * └──────────────────────────────────────────────────────────────────────────────┘
  * </pre>
@@ -45,21 +45,21 @@ public class HybridEncryptionService {
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
   private final FieldEncryptor fieldEncryptor;
-  private final JweBuilder jweBuilder;
+  private final JweMetadataBuilder jweMetadataBuilder;
   private final AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   private RSAPublicKey rsaPublicKey;
   private SecretKey aesDataEncryptionKey;
-  private String jweEncryptionMetadata;
+  private String jweMetadata;
 
   @Autowired
   public HybridEncryptionService(
       FieldEncryptor fieldEncryptor,
-      JweBuilder jweBuilder,
+      JweMetadataBuilder jweMetadataBuilder,
       AESEncryptionKeyGenerator aesEncryptionKeyGenerator
   ) {
     this.fieldEncryptor = fieldEncryptor;
-    this.jweBuilder = jweBuilder;
+    this.jweMetadataBuilder = jweMetadataBuilder;
     this.aesEncryptionKeyGenerator = aesEncryptionKeyGenerator;
   }
 
@@ -113,7 +113,7 @@ public class HybridEncryptionService {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
     this.aesDataEncryptionKey = aesEncryptionKeyGenerator.generateAesDataEncryptionKey();
-    this.jweEncryptionMetadata = jweBuilder.wrapAesDataEncryptionKeyInJwe(aesDataEncryptionKey, rsaPublicKey);
+    this.jweMetadata = jweMetadataBuilder.wrapAesDataEncryptionKeyInJwe(aesDataEncryptionKey, rsaPublicKey);
   }
 
   /**
@@ -134,11 +134,11 @@ public class HybridEncryptionService {
    *
    * @return The JWE string for the X-Encryption-Key header
    */
-  public String getJweEncryptionMetadata() {
-    if (jweEncryptionMetadata == null) {
+  public String getJweMetadata() {
+    if (jweMetadata == null) {
       throw new IllegalStateException("Call generateAesDataEncryptionKeyAndWrapInJwe() first.");
     }
-    return jweEncryptionMetadata;
+    return jweMetadata;
   }
 
   /**
@@ -146,6 +146,6 @@ public class HybridEncryptionService {
    */
   public void clear() {
     this.aesDataEncryptionKey = null;
-    this.jweEncryptionMetadata = null;
+    this.jweMetadata = null;
   }
 }

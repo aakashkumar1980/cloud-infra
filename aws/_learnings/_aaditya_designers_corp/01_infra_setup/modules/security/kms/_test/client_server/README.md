@@ -21,7 +21,7 @@ This project demonstrates **field-level encryption** for sensitive PII data usin
 │                                                                                  │
 │  STEP 3: Wrap DEK in JWE                                                         │
 │  ─────────────────────────────────────────────────────────────────────────────── │
-│  jwe = jweBuilder.wrapAesDataEncryptionKeyInJwe(aesDataEncryptionKey, rsaPubKey) │
+│  jwe = jweMetadataBuilder.wrapAesDataEncryptionKeyInJwe(aesDataEncryptionKey, rsaPubKey) │
 │  // Output: "eyJhbGci...Header.EncryptedKey.IV.Ciphertext.AuthTag"               │
 │                                                                                  │
 │  STEP 4: Encrypt PII Fields with DEK                                             │
@@ -63,7 +63,7 @@ This project demonstrates **field-level encryption** for sensitive PII data usin
 
 ## Step 3 Details: JWE Wrapping (Internal Steps)
 
-When `jweBuilder.wrapAesDataEncryptionKeyInJwe()` is called:
+When `jweMetadataBuilder.wrapAesDataEncryptionKeyInJwe()` is called:
 
 ```
 INPUT:

@@ -97,7 +97,7 @@ class ClientRESTAPIEncryptionTest {
 
     // Step 5: Get JWE header
     log.info("\n=== Step 5: Get JWE Encryption Metadata ===");
-    String jweEncryptionMetadata = hybridEncryptionService.getJweEncryptionMetadata();
+    String jweEncryptionMetadata = hybridEncryptionService.getJweMetadata();
     log.info("JWE Header: {}", truncate(jweEncryptionMetadata, 50));
 
     // Build JSON payload

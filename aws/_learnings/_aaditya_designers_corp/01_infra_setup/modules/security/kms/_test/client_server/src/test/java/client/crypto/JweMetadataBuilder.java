@@ -49,7 +49,7 @@ import java.security.interfaces.RSAPublicKey;
  * can extract the DEK using their private key stored in AWS KMS.</p>
  */
 @Component
-public class JweBuilder {
+public class JweMetadataBuilder {
 
   /**
    * Wraps an AES Data Encryption Key (DEK) inside a JWE using RSA public key.
