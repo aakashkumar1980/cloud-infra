@@ -59,69 +59,105 @@ public class JweBuilder {
    *
    * <h3>Internal Steps (what happens inside jweObject.encrypt()):</h3>
    * <pre>
-   * ┌─────────────────────────────────────────────────────────────────────────────┐
-   * │  INPUT                                                                      │
-   * │  ├── aesDataEncryptionKey: 32 bytes (256-bit AES key)                      │
-   * │  └── rsaPublicKey: RSA-4096 public key                                     │
-   * │                                                                             │
-   * │  STEP 1: Create Header (NOT encrypted)                                     │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  header = {"alg":"RSA-OAEP-256","enc":"A256GCM","cty":"JWE"}               │
-   * │                                                                             │
-   * │  STEP 2: Generate random CEK (Content Encryption Key)                      │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  cek = SecureRandom.generate(256 bits)  // 32 bytes                        │
-   * │                                                                             │
-   * │  STEP 3: Generate random IV (Initialization Vector)                        │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  iv = SecureRandom.generate(96 bits)   // 12 bytes                         │
-   * │                                                                             │
-   * │  STEP 4: Encrypt DEK payload using CEK + IV (AES-256-GCM)                  │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  (ciphertext, authTag) = AES-GCM-Encrypt(                                  │
-   * │      key       = cek,                                                       │
-   * │      iv        = iv,                                                        │
-   * │      plaintext = aesDataEncryptionKey.getEncoded(),  // 32 bytes           │
-   * │      aad       = BASE64URL(header)                   // for integrity      │
-   * │  )                                                                          │
-   * │  // ciphertext = 32 bytes (encrypted DEK)                                  │
-   * │  // authTag    = 16 bytes (GCM authentication tag)                         │
-   * │                                                                             │
-   * │  STEP 5: Encrypt CEK using RSA public key (RSA-OAEP-256)                   │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  encryptedKey = RSA-OAEP-Encrypt(                                          │
-   * │      publicKey = rsaPublicKey,                                              │
-   * │      plaintext = cek                    // 32 bytes                         │
-   * │  )                                                                          │
-   * │  // encryptedKey = ~512 bytes (RSA-4096 output)                            │
-   * │                                                                             │
-   * │  STEP 6: Combine into JWE Compact Serialization                            │
-   * │  ────────────────────────────────────────────────────────────────────────  │
-   * │  jwe = BASE64URL(header) + "." +                                           │
-   * │        BASE64URL(encryptedKey) + "." +                                     │
-   * │        BASE64URL(iv) + "." +                                               │
-   * │        BASE64URL(ciphertext) + "." +                                       │
-   * │        BASE64URL(authTag)                                                  │
-   * │                                                                             │
-   * │  OUTPUT                                                                     │
-   * │  └── JWE string (~750 characters)                                          │
-   * └─────────────────────────────────────────────────────────────────────────────┘
+   * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+   * │  INPUT                                                                                      │
+   * │  ├── aesDataEncryptionKey: 32 bytes (256-bit AES key)                                      │
+   * │  └── rsaPublicKey: RSA-4096 public key                                                     │
+   * │                                                                                             │
+   * │  STEP 1: Create Header (NOT encrypted)                                                     │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  header = {"alg":"RSA-OAEP-256","enc":"A256GCM","cty":"JWE"}                               │
+   * │                                                                                             │
+   * │  STEP 2: Generate random CEK (Content Encryption Key)                                      │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  cek = SecureRandom.generate(256 bits)  // 32 bytes                                        │
+   * │                                                                                             │
+   * │  STEP 3: Generate random IV (Initialization Vector)                                        │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  iv = SecureRandom.generate(96 bits)   // 12 bytes                                         │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 4: ENCRYPT-AES (AES-256-GCM) - Encrypt DEK using CEK                                 │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │      ┌───────────────────────┐                                                              │
+   * │      │ aesDataEncryptionKey  │────┐                                                         │
+   * │      │ (32 bytes)            │    │                                                         │
+   * │      └───────────────────────┘    │        ┌─────────────────────────────────────────────┐  │
+   * │                                   │        │                                             │  │
+   * │      ┌───────────────────────┐    │        │            AES-256-GCM ENCRYPT              │  │
+   * │      │        cek            │────┼───────►│                                             │  │
+   * │      │ (32 bytes)            │    │        │  Cipher cipher = Cipher.getInstance(        │  │
+   * │      └───────────────────────┘    │        │      "AES/GCM/NoPadding");                  │  │
+   * │                                   │        │  cipher.init(ENCRYPT_MODE, cek, iv);        │  │
+   * │      ┌───────────────────────┐    │        │  cipher.updateAAD(BASE64URL(header));       │  │
+   * │      │         iv            │────┼───────►│  result = cipher.doFinal(                   │  │
+   * │      │ (12 bytes)            │    │        │      aesDataEncryptionKey.getEncoded());    │  │
+   * │      └───────────────────────┘    │        │                                             │  │
+   * │                                   │        └──────────────────────┬──────────────────────┘  │
+   * │      ┌───────────────────────┐    │                               │                         │
+   * │      │    header (AAD)       │────┘                               ▼                         │
+   * │      │ {"alg":"RSA-OAEP-256" │              ┌─────────────────────────────────────────────┐ │
+   * │      │  "enc":"A256GCM"...}  │              │ ciphertext (encryptedAesDataEncryptionKey)  │ │
+   * │      └───────────────────────┘              │ = 32 bytes                                  │ │
+   * │                                             ├─────────────────────────────────────────────┤ │
+   * │                                             │ authTag = 16 bytes                         │ │
+   * │                                             └─────────────────────────────────────────────┘ │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 5: ENCRYPT-RSA (RSA-OAEP-256) - Encrypt CEK using RSA public key                     │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │      ┌───────────────────────┐              ┌─────────────────────────────────────────────┐ │
+   * │      │        cek            │              │                                             │ │
+   * │      │ (32 bytes)            │─────────────►│           RSA-OAEP-256 ENCRYPT              │ │
+   * │      └───────────────────────┘              │                                             │ │
+   * │                                             │  Cipher cipher = Cipher.getInstance(        │ │
+   * │      ┌───────────────────────┐              │      "RSA/ECB/OAEPWithSHA-256...");         │ │
+   * │      │    rsaPublicKey       │─────────────►│  cipher.init(ENCRYPT_MODE, rsaPublicKey);   │ │
+   * │      │ (RSA-4096)            │              │  result = cipher.doFinal(cek);              │ │
+   * │      └───────────────────────┘              │                                             │ │
+   * │                                             └──────────────────────┬──────────────────────┘ │
+   * │                                                                    │                        │
+   * │                                                                    ▼                        │
+   * │                                             ┌─────────────────────────────────────────────┐ │
+   * │                                             │ encryptedKey (encryptedCek)                 │ │
+   * │                                             │ = ~512 bytes                                │ │
+   * │                                             └─────────────────────────────────────────────┘ │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 6: Combine into JWE Compact Serialization                                            │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │  jwe = BASE64URL(header) + "." +                                                           │
+   * │        BASE64URL(encryptedKey i.e. encryptedCek) + "." +                                   │
+   * │        BASE64URL(iv) + "." +                                                               │
+   * │        BASE64URL(ciphertext i.e. encryptedAesDataEncryptionKey) + "." +                    │
+   * │        BASE64URL(authTag)                                                                  │
+   * │                                                                                             │
+   * │  OUTPUT                                                                                     │
+   * │  └── JWE string (~750 characters)                                                          │
+   * └─────────────────────────────────────────────────────────────────────────────────────────────┘
    * </pre>
    *
-   * <h3>JWE Compact Serialization Format:</h3>
+   * <h3>Summary:</h3>
    * <pre>
-   * BASE64URL(Header).BASE64URL(EncryptedKey).BASE64URL(IV).BASE64URL(Ciphertext).BASE64URL(AuthTag)
+   * ┌────────────────┬─────────────────┬───────────────────────────────────┬─────────────────────────────────────────────┐
+   * │ Operation      │ Algorithm       │ Input                             │ Output                                      │
+   * ├────────────────┼─────────────────┼───────────────────────────────────┼─────────────────────────────────────────────┤
+   * │ ENCRYPT-AES    │ AES-256-GCM     │ cek, iv, aesDataEncryptionKey,    │ ciphertext (encryptedAesDataEncryptionKey)  │
+   * │                │                 │ header (AAD)                      │ + authTag                                   │
+   * ├────────────────┼─────────────────┼───────────────────────────────────┼─────────────────────────────────────────────┤
+   * │ ENCRYPT-RSA    │ RSA-OAEP-256    │ rsaPublicKey, cek                 │ encryptedKey (encryptedCek)                 │
+   * └────────────────┴─────────────────┴───────────────────────────────────┴─────────────────────────────────────────────┘
    * </pre>
    *
    * <h3>Sample JWE Output:</h3>
    * <pre>
-   * eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiSldFIn0.
-   * X9Mz1kLp...RSA-encrypted-CEK...7Yw2qA.
-   * qlGBvpTz8scgIg.
-   * S2Hf9mNp...AES-encrypted-DEK...8xKw.
-   * 3pLLqgTg_bJf6pw7eanSpQ
-   * └────────────────────┘ └─────────────────────────────┘ └──────────────┘ └───────────────────────────┘ └────────────────────┘
-   *       Header (82B)          EncryptedKey (~512B)          IV (12B)         Ciphertext (32B)           AuthTag (16B)
+   * eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiSldFIn0.X9Mz1kLp...7Yw2qA.qlGBvpTz8scgIg.S2Hf9mNp...8xKw.3pLLqgTg_bJf6pw7eanSpQ
+   * └──────────────────────────────────────────────────────┘ └─────────────────┘ └──────────────┘ └─────────────────┘ └────────────────────┘
+   *                     Header (82B)                         EncryptedKey(~512B)     IV (12B)      Ciphertext (32B)      AuthTag (16B)
+   *                                                          (encryptedCek)                    (encryptedAesDEK)
    * </pre>
    *
    * @param aesDataEncryptionKey The AES DEK to wrap (256-bit key)
