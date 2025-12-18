@@ -32,3 +32,7 @@
 /build/tmp/compileJava/previous-compilation-data.bin
 /build/tmp/compileTestJava/previous-compilation-data.bin
 /build/classes/java/main/server/restapi_data_security/crypto/JwtParser$JweComponents.class
+/gradlew.bat
+/gradlew
+/gradle/wrapper/gradle-wrapper.properties
+/gradle/wrapper/gradle-wrapper.jar
