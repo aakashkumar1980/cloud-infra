@@ -10,23 +10,40 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * Field Encryptor - Encrypts individual fields using AES-256-GCM.
+ * Field Encryptor - Encrypts individual PII fields using AES-256-GCM.
  *
  * <h2>STEP 4 (CLIENT): Encrypt PII Fields</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  FIELD ENCRYPTION                                                      │
  * │                                                                        │
- * │  Input: plainText, dataEncryptionKey (DEK)                            │
+ * │  Input: plainText, aesDataEncryptionKey (DEK)                         │
  * │                                                                        │
  * │  Process:                                                              │
- * │  1. Generate random 96-bit IV                                         │
+ * │  1. Generate random 96-bit IV (12 bytes)                              │
  * │  2. Initialize AES-256-GCM cipher with DEK                            │
- * │  3. Encrypt plainText → encryptedText + authTag                       │
+ * │  3. Encrypt plainText → encryptedText + authTag (16 bytes)            │
  * │                                                                        │
  * │  Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"           │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
+ *
+ * <h3>Sample Encrypted Field Values:</h3>
+ * <pre>
+ * Input:  "1990-05-15" (Date of Birth)
+ * Output: "rK8xMzQ1Njc4OTAx.YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=.dGFnMTIzNDU2Nzg5MDEyMzQ1Ng=="
+ *         └─────────────┘ └─────────────────────────────────────┘ └──────────────────────────────┘
+ *              IV (12B)              EncryptedText (variable)            AuthTag (16B)
+ *
+ * Input:  "4111111111111234" (Credit Card)
+ * Output: "c2FtcGxlSVYxMjM=.ZW5jcnlwdGVkQ3JlZGl0Q2FyZERhdGE=.YXV0aFRhZzEyMzQ1Njc4OTAxMg=="
+ *
+ * Input:  "123-45-6789" (SSN)
+ * Output: "aXZGb3JTU04xMjM=.ZW5jcnlwdGVkU1NOVmFsdWVIZXJl.c3NuQXV0aFRhZzEyMzQ1Njc4"
+ * </pre>
+ *
+ * <p><b>Note:</b> Each encryption generates a unique IV, so the same plaintext
+ * will produce different ciphertext each time (this is good for security!).</p>
  */
 @Component
 public class FieldEncryptor {
@@ -38,19 +55,20 @@ public class FieldEncryptor {
   /**
    * Encrypts a plaintext field using AES-256-GCM.
    *
-   * @param plainText         The sensitive data to encrypt
-   * @param dataEncryptionKey The DEK (Data Encryption Key)
+   * @param plainText            The sensitive data to encrypt (e.g., "1990-05-15", "4111111111111234")
+   * @param aesDataEncryptionKey The AES DEK (Data Encryption Key) - 256-bit key
    * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
+   *         Example: "rK8xMzQ1Njc4OTAx.YWJjZGVm...eXo=.dGFnMTIz...NTY="
    */
-  public String encrypt(String plainText, SecretKey dataEncryptionKey) {
+  public String encrypt(String plainText, SecretKey aesDataEncryptionKey) {
     try {
-      // Generate random IV and encrypt
+      // Generate random IV (12 bytes = 96 bits for GCM)
       byte[] iv = new byte[IV_SIZE_BYTES];
       SECURE_RANDOM.nextBytes(iv);
 
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.ENCRYPT_MODE, dataEncryptionKey, gcmSpec);
+      cipher.init(Cipher.ENCRYPT_MODE, aesDataEncryptionKey, gcmSpec);
       byte[] encryptedTextWithTag = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 
       // Split encryptedText and authTag, then format output

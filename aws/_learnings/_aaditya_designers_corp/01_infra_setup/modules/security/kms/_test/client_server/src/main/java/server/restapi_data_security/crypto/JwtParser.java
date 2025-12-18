@@ -13,19 +13,19 @@ import org.springframework.stereotype.Component;
  * │  JWE FORMAT: Header.EncryptedKey.IV.Ciphertext.AuthTag                │
  * │                                                                        │
  * │  Components:                                                           │
- * │  ├── Header: {"alg":"RSA-OAEP-256","enc":"A256GCM"}                   │
+ * │  ├── Header: {"alg":"RSA-OAEP-256","enc":"A256GCM"} (NOT encrypted!)  │
  * │  ├── EncryptedKey: RSA-encrypted CEK (encryptedCek)                   │
  * │  ├── IV: Initialization vector for A256GCM                            │
- * │  ├── Ciphertext: Encrypted DEK (our Data Encryption Key)              │
+ * │  ├── Ciphertext: Encrypted AES DEK (our Data Encryption Key)          │
  * │  └── AuthTag: GCM authentication tag                                  │
  * │                                                                        │
  * │  Two-Layer Encryption:                                                │
  * │  1. CEK (Content Encryption Key) is RSA-encrypted → encryptedCek      │
- * │  2. DEK (Data Encryption Key) is encrypted with CEK → Ciphertext      │
+ * │  2. AES DEK (Data Encryption Key) is encrypted with CEK → Ciphertext  │
  * │                                                                        │
  * │  To extract DEK:                                                       │
  * │  1. Decrypt encryptedCek via KMS → cek                                │
- * │  2. Decrypt Ciphertext using cek → dataEncryptionKey                  │
+ * │  2. Decrypt Ciphertext using cek → aesDataEncryptionKey               │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  */
@@ -94,7 +94,7 @@ public class JwtParser {
    *
    * @param encryptedCek RSA-encrypted CEK (Content Encryption Key) - decrypted via KMS
    * @param iv           Initialization vector for A256GCM
-   * @param ciphertext   Encrypted payload containing the DEK (Data Encryption Key)
+   * @param ciphertext   Encrypted payload containing the AES DEK (Data Encryption Key)
    * @param authTag      GCM authentication tag
    * @param aad          Additional Authenticated Data (ASCII bytes of Base64URL protected header)
    */

@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
  * <h3>Client Flow (Steps 1-4):</h3>
  * <ol>
  *   <li>Load company's RSA public key → loadRSAPublicKey()</li>
- *   <li>Generate DEK and wrap in JWE → generateDataEncryptionKeyAndWrapInJwe()</li>
+ *   <li>Generate AES DEK and wrap in JWE → generateAesDataEncryptionKeyAndWrapInJwe()</li>
  *   <li>Encrypt PII fields with DEK → encryptField()</li>
  * </ol>
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
  *   <li>Extract JWE components → JwtParser.extractJweComponents()</li>
- *   <li>Extract DEK via KMS (1 API call) → extractDataEncryptionKey()</li>
+ *   <li>Extract AES DEK via KMS (1 API call) → extractAesDataEncryptionKey()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  * </ol>
  */
@@ -73,10 +73,10 @@ class ClientRESTAPIEncryptionTest {
     hybridEncryptionService.loadRSAPublicKey();
     log.info("Loaded from: src/test/resources/public-key.pem");
 
-    // Step 2: Generate DEK (Data Encryption Key) and wrap in JWE
-    log.info("\n=== Step 2: Generate DEK & Wrap in JWE ===");
-    hybridEncryptionService.generateDataEncryptionKeyAndWrapInJwe();
-    log.info("Generated 256-bit DEK and wrapped in JWE using RSA-4096 public key");
+    // Step 2: Generate AES DEK (Data Encryption Key) and wrap in JWE
+    log.info("\n=== Step 2: Generate AES DEK & Wrap in JWE ===");
+    hybridEncryptionService.generateAesDataEncryptionKeyAndWrapInJwe();
+    log.info("Generated 256-bit AES DEK and wrapped in JWE using RSA-4096 public key");
 
     // Step 3: Define order data
     log.info("\n=== Step 3: Order Data ===");

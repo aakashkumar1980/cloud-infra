@@ -9,15 +9,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * Field Decryptor - Decrypts individual fields using AES-256-GCM.
+ * Field Decryptor - Decrypts individual PII fields using AES-256-GCM.
  *
  * <h2>STEP 7 (BACKEND): Decrypt PII Fields Locally</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
- * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
- * │  Key:   dataEncryptionKey (DEK extracted via KMS in Step 6)           │
+ * │  Input: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"            │
+ * │  Key:   aesDataEncryptionKey (DEK extracted via KMS in Step 6)        │
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Split encrypted string → iv, encryptedText, authTag               │
@@ -25,20 +25,23 @@ import java.util.Base64;
  * │  3. Initialize AES-256-GCM cipher with IV                             │
  * │  4. Decrypt encryptedText and verify authTag                          │
  * │                                                                        │
- * │  Output: Plaintext (e.g., "4111111111111234")                         │
+ * │  Output: Plaintext (e.g., "1990-05-15", "4111111111111234")            │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
- * <h3>Expected Input Format:</h3>
+ * <h3>Sample Encrypted Field Values (Input):</h3>
  * <pre>
- * BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
- * Example: "abc123.xyz789.def456"
+ * Encrypted DOB:    "rK8xMzQ1Njc4OTAx.YWJjZGVmZ2hpamts...eXo=.dGFnMTIzNDU2Nzg5MDEyMzQ1Ng=="
+ * Encrypted Card:   "c2FtcGxlSVYxMjM=.ZW5jcnlwdGVkQ3Jl...GE=.YXV0aFRhZzEyMzQ1Njc4OTAxMg=="
+ * Encrypted SSN:    "aXZGb3JTU04xMjM=.ZW5jcnlwdGVkU1NO...Jl.c3NuQXV0aFRhZzEyMzQ1Njc4"
+ *                   └───────────────┘ └────────────────────┘ └─────────────────────────────┘
+ *                       IV (12B)        EncryptedText            AuthTag (16B)
  * </pre>
  *
  * <h3>Security Properties:</h3>
  * <ul>
  *   <li><b>Integrity Check:</b> Auth tag verifies data wasn't tampered with</li>
- *   <li><b>No KMS Call:</b> Decryption happens locally using the DEK</li>
+ *   <li><b>No KMS Call:</b> Decryption happens locally using the AES DEK</li>
  *   <li><b>Fast:</b> AES decryption is very fast (~GB/sec)</li>
  * </ul>
  */
@@ -51,13 +54,13 @@ public class FieldDecryptor {
   /**
    * Decrypts an encrypted field value.
    *
-   * @param encryptedField    The encrypted string in format: iv.encryptedText.authTag
-   * @param dataEncryptionKey The DEK (Data Encryption Key) extracted from JWE via KMS
-   * @return The decrypted plaintext string
+   * @param encryptedField       The encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
+   * @param aesDataEncryptionKey The AES DEK (Data Encryption Key) extracted from JWE via KMS
+   * @return The decrypted plaintext string (e.g., "1990-05-15", "4111111111111234")
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if decryption fails (wrong key or tampered data)
    */
-  public String decrypt(String encryptedField, SecretKey dataEncryptionKey) {
+  public String decrypt(String encryptedField, SecretKey aesDataEncryptionKey) {
     // Validate and split the encrypted field
     String[] parts = encryptedField.split("\\.");
     if (parts.length != 3) {
@@ -79,7 +82,7 @@ public class FieldDecryptor {
       // Initialize cipher for decryption
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, dataEncryptionKey, gcmSpec);
+      cipher.init(Cipher.DECRYPT_MODE, aesDataEncryptionKey, gcmSpec);
 
       // Decrypt and return plaintext
       byte[] plainText = cipher.doFinal(encryptedTextWithTag);
