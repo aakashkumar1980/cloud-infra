@@ -207,6 +207,6 @@ echo   cd [module_path] ^&^& terraform destroy -var="profile=dev" -auto-approve
 echo.
 echo ============================================================================
 
-cd /d "%AWS_ROOT%\_scripts"
+cd /d "%AWS_ROOT%\__scripts"
 endlocal
 exit /b %ERROR_COUNT%

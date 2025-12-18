@@ -159,7 +159,7 @@ if %ERROR_COUNT% equ 0 (
 echo.
 echo ============================================================================
 
-cd /d "%AWS_ROOT%\_scripts"
+cd /d "%AWS_ROOT%\__scripts"
 endlocal
 exit /b %ERROR_COUNT%
 

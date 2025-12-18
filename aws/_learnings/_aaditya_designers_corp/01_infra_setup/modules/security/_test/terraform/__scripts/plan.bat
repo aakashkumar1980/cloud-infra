@@ -11,7 +11,7 @@ REM Run dependency: 01_infra_setup
 echo.
 echo [Dependency] Running 01_infra_setup plan first...
 echo --------------------------------------------
-call "%~dp0..\..\..\..\..\_scripts\plan.bat"
+call "%~dp0..\..\..\..\..\__scripts\plan.bat"
 if %errorlevel% neq 0 (
     echo ERROR: Dependency 01_infra_setup plan failed
     exit /b %errorlevel%

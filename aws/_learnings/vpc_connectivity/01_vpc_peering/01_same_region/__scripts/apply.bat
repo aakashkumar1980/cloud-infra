@@ -11,7 +11,7 @@ REM Run dependency: base_network
 echo.
 echo [Dependency] Running base_network apply first...
 echo --------------------------------------------
-call "%~dp0..\..\..\..\..\base_network\_scripts\apply.bat"
+call "%~dp0..\..\..\..\..\base_network\__scripts\apply.bat"
 if %errorlevel% neq 0 (
     echo ERROR: Dependency base_network apply failed
     exit /b %errorlevel%

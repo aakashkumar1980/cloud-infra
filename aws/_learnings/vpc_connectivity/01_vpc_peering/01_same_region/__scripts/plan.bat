@@ -11,7 +11,7 @@ REM Run dependency: base_network
 echo.
 echo [Dependency] Running base_network plan first...
 echo --------------------------------------------
-call "%~dp0..\..\..\..\..\base_network\_scripts\plan.bat"
+call "%~dp0..\..\..\..\..\base_network\__scripts\plan.bat"
 if %errorlevel% neq 0 (
     echo ERROR: Dependency base_network plan failed
     exit /b %errorlevel%

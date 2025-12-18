@@ -11,7 +11,7 @@ REM Run dependency: 01_same_region (which includes base_network)
 echo.
 echo [Dependency 1] Running 01_same_region plan first...
 echo --------------------------------------------
-call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\01_same_region\_scripts\plan.bat"
+call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\01_same_region\__scripts\plan.bat"
 if %errorlevel% neq 0 (
     echo ERROR: Dependency 01_same_region plan failed
     exit /b %errorlevel%
@@ -21,7 +21,7 @@ REM Run dependency: 02_different_region (which includes base_network)
 echo.
 echo [Dependency 2] Running 02_different_region plan...
 echo --------------------------------------------
-call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\02_different_region\_scripts\plan.bat"
+call "%~dp0..\..\..\vpc_connectivity\01_vpc_peering\02_different_region\__scripts\plan.bat"
 if %errorlevel% neq 0 (
     echo ERROR: Dependency 02_different_region plan failed
     exit /b %errorlevel%
