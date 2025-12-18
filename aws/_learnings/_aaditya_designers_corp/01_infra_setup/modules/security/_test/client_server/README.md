@@ -133,28 +133,28 @@ This project demonstrates two approaches to encrypting sensitive data in REST AP
 ```
 src/
 ├── main/java/server/restapi_data_security/
-│   ├── multi_fields/           # Approach 1: Direct RSA of DEK
+│   ├── multi_fields_encryption/    # Approach 1: Direct RSA of DEK
 │   │   ├── controller/
 │   │   ├── crypto/
 │   │   │   ├── RsaKeyUnwrapper.java    # KMS decrypt DEK
 │   │   │   └── FieldDecryptor.java     # AES decrypt fields
 │   │   └── service/
 │   │
-│   └── all_fields/             # Approach 2: JWE with CEK
+│   └── all_fields_encryption/      # Approach 2: JWE with CEK
 │       ├── controller/
 │       ├── crypto/
 │       │   └── JweDecryptor.java       # KMS decrypt CEK + AES decrypt payload
 │       └── service/
 │
 └── test/java/client/
-    ├── multi_fields/           # Test client for Approach 1
+    ├── multi_fields_encryption/    # Test client for Approach 1
     │   ├── crypto/
     │   │   ├── AESKeyGenerator.java    # Generate DEK
     │   │   ├── RsaKeyWrapper.java      # RSA encrypt DEK
     │   │   └── FieldEncryptor.java     # AES encrypt fields
     │   └── service/
     │
-    └── all_fields/             # Test client for Approach 2
+    └── all_fields_encryption/      # Test client for Approach 2
         ├── crypto/
         │   └── JweEncryptor.java       # JWE encrypt entire payload
         └── service/
@@ -166,12 +166,12 @@ src/
 
 ### Multi-Fields Test (Direct RSA, No CEK)
 ```bash
-./gradlew test --tests "client.multi_fields.MultiFieldsEncryptionTest"
+./gradlew test --tests "client.multi_fields_encryption.MultiFieldsEncryptionTest"
 ```
 
 ### All-Fields Test (JWE with CEK)
 ```bash
-./gradlew test --tests "client.all_fields.AllFieldsEncryptionTest"
+./gradlew test --tests "client.all_fields_encryption.AllFieldsEncryptionTest"
 ```
 
 ### Run All Tests
