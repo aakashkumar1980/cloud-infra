@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import server.restapi_data_security.crypto.AwsKmsDecryptionService;
 import server.restapi_data_security.crypto.FieldDecryptor;
-import server.restapi_data_security.crypto.JwtParser;
+import server.restapi_data_security.crypto.JweParser;
 
 import javax.crypto.SecretKey;
 
@@ -19,7 +19,7 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: Extract JWE Components                                   │ │
- * │  │ ► JwtParser.extractJweComponents(jwtEncryptionMetadata)          │ │
+ * │  │ ► JweParser.extractJweComponents(jweEncryptionMetadata)          │ │
  * │  │ ► Output: JweComponents (encryptedCek, iv, ciphertext...)        │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
@@ -52,16 +52,16 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final JwtParser jwtParser;
+  private final JweParser jweParser;
   private final AwsKmsDecryptionService awsKmsDecryptionService;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
-      JwtParser jwtParser,
+      JweParser jweParser,
       AwsKmsDecryptionService awsKmsDecryptionService,
       FieldDecryptor fieldDecryptor
   ) {
-    this.jwtParser = jwtParser;
+    this.jweParser = jweParser;
     this.awsKmsDecryptionService = awsKmsDecryptionService;
     this.fieldDecryptor = fieldDecryptor;
   }
@@ -69,14 +69,14 @@ public class HybridDecryptionService {
   /**
    * Decrypts multiple fields using a single KMS call.
    *
-   * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
+   * @param jweEncryptionMetadata The X-Encryption-Key header value (JWE format)
    * @param encryptedDob          Encrypted date of birth
    * @param encryptedCreditCard   Encrypted credit card number
    * @param encryptedSsn          Encrypted SSN
    * @return A record containing all decrypted values
    */
   public DecryptedFields decryptAll(
-      String jwtEncryptionMetadata,
+      String jweEncryptionMetadata,
       String encryptedDob,
       String encryptedCreditCard,
       String encryptedSsn
@@ -84,7 +84,7 @@ public class HybridDecryptionService {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
     // STEP 5+6: Extract AES DEK from JWE via KMS (1 KMS call)
-    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jwtEncryptionMetadata);
+    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jweEncryptionMetadata);
 
     // STEP 7: Decrypt each field locally using AES DEK (no additional KMS calls)
     String dob = fieldDecryptor.decrypt(encryptedDob, aesDataEncryptionKey);
@@ -98,17 +98,17 @@ public class HybridDecryptionService {
   /**
    * Decrypts a single encrypted field.
    *
-   * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
+   * @param jweEncryptionMetadata The X-Encryption-Key header value (JWE format)
    * @param encryptedField        The encrypted field (BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag))
    * @return The decrypted plaintext value
    */
-  public String decryptField(String jwtEncryptionMetadata, String encryptedField) {
-    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jwtEncryptionMetadata);
+  public String decryptField(String jweEncryptionMetadata, String encryptedField) {
+    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jweEncryptionMetadata);
     return fieldDecryptor.decrypt(encryptedField, aesDataEncryptionKey);
   }
 
   /**
-   * Extracts the AES Data Encryption Key (DEK) from the JWT metadata header.
+   * Extracts the AES Data Encryption Key (DEK) from the JWE metadata header.
    *
    * <p>Two-step process:</p>
    * <ol>
@@ -116,16 +116,16 @@ public class HybridDecryptionService {
    *   <li>Decrypt encryptedCek via KMS, then decrypt payload → aesDataEncryptionKey</li>
    * </ol>
    *
-   * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
+   * @param jweEncryptionMetadata The X-Encryption-Key header value (JWE format)
    * @return The AES Data Encryption Key (DEK) for field decryption
    */
-  private SecretKey extractAesDataEncryptionKey(String jwtEncryptionMetadata) {
-    if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
+  private SecretKey extractAesDataEncryptionKey(String jweEncryptionMetadata) {
+    if (jweEncryptionMetadata == null || jweEncryptionMetadata.isBlank()) {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
 
-    // STEP 5: Parse JWT metadata to extract JWE components
-    JwtParser.JweComponents jweComponents = jwtParser.extractJweComponents(jwtEncryptionMetadata);
+    // STEP 5: Parse JWE metadata to extract JWE components
+    JweParser.JweComponents jweComponents = jweParser.extractJweComponents(jweEncryptionMetadata);
 
     // STEP 6: Extract AES DEK via KMS
     return awsKmsDecryptionService.extractAesDataEncryptionKey(jweComponents);

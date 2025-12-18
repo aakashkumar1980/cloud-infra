@@ -49,7 +49,7 @@ import java.security.interfaces.RSAPublicKey;
  * can extract the DEK using their private key stored in AWS KMS.</p>
  */
 @Component
-public class JwtBuilder {
+public class JweBuilder {
 
   /**
    * Wraps an AES Data Encryption Key (DEK) inside a JWE using RSA public key.
@@ -69,7 +69,7 @@ public class JwtBuilder {
       JWEHeader header = new JWEHeader.Builder(
           JWEAlgorithm.RSA_OAEP_256,  // Key encryption: RSA-OAEP with SHA-256
           EncryptionMethod.A256GCM     // Content encryption: AES-256-GCM
-      ).contentType("JWT").build();
+      ).contentType("JWE").build();
 
       // Create JWE object with DEK bytes as payload (THIS gets encrypted)
       JWEObject jweObject = new JWEObject(header, new Payload(aesDataEncryptionKey.getEncoded()));

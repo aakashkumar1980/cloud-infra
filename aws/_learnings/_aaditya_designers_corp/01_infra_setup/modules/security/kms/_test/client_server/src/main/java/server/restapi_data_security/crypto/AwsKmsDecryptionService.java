@@ -83,11 +83,11 @@ public class AwsKmsDecryptionService {
    *   <li>Decrypt JWE payload using cek → aesDataEncryptionKey</li>
    * </ol>
    *
-   * @param jweComponents The JWE components from JwtParser
+   * @param jweComponents The JWE components from JweParser
    * @return The AES Data Encryption Key (DEK) for field decryption
    * @throws RuntimeException if decryption fails
    */
-  public SecretKey extractAesDataEncryptionKey(JwtParser.JweComponents jweComponents) {
+  public SecretKey extractAesDataEncryptionKey(JweParser.JweComponents jweComponents) {
     try {
       // STEP 6a: Decrypt encryptedCek via KMS to get cek
       byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());

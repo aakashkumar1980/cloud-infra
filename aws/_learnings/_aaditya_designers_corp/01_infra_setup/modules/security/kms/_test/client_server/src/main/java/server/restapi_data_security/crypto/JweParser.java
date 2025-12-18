@@ -5,7 +5,7 @@ import com.nimbusds.jose.JWEObject;
 import org.springframework.stereotype.Component;
 
 /**
- * JWT Parser - Extracts JWE components for decryption via AWS KMS.
+ * JWE Parser - Extracts JWE components for decryption via AWS KMS.
  *
  * <h2>STEP 5 (BACKEND): Extract JWE Components</h2>
  * <pre>
@@ -30,20 +30,20 @@ import org.springframework.stereotype.Component;
  * </pre>
  */
 @Component
-public class JwtParser {
+public class JweParser {
 
   /**
    * Parses the JWE and extracts all components needed for decryption.
    *
-   * @param jwtEncryptionMetadata The JWT encryption metadata from X-Encryption-Key header
+   * @param jweEncryptionMetadata The JWE encryption metadata from X-Encryption-Key header
    * @return JweComponents containing all parts needed for decryption
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if parsing fails
    */
-  public JweComponents extractJweComponents(String jwtEncryptionMetadata) {
+  public JweComponents extractJweComponents(String jweEncryptionMetadata) {
     try {
-      // Parse the JWT encryption metadata (JWE format)
-      JWEObject jweObject = JWEObject.parse(jwtEncryptionMetadata);
+      // Parse the JWE encryption metadata
+      JWEObject jweObject = JWEObject.parse(jweEncryptionMetadata);
       JWEHeader header = jweObject.getHeader();
 
       // Validate the algorithm
@@ -62,7 +62,7 @@ public class JwtParser {
       // Extract the protected header for AAD (Additional Authenticated Data)
       // JWE AAD = ASCII(BASE64URL(UTF8(JWE Protected Header)))
       // The first part of the JWE token (before the first dot) is the Base64URL-encoded header
-      String protectedHeader = jwtEncryptionMetadata.split("\\.")[0];
+      String protectedHeader = jweEncryptionMetadata.split("\\.")[0];
       byte[] aad = protectedHeader.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
 
       return new JweComponents(encryptedCek, iv, ciphertext, authTag, aad);
@@ -70,19 +70,19 @@ public class JwtParser {
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to parse JWT encryption metadata: " + e.getMessage(), e);
+      throw new RuntimeException("Failed to parse JWE encryption metadata: " + e.getMessage(), e);
     }
   }
 
   /**
-   * Validates JWT encryption metadata without extracting the key.
+   * Validates JWE encryption metadata without extracting the key.
    *
-   * @param jwtEncryptionMetadata The JWT encryption metadata to validate
+   * @param jweEncryptionMetadata The JWE encryption metadata to validate
    * @return true if valid, false otherwise
    */
-  public boolean isValid(String jwtEncryptionMetadata) {
+  public boolean isValid(String jweEncryptionMetadata) {
     try {
-      extractJweComponents(jwtEncryptionMetadata);
+      extractJweComponents(jweEncryptionMetadata);
       return true;
     } catch (Exception e) {
       return false;

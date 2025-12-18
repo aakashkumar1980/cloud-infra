@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <h3>Server Flow (Steps 5-7):</h3>
  * <ol>
- *   <li>Extract JWE components → JwtParser.extractJweComponents()</li>
+ *   <li>Extract JWE components → JweParser.extractJweComponents()</li>
  *   <li>Extract AES DEK via KMS (1 API call) → extractAesDataEncryptionKey()</li>
  *   <li>Decrypt each field locally using DEK → FieldDecryptor.decrypt()</li>
  * </ol>
@@ -96,9 +96,9 @@ class ClientRESTAPIEncryptionTest {
         truncate(encryptedDob, 30), truncate(encryptedCreditCard, 30), truncate(encryptedSsn, 30));
 
     // Step 5: Get JWE header
-    log.info("\n=== Step 5: Get JWT Encryption Metadata ===");
-    String jwtEncryptionMetadata = hybridEncryptionService.getJwtEncryptionMetadata();
-    log.info("JWE Header: {}", truncate(jwtEncryptionMetadata, 50));
+    log.info("\n=== Step 5: Get JWE Encryption Metadata ===");
+    String jweEncryptionMetadata = hybridEncryptionService.getJweEncryptionMetadata();
+    log.info("JWE Header: {}", truncate(jweEncryptionMetadata, 50));
 
     // Build JSON payload
     JsonObject cardDetailsJson = new JsonObject();
@@ -111,7 +111,7 @@ class ClientRESTAPIEncryptionTest {
     orderRequestJson.addProperty("orderAmount", order.amount);
     orderRequestJson.add("cardDetails", cardDetailsJson);
 
-    return new EncryptedOrder(jwtEncryptionMetadata, orderRequestJson);
+    return new EncryptedOrder(jweEncryptionMetadata, orderRequestJson);
   }
 
   private void submitAndVerifyOrder(EncryptedOrder encryptedOrder) {
