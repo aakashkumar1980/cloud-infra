@@ -57,6 +57,35 @@ public class JweBuilder {
    * <p><b>Note:</b> The header is NOT encrypted - only Base64URL encoded.
    * Only the payload (DEK) is encrypted.</p>
    *
+   * <h3>JWE Compact Serialization Format:</h3>
+   * <pre>
+   * BASE64URL(Header).BASE64URL(EncryptedKey).BASE64URL(IV).BASE64URL(Ciphertext).BASE64URL(AuthTag)
+   * </pre>
+   *
+   * <h3>Sample JWE Output:</h3>
+   * <pre>
+   * eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiSldFIn0.
+   * X9Mz1kLp...truncated...RSA-encrypted-CEK...7Yw2qA.
+   * qlGBvpTz8scgIg.
+   * S2Hf9mNp...truncated...AES-encrypted-DEK...8xKw.
+   * 3pLLqgTg_bJf6pw7eanSpQ
+   * └────────────────────┘ └──────────────────────────────┘ └──────────────┘ └────────────────────────────┘ └────────────────────┘
+   *       Header (82B)           EncryptedKey (~512B)          IV (12B)          Ciphertext (32B)            AuthTag (16B)
+   *
+   * Actual single-line format (no line breaks):
+   * eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiSldFIn0.X9Mz1kLp...7Yw2qA.qlGBvpTz8scgIg.S2Hf9mNp...8xKw.3pLLqgTg_bJf6pw7eanSpQ
+   * </pre>
+   *
+   * <h3>Component Details:</h3>
+   * <table border="1">
+   *   <tr><th>Component</th><th>Size</th><th>Description</th></tr>
+   *   <tr><td>Header</td><td>~82 bytes</td><td>{"alg":"RSA-OAEP-256","enc":"A256GCM","cty":"JWE"}</td></tr>
+   *   <tr><td>EncryptedKey</td><td>~512 bytes</td><td>CEK encrypted with RSA-4096 public key</td></tr>
+   *   <tr><td>IV</td><td>12 bytes</td><td>Initialization vector for AES-256-GCM</td></tr>
+   *   <tr><td>Ciphertext</td><td>32 bytes</td><td>DEK (256-bit AES key) encrypted with CEK</td></tr>
+   *   <tr><td>AuthTag</td><td>16 bytes</td><td>GCM authentication tag</td></tr>
+   * </table>
+   *
    * @param aesDataEncryptionKey The AES DEK to wrap (256-bit key)
    * @param rsaPublicKey         The server's RSA public key
    * @return JWE compact serialization string (for X-Encryption-Key header)
