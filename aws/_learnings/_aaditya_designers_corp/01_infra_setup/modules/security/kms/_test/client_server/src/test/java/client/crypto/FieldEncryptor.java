@@ -55,10 +55,71 @@ public class FieldEncryptor {
   /**
    * Encrypts a plaintext field using AES-256-GCM.
    *
+   * <h3>Internal Steps (ENCRYPT-AES):</h3>
+   * <pre>
+   * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+   * │  INPUT                                                                                      │
+   * │  ├── plainText: "1990-05-15" (or any sensitive PII data)                                   │
+   * │  └── aesDataEncryptionKey (DEK): 32 bytes (256-bit AES key)                                │
+   * │                                                                                             │
+   * │  STEP 1: Generate random IV (Initialization Vector)                                        │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  iv = SecureRandom.generate(96 bits)  // 12 bytes                                          │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 2: ENCRYPT-AES (AES-256-GCM) - Encrypt plainText using DEK                           │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │      ┌───────────────────────┐                                                              │
+   * │      │      plainText        │────┐                                                         │
+   * │      │ "1990-05-15"          │    │                                                         │
+   * │      └───────────────────────┘    │        ┌─────────────────────────────────────────────┐  │
+   * │                                   │        │                                             │  │
+   * │      ┌───────────────────────┐    │        │            AES-256-GCM ENCRYPT              │  │
+   * │      │ aesDataEncryptionKey  │────┼───────►│                                             │  │
+   * │      │ (DEK - 32 bytes)      │    │        │  Cipher cipher = Cipher.getInstance(        │  │
+   * │      └───────────────────────┘    │        │      "AES/GCM/NoPadding");                  │  │
+   * │                                   │        │  cipher.init(ENCRYPT_MODE, dek, iv);        │  │
+   * │      ┌───────────────────────┐    │        │  result = cipher.doFinal(                   │  │
+   * │      │         iv            │────┼───────►│      plainText.getBytes());                 │  │
+   * │      │ (12 bytes)            │    │        │                                             │  │
+   * │      └───────────────────────┘    │        └──────────────────────┬──────────────────────┘  │
+   * │                                   │                               │                         │
+   * │                                   │                               ▼                         │
+   * │                                   │        ┌─────────────────────────────────────────────┐  │
+   * │                                   │        │ encryptedText = variable size               │  │
+   * │                                   │        │ (same size as plainText)                    │  │
+   * │                                   │        ├─────────────────────────────────────────────┤  │
+   * │                                   │        │ authTag = 16 bytes                          │  │
+   * │                                   │        │ (for integrity validation during decrypt)   │  │
+   * │                                   │        └─────────────────────────────────────────────┘  │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 3: Combine into dot-separated format                                                 │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │  output = BASE64(iv) + "." + BASE64(encryptedText) + "." + BASE64(authTag)                 │
+   * │                                                                                             │
+   * │  OUTPUT                                                                                     │
+   * │  └── "rK8xMzQ1Njc4OTAx.YWJjZGVmZ2hpamts...eXo=.dGFnMTIzNDU2Nzg5MDEyMzQ1Ng=="              │
+   * │       └───────────────┘ └────────────────────────┘ └──────────────────────────────┘        │
+   * │           IV (12B)          EncryptedText              AuthTag (16B)                       │
+   * └─────────────────────────────────────────────────────────────────────────────────────────────┘
+   * </pre>
+   *
+   * <h3>Summary:</h3>
+   * <pre>
+   * ┌────────────────┬─────────────────┬───────────────────────────────────┬──────────────────────────────┐
+   * │ Operation      │ Algorithm       │ Input                             │ Output                       │
+   * ├────────────────┼─────────────────┼───────────────────────────────────┼──────────────────────────────┤
+   * │ ENCRYPT-AES    │ AES-256-GCM     │ aesDataEncryptionKey (DEK),       │ encryptedText + authTag      │
+   * │                │                 │ iv, plainText                     │                              │
+   * └────────────────┴─────────────────┴───────────────────────────────────┴──────────────────────────────┘
+   * </pre>
+   *
    * @param plainText            The sensitive data to encrypt (e.g., "1990-05-15", "4111111111111234")
    * @param aesDataEncryptionKey The AES DEK (Data Encryption Key) - 256-bit key
    * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
-   *         Example: "rK8xMzQ1Njc4OTAx.YWJjZGVm...eXo=.dGFnMTIz...NTY="
    */
   public String encrypt(String plainText, SecretKey aesDataEncryptionKey) {
     try {
