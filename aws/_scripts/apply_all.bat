@@ -10,13 +10,13 @@ REM   1. base_network           - VPCs (N. Virginia + London)
 REM   2. vpc_peering/01_same_region      - Same-region peering
 REM   3. vpc_peering/02_different_region - Cross-region peering
 REM   4. 01_infra_setup         - KMS + Secrets Manager
-REM   5. kms/_test/terraform    - IAM user for testing
+REM   5. security/_test/terraform    - IAM user for testing
 REM
 REM ============================================================================
 
 setlocal EnableDelayedExpansion
 
-set "AWS_ROOT=%~dp0"
+set "AWS_ROOT=%~dp0.."
 set "PROFILE=dev"
 set "ERROR_COUNT=0"
 
@@ -32,7 +32,7 @@ echo   1. base_network
 echo   2. vpc_peering/01_same_region
 echo   3. vpc_peering/02_different_region
 echo   4. 01_infra_setup
-echo   5. kms/_test/terraform
+echo   5. security/_test/terraform
 echo.
 echo ============================================================================
 echo.
@@ -43,25 +43,18 @@ REM ============================================================================
 echo [1/5] Applying base_network (VPCs)...
 echo ----------------------------------------------------------------------------
 
-cd /d "%AWS_ROOT%..\base_network"
-if %errorlevel% neq 0 (
-    echo WARNING: Directory not found, skipping...
+set "STEP1_DIR=%AWS_ROOT%\base_network"
+if not exist "%STEP1_DIR%" (
+    echo WARNING: Directory not found: %STEP1_DIR%
     goto step2
 )
 
-terraform init -input=false
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform init failed for base_network
-    set /a ERROR_COUNT+=1
-    goto step2
-)
-
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform apply failed for base_network
+cd /d "%STEP1_DIR%"
+call :run_terraform
+if !errorlevel! neq 0 (
     set /a ERROR_COUNT+=1
 ) else (
-    echo SUCCESS: Base network (VPCs) applied
+    echo SUCCESS: Base network applied
 )
 
 :step2
@@ -72,22 +65,15 @@ REM ============================================================================
 echo [2/5] Applying vpc_peering/01_same_region...
 echo ----------------------------------------------------------------------------
 
-cd /d "%AWS_ROOT%..\_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
-if %errorlevel% neq 0 (
-    echo WARNING: Directory not found, skipping...
+set "STEP2_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
+if not exist "%STEP2_DIR%" (
+    echo WARNING: Directory not found: %STEP2_DIR%
     goto step3
 )
 
-terraform init -input=false
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform init failed for vpc_peering/01_same_region
-    set /a ERROR_COUNT+=1
-    goto step3
-)
-
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform apply failed for vpc_peering/01_same_region
+cd /d "%STEP2_DIR%"
+call :run_terraform
+if !errorlevel! neq 0 (
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Same-region VPC peering applied
@@ -101,22 +87,15 @@ REM ============================================================================
 echo [3/5] Applying vpc_peering/02_different_region...
 echo ----------------------------------------------------------------------------
 
-cd /d "%AWS_ROOT%..\_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
-if %errorlevel% neq 0 (
-    echo WARNING: Directory not found, skipping...
+set "STEP3_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
+if not exist "%STEP3_DIR%" (
+    echo WARNING: Directory not found: %STEP3_DIR%
     goto step4
 )
 
-terraform init -input=false
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform init failed for vpc_peering/02_different_region
-    set /a ERROR_COUNT+=1
-    goto step4
-)
-
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform apply failed for vpc_peering/02_different_region
+cd /d "%STEP3_DIR%"
+call :run_terraform
+if !errorlevel! neq 0 (
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Cross-region VPC peering applied
@@ -130,22 +109,15 @@ REM ============================================================================
 echo [4/5] Applying 01_infra_setup (KMS + Secrets Manager)...
 echo ----------------------------------------------------------------------------
 
-cd /d "%AWS_ROOT%..\_learnings\_aaditya_designers_corp\01_infra_setup"
-if %errorlevel% neq 0 (
-    echo WARNING: Directory not found, skipping...
+set "STEP4_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup"
+if not exist "%STEP4_DIR%" (
+    echo WARNING: Directory not found: %STEP4_DIR%
     goto step5
 )
 
-terraform init -input=false
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform init failed for 01_infra_setup
-    set /a ERROR_COUNT+=1
-    goto step5
-)
-
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform apply failed for 01_infra_setup
+cd /d "%STEP4_DIR%"
+call :run_terraform
+if !errorlevel! neq 0 (
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: KMS + Secrets Manager applied
@@ -154,30 +126,23 @@ if %errorlevel% neq 0 (
 :step5
 echo.
 REM ============================================================================
-REM Step 5: Apply KMS _test (IAM module)
+REM Step 5: Apply security/_test (IAM module)
 REM ============================================================================
-echo [5/5] Applying kms/_test/terraform (IAM module)...
+echo [5/5] Applying security/_test/terraform (IAM module)...
 echo ----------------------------------------------------------------------------
 
-cd /d "%AWS_ROOT%..\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\terraform"
-if %errorlevel% neq 0 (
-    echo WARNING: Directory not found, skipping...
+set "STEP5_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\terraform"
+if not exist "%STEP5_DIR%" (
+    echo WARNING: Directory not found: %STEP5_DIR%
     goto summary
 )
 
-terraform init -input=false
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform init failed for kms/_test
-    set /a ERROR_COUNT+=1
-    goto summary
-)
-
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if %errorlevel% neq 0 (
-    echo ERROR: Terraform apply failed for kms/_test
+cd /d "%STEP5_DIR%"
+call :run_terraform
+if !errorlevel! neq 0 (
     set /a ERROR_COUNT+=1
 ) else (
-    echo SUCCESS: kms/_test applied
+    echo SUCCESS: security/_test applied
 )
 
 :summary
@@ -194,6 +159,22 @@ if %ERROR_COUNT% equ 0 (
 echo.
 echo ============================================================================
 
-cd /d "%AWS_ROOT%"
+cd /d "%AWS_ROOT%\_scripts"
 endlocal
 exit /b %ERROR_COUNT%
+
+REM ============================================================================
+REM Subroutine: Run terraform init and apply
+REM ============================================================================
+:run_terraform
+terraform init -input=false
+if !errorlevel! neq 0 (
+    echo ERROR: Terraform init failed
+    exit /b 1
+)
+terraform apply -var="profile=%PROFILE%" -auto-approve
+if !errorlevel! neq 0 (
+    echo ERROR: Terraform apply failed
+    exit /b 1
+)
+exit /b 0
