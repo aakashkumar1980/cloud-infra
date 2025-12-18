@@ -11,21 +11,20 @@ import java.util.Base64;
 /**
  * Field Decryptor - Decrypts individual PII fields using AES-256-GCM.
  *
- * <h2>STEP 7 (BACKEND): Decrypt PII Fields Locally</h2>
+ * <h2>STEP 7 (SERVER): Decrypt PII Fields Locally</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
- * │  Input: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"            │
- * │  Key:   aesDataEncryptionKey (DEK extracted via KMS in Step 6)        │
+ * │  Input: encryptedField, aesDataEncryptionKey (DEK from Step 6)        │
  * │                                                                        │
  * │  Process:                                                              │
- * │  1. Split encrypted string → iv, encryptedText, authTag               │
+ * │  1. Parse encrypted string → iv, encryptedText, authTag               │
  * │  2. Decode each part from Base64                                       │
  * │  3. Initialize AES-256-GCM cipher with IV                             │
  * │  4. Decrypt encryptedText and verify authTag                          │
  * │                                                                        │
- * │  Output: Plaintext (e.g., "1990-05-15", "4111111111111234")            │
+ * │  Output: plainText (e.g., "1990-05-15", "4111111111111234")            │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
@@ -53,6 +52,73 @@ public class FieldDecryptor {
 
   /**
    * Decrypts an encrypted field value.
+   *
+   * <h3>Internal Steps (DECRYPT-AES):</h3>
+   * <pre>
+   * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+   * │  INPUT                                                                                      │
+   * │  ├── encryptedField: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"                    │
+   * │  └── aesDataEncryptionKey (DEK): 32 bytes (extracted in Step 6)                            │
+   * │                                                                                             │
+   * │  STEP 1: Parse encrypted field                                                             │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  parts = encryptedField.split(".")                                                         │
+   * │  iv            = Base64.decode(parts[0])  // 12 bytes                                      │
+   * │  encryptedText = Base64.decode(parts[1])  // variable size                                 │
+   * │  authTag       = Base64.decode(parts[2])  // 16 bytes                                      │
+   * │                                                                                             │
+   * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+   * │  STEP 2: DECRYPT-AES (AES-256-GCM) - Decrypt field using DEK                               │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │      ┌───────────────────────┐                                                              │
+   * │      │    encryptedText      │────┐                                                         │
+   * │      │ (variable size)       │    │                                                         │
+   * │      └───────────────────────┘    │        ┌─────────────────────────────────────────────┐  │
+   * │                                   │        │                                             │  │
+   * │      ┌───────────────────────┐    │        │            AES-256-GCM DECRYPT              │  │
+   * │      │ aesDataEncryptionKey  │────┼───────►│                                             │  │
+   * │      │ (DEK - 32 bytes)      │    │        │  Cipher cipher = Cipher.getInstance(        │  │
+   * │      └───────────────────────┘    │        │      "AES/GCM/NoPadding");                  │  │
+   * │                                   │        │  cipher.init(DECRYPT_MODE, dek, iv);        │  │
+   * │      ┌───────────────────────┐    │        │  plainText = cipher.doFinal(                │  │
+   * │      │         iv            │────┼───────►│      encryptedText + authTag);              │  │
+   * │      │ (12 bytes)            │    │        │                                             │  │
+   * │      └───────────────────────┘    │        │  // authTag validates data integrity        │  │
+   * │                                   │        │  // Throws exception if tampered!           │  │
+   * │      ┌───────────────────────┐    │        │                                             │  │
+   * │      │       authTag         │────┘        └──────────────────────┬──────────────────────┘  │
+   * │      │ (16 bytes)            │                                    │                         │
+   * │      └───────────────────────┘                                    │                         │
+   * │                                                                   ▼                         │
+   * │                                             ┌─────────────────────────────────────────────┐ │
+   * │                                             │ plainText = "1990-05-15"                    │ │
+   * │                                             │ (or credit card, SSN, etc.)                 │ │
+   * │                                             └─────────────────────────────────────────────┘ │
+   * │                                                                                             │
+   * │  OUTPUT                                                                                     │
+   * │  └── String (plainText) - the decrypted PII value                                          │
+   * └─────────────────────────────────────────────────────────────────────────────────────────────┘
+   * </pre>
+   *
+   * <h3>Summary:</h3>
+   * <pre>
+   * ┌────────────────┬─────────────────┬───────────────────────────────────┬──────────────────────────────┐
+   * │ Operation      │ Algorithm       │ Input                             │ Output                       │
+   * ├────────────────┼─────────────────┼───────────────────────────────────┼──────────────────────────────┤
+   * │ DECRYPT-AES    │ AES-256-GCM     │ aesDataEncryptionKey (DEK),       │ plainText                    │
+   * │                │                 │ iv, encryptedText, authTag        │                              │
+   * └────────────────┴─────────────────┴───────────────────────────────────┴──────────────────────────────┘
+   * </pre>
+   *
+   * <h3>Sample Decryption:</h3>
+   * <pre>
+   * Input:  "rK8xMzQ1Njc4OTAx.YWJjZGVmZ2hpamts...eXo=.dGFnMTIzNDU2Nzg5MDEyMzQ1Ng=="
+   *          └───────────────┘ └────────────────────────┘ └──────────────────────────────┘
+   *               IV (12B)          EncryptedText              AuthTag (16B)
+   *
+   * Output: "1990-05-15"
+   * </pre>
    *
    * @param encryptedField       The encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
    * @param aesDataEncryptionKey The AES DEK (Data Encryption Key) extracted from JWE via KMS
