@@ -7,33 +7,114 @@ import org.springframework.stereotype.Component;
 /**
  * JWE Parser - Extracts JWE components for decryption via AWS KMS.
  *
- * <h2>STEP 5 (BACKEND): Extract JWE Components</h2>
+ * <h2>STEP 5 (SERVER): Parse JWE Components</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  JWE FORMAT: Header.EncryptedKey.IV.Ciphertext.AuthTag                │
+ * │  JWE PARSING                                                           │
  * │                                                                        │
- * │  Components:                                                           │
- * │  ├── Header: {"alg":"RSA-OAEP-256","enc":"A256GCM"} (NOT encrypted!)  │
- * │  ├── EncryptedKey: RSA-encrypted CEK (encryptedCek)                   │
- * │  ├── IV: Initialization vector for A256GCM                            │
- * │  ├── Ciphertext: Encrypted AES DEK (our Data Encryption Key)          │
- * │  └── AuthTag: GCM authentication tag                                  │
+ * │  Input: jweEncryptionMetadata (from X-Encryption-Key header)          │
  * │                                                                        │
- * │  Two-Layer Encryption:                                                │
- * │  1. CEK (Content Encryption Key) is RSA-encrypted → encryptedCek      │
- * │  2. AES DEK (Data Encryption Key) is encrypted with CEK → Ciphertext  │
+ * │  Process:                                                              │
+ * │  1. Parse JWE compact serialization (5 dot-separated parts)           │
+ * │  2. Validate algorithm is RSA-OAEP-256                                 │
+ * │  3. Extract all components for decryption                             │
  * │                                                                        │
- * │  To extract DEK:                                                       │
- * │  1. Decrypt encryptedCek via KMS → cek                                │
- * │  2. Decrypt Ciphertext using cek → aesDataEncryptionKey               │
+ * │  Output: JweComponents record containing:                              │
+ * │    ├── encryptedCek (~512 bytes)                                       │
+ * │    ├── iv (12 bytes)                                                   │
+ * │    ├── encryptedAesDataEncryptionKey (32 bytes)                        │
+ * │    ├── authTag (16 bytes)                                              │
+ * │    └── aad (variable - header bytes)                                   │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
+ *
+ * <h3>JWE Structure - What is Encrypted vs Not Encrypted?</h3>
+ * <pre>
+ * Header.EncryptedKey.IV.Ciphertext.AuthTag
+ *   │         │        │      │         │
+ *   │         │        │      │         └── NOT encrypted (Base64URL encoded)
+ *   │         │        │      └── ENCRYPTED (aesDataEncryptionKey encrypted with cek)
+ *   │         │        └── NOT encrypted (Base64URL encoded)
+ *   │         └── ENCRYPTED (cek encrypted with RSA public key)
+ *   └── NOT ENCRYPTED (Base64URL encoded, anyone can read!)
+ *
+ * IMPORTANT: The header {"alg":"RSA-OAEP-256","enc":"A256GCM"} is VISIBLE
+ * to anyone. Only the EncryptedKey and Ciphertext are actually encrypted.
+ * </pre>
+ *
+ * <h3>Why Parse?</h3>
+ * <p>The server needs to extract individual components to perform two-step decryption:</p>
+ * <ol>
+ *   <li>encryptedCek → decrypt via KMS → cek</li>
+ *   <li>encryptedAesDataEncryptionKey → decrypt with cek → aesDataEncryptionKey</li>
+ * </ol>
  */
 @Component
 public class JweParser {
 
   /**
    * Parses the JWE and extracts all components needed for decryption.
+   *
+   * <h3>Internal Steps:</h3>
+   * <pre>
+   * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+   * │  INPUT                                                                                      │
+   * │  └── jweEncryptionMetadata: JWE string from X-Encryption-Key header                        │
+   * │                                                                                             │
+   * │  STEP 1: Parse JWE Compact Serialization                                                   │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │  JWE Format: Header.EncryptedKey.IV.Ciphertext.AuthTag                                     │
+   * │                │         │        │      │         │                                        │
+   * │                │         │        │      │         └── NOT encrypted (Base64URL encoded)   │
+   * │                │         │        │      └── ENCRYPTED (DEK encrypted with CEK)            │
+   * │                │         │        └── NOT encrypted (Base64URL encoded)                    │
+   * │                │         └── ENCRYPTED (CEK encrypted with RSA public key)                 │
+   * │                └── NOT ENCRYPTED (Base64URL encoded, anyone can read!)                     │
+   * │                                                                                             │
+   * │  STEP 2: Validate Algorithm                                                                │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │  header.algorithm == "RSA-OAEP-256" ? ✓ : throw IllegalArgumentException                   │
+   * │                                                                                             │
+   * │  STEP 3: Extract Components                                                                │
+   * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
+   * │                                                                                             │
+   * │      ┌───────────────────────────────────────────────────────────────────────────────────┐  │
+   * │      │  jweObject = JWEObject.parse(jweEncryptionMetadata)                               │  │
+   * │      │                                                                                   │  │
+   * │      │  encryptedCek                    = jweObject.getEncryptedKey().decode()           │  │
+   * │      │  iv                              = jweObject.getIV().decode()                     │  │
+   * │      │  encryptedAesDataEncryptionKey   = jweObject.getCipherText().decode()             │  │
+   * │      │  authTag                         = jweObject.getAuthTag().decode()                │  │
+   * │      │  aad                             = protectedHeader.getBytes(US_ASCII)             │  │
+   * │      └───────────────────────────────────────────────────────────────────────────────────┘  │
+   * │                                                                                             │
+   * │  OUTPUT                                                                                     │
+   * │  └── JweComponents record containing:                                                      │
+   * │      ├── encryptedCek: ~512 bytes (RSA-encrypted CEK)                                      │
+   * │      ├── iv: 12 bytes                                                                      │
+   * │      ├── encryptedAesDataEncryptionKey: 32 bytes (AES-encrypted DEK)                       │
+   * │      ├── authTag: 16 bytes                                                                 │
+   * │      └── aad: ASCII bytes of Base64URL header (for GCM authentication)                     │
+   * └─────────────────────────────────────────────────────────────────────────────────────────────┘
+   * </pre>
+   *
+   * <h3>Summary:</h3>
+   * <pre>
+   * ┌────────────────────────────────────┬────────────┬──────────────────────────────────────────────┐
+   * │ Component                          │ Size       │ Description                                  │
+   * ├────────────────────────────────────┼────────────┼──────────────────────────────────────────────┤
+   * │ encryptedCek                       │ ~512 bytes │ RSA-OAEP-256 encrypted CEK (decrypt via KMS) │
+   * ├────────────────────────────────────┼────────────┼──────────────────────────────────────────────┤
+   * │ iv                                 │ 12 bytes   │ Initialization Vector for AES-GCM            │
+   * ├────────────────────────────────────┼────────────┼──────────────────────────────────────────────┤
+   * │ encryptedAesDataEncryptionKey      │ 32 bytes   │ AES-GCM encrypted DEK (ciphertext)           │
+   * ├────────────────────────────────────┼────────────┼──────────────────────────────────────────────┤
+   * │ authTag                            │ 16 bytes   │ GCM authentication tag                       │
+   * ├────────────────────────────────────┼────────────┼──────────────────────────────────────────────┤
+   * │ aad                                │ variable   │ Additional Authenticated Data (header bytes) │
+   * └────────────────────────────────────┴────────────┴──────────────────────────────────────────────┘
+   * </pre>
    *
    * @param jweEncryptionMetadata The JWE encryption metadata from X-Encryption-Key header
    * @return JweComponents containing all parts needed for decryption
@@ -56,7 +137,7 @@ public class JweParser {
       // Extract all JWE components
       byte[] encryptedCek = jweObject.getEncryptedKey().decode();
       byte[] iv = jweObject.getIV().decode();
-      byte[] ciphertext = jweObject.getCipherText().decode();
+      byte[] encryptedAesDataEncryptionKey = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
 
       // Extract the protected header for AAD (Additional Authenticated Data)
@@ -65,7 +146,7 @@ public class JweParser {
       String protectedHeader = jweEncryptionMetadata.split("\\.")[0];
       byte[] aad = protectedHeader.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
 
-      return new JweComponents(encryptedCek, iv, ciphertext, authTag, aad);
+      return new JweComponents(encryptedCek, iv, encryptedAesDataEncryptionKey, authTag, aad);
 
     } catch (IllegalArgumentException e) {
       throw e;
@@ -92,11 +173,11 @@ public class JweParser {
   /**
    * Record containing all JWE components needed for decryption.
    *
-   * @param encryptedCek RSA-encrypted CEK (Content Encryption Key) - decrypted via KMS
-   * @param iv           Initialization vector for A256GCM
-   * @param ciphertext   Encrypted payload containing the AES DEK (Data Encryption Key)
-   * @param authTag      GCM authentication tag
-   * @param aad          Additional Authenticated Data (ASCII bytes of Base64URL protected header)
+   * @param encryptedCek                   RSA-encrypted CEK (Content Encryption Key) - decrypted via KMS
+   * @param iv                             Initialization vector for A256GCM
+   * @param encryptedAesDataEncryptionKey  Encrypted payload containing the AES DEK (Data Encryption Key)
+   * @param authTag                        GCM authentication tag
+   * @param aad                            Additional Authenticated Data (ASCII bytes of Base64URL protected header)
    */
-  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad) {}
+  public record JweComponents(byte[] encryptedCek, byte[] iv, byte[] encryptedAesDataEncryptionKey, byte[] authTag, byte[] aad) {}
 }
