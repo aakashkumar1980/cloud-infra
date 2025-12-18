@@ -24,15 +24,15 @@ import javax.crypto.SecretKey;
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
- * │  │ STEP 6: Extract DEK via KMS                                      │ │
- * │  │ ► awsKmsDecryptionService.extractDataEncryptionKey(jweComp)      │ │
+ * │  │ STEP 6: Extract AES DEK via KMS                                  │ │
+ * │  │ ► awsKmsDecryptionService.extractAesDataEncryptionKey(jweComp)   │ │
  * │  │ ► 1 KMS API call to decrypt encryptedCek in HSM                  │ │
- * │  │ ► Output: SecretKey dataEncryptionKey (DEK)                      │ │
+ * │  │ ► Output: SecretKey aesDataEncryptionKey (DEK)                   │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
  * │                              ▼                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 7: Decrypt Fields                                           │ │
- * │  │ ► FieldDecryptor.decrypt(encryptedField, dataEncryptionKey)      │ │
+ * │  │ ► FieldDecryptor.decrypt(encryptedField, aesDataEncryptionKey)   │ │
  * │  │ ► Local AES-256-GCM decryption (no additional KMS calls)         │ │
  * │  │ ► Output: plaintext value                                        │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -44,7 +44,7 @@ import javax.crypto.SecretKey;
  * <ul>
  *   <li><b>1 KMS Call:</b> Only one network call to AWS per request</li>
  *   <li><b>Fast Local Decryption:</b> AES decryption is extremely fast</li>
- *   <li><b>Efficient:</b> DEK is reused for all fields in the same request</li>
+ *   <li><b>Efficient:</b> AES DEK is reused for all fields in the same request</li>
  * </ul>
  */
 @Service
@@ -83,13 +83,13 @@ public class HybridDecryptionService {
   ) {
     log.info("Decrypting all PII fields (1 KMS call for all fields)");
 
-    // STEP 5+6: Extract DEK from JWE via KMS (1 KMS call)
-    SecretKey dataEncryptionKey = extractDataEncryptionKey(jwtEncryptionMetadata);
+    // STEP 5+6: Extract AES DEK from JWE via KMS (1 KMS call)
+    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jwtEncryptionMetadata);
 
-    // STEP 7: Decrypt each field locally using DEK (no additional KMS calls)
-    String dob = fieldDecryptor.decrypt(encryptedDob, dataEncryptionKey);
-    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, dataEncryptionKey);
-    String ssn = fieldDecryptor.decrypt(encryptedSsn, dataEncryptionKey);
+    // STEP 7: Decrypt each field locally using AES DEK (no additional KMS calls)
+    String dob = fieldDecryptor.decrypt(encryptedDob, aesDataEncryptionKey);
+    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, aesDataEncryptionKey);
+    String ssn = fieldDecryptor.decrypt(encryptedSsn, aesDataEncryptionKey);
 
     log.info("All fields decrypted successfully");
     return new DecryptedFields(dob, creditCard, ssn);
@@ -99,27 +99,27 @@ public class HybridDecryptionService {
    * Decrypts a single encrypted field.
    *
    * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
-   * @param encryptedField        The encrypted field (iv.encryptedText.authTag format)
+   * @param encryptedField        The encrypted field (BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag))
    * @return The decrypted plaintext value
    */
   public String decryptField(String jwtEncryptionMetadata, String encryptedField) {
-    SecretKey dataEncryptionKey = extractDataEncryptionKey(jwtEncryptionMetadata);
-    return fieldDecryptor.decrypt(encryptedField, dataEncryptionKey);
+    SecretKey aesDataEncryptionKey = extractAesDataEncryptionKey(jwtEncryptionMetadata);
+    return fieldDecryptor.decrypt(encryptedField, aesDataEncryptionKey);
   }
 
   /**
-   * Extracts the Data Encryption Key (DEK) from the JWT metadata header.
+   * Extracts the AES Data Encryption Key (DEK) from the JWT metadata header.
    *
    * <p>Two-step process:</p>
    * <ol>
    *   <li>Parse JWE to extract encryptedCek, iv, ciphertext, authTag, aad</li>
-   *   <li>Decrypt encryptedCek via KMS, then decrypt payload → dataEncryptionKey</li>
+   *   <li>Decrypt encryptedCek via KMS, then decrypt payload → aesDataEncryptionKey</li>
    * </ol>
    *
    * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE format)
-   * @return The Data Encryption Key (DEK) for field decryption
+   * @return The AES Data Encryption Key (DEK) for field decryption
    */
-  private SecretKey extractDataEncryptionKey(String jwtEncryptionMetadata) {
+  private SecretKey extractAesDataEncryptionKey(String jwtEncryptionMetadata) {
     if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
       throw new IllegalArgumentException("X-Encryption-Key header is missing or empty");
     }
@@ -127,8 +127,8 @@ public class HybridDecryptionService {
     // STEP 5: Parse JWT metadata to extract JWE components
     JwtParser.JweComponents jweComponents = jwtParser.extractJweComponents(jwtEncryptionMetadata);
 
-    // STEP 6: Extract DEK via KMS
-    return awsKmsDecryptionService.extractDataEncryptionKey(jweComponents);
+    // STEP 6: Extract AES DEK via KMS
+    return awsKmsDecryptionService.extractAesDataEncryptionKey(jweComponents);
   }
 
   /**

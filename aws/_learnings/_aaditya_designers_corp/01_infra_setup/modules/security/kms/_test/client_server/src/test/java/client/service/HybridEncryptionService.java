@@ -26,13 +26,13 @@ import java.util.Base64;
  * │  STEP 1: loadRSAPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
- * │  STEP 2+3: generateDataEncryptionKeyAndWrapInJwe()                           │
- * │  ► Generate DEK (Data Encryption Key)                                        │
+ * │  STEP 2+3: generateAesDataEncryptionKeyAndWrapInJwe()                        │
+ * │  ► Generate AES DEK (256-bit Data Encryption Key)                            │
  * │  ► Wrap DEK in JWE using RSA public key                                      │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
- * │  ► fieldEncryptor.encrypt(plaintext, dataEncryptionKey)                      │
- * │  ► Output: "iv.encryptedText.authTag" (~60 chars per field)                  │
+ * │  ► fieldEncryptor.encrypt(plaintext, aesDataEncryptionKey)                   │
+ * │  ► Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"                │
  * │                                 ▼                                            │
  * │  getJwtEncryptionMetadata()                                                  │
  * │  ► Returns JWE for X-Encryption-Key header                                   │
@@ -49,7 +49,7 @@ public class HybridEncryptionService {
   private final AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   private RSAPublicKey rsaPublicKey;
-  private SecretKey dataEncryptionKey;
+  private SecretKey aesDataEncryptionKey;
   private String jwtEncryptionMetadata;
 
   @Autowired
@@ -100,7 +100,7 @@ public class HybridEncryptionService {
   }
 
   /**
-   * Generates a Data Encryption Key (DEK) and wraps it in JWE format.
+   * Generates an AES Data Encryption Key (DEK) and wraps it in JWE format.
    *
    * <p>The DEK is wrapped inside a JWE where:</p>
    * <ul>
@@ -108,25 +108,25 @@ public class HybridEncryptionService {
    *   <li>The CEK is RSA-encrypted with the public key → encryptedCek</li>
    * </ul>
    */
-  public void generateDataEncryptionKeyAndWrapInJwe() {
+  public void generateAesDataEncryptionKeyAndWrapInJwe() {
     if (rsaPublicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
-    this.dataEncryptionKey = aesEncryptionKeyGenerator.generateDataEncryptionKey();
-    this.jwtEncryptionMetadata = jwtBuilder.wrapDataEncryptionKeyInJwe(dataEncryptionKey, rsaPublicKey);
+    this.aesDataEncryptionKey = aesEncryptionKeyGenerator.generateAesDataEncryptionKey();
+    this.jwtEncryptionMetadata = jwtBuilder.wrapAesDataEncryptionKeyInJwe(aesDataEncryptionKey, rsaPublicKey);
   }
 
   /**
-   * Encrypts a sensitive field value using the DEK.
+   * Encrypts a sensitive field value using the AES DEK.
    *
-   * @param plaintext The sensitive value to encrypt
-   * @return Encrypted string in format: iv.encryptedText.authTag
+   * @param plaintext The sensitive value to encrypt (e.g., "1990-05-15", "4111111111111234")
+   * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
    */
   public String encryptField(String plaintext) {
-    if (dataEncryptionKey == null) {
-      throw new IllegalStateException("Call generateDataEncryptionKeyAndWrapInJwe() first.");
+    if (aesDataEncryptionKey == null) {
+      throw new IllegalStateException("Call generateAesDataEncryptionKeyAndWrapInJwe() first.");
     }
-    return fieldEncryptor.encrypt(plaintext, dataEncryptionKey);
+    return fieldEncryptor.encrypt(plaintext, aesDataEncryptionKey);
   }
 
   /**
@@ -136,7 +136,7 @@ public class HybridEncryptionService {
    */
   public String getJwtEncryptionMetadata() {
     if (jwtEncryptionMetadata == null) {
-      throw new IllegalStateException("Call generateDataEncryptionKeyAndWrapInJwe() first.");
+      throw new IllegalStateException("Call generateAesDataEncryptionKeyAndWrapInJwe() first.");
     }
     return jwtEncryptionMetadata;
   }
@@ -145,7 +145,7 @@ public class HybridEncryptionService {
    * Clears the current request state.
    */
   public void clear() {
-    this.dataEncryptionKey = null;
+    this.aesDataEncryptionKey = null;
     this.jwtEncryptionMetadata = null;
   }
 }
