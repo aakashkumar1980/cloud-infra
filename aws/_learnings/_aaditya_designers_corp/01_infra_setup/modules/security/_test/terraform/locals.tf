@@ -25,7 +25,7 @@ locals {
   )
 
   # Increment component version if there are breaking changes to test components
-  component_version = "v2"
+  component_version = "v3"
   # Name suffix with test_ prefix to distinguish from production resources
   name_suffix = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}_${local.component_version}-${local.tags_common["managed_by"]}"
 }
