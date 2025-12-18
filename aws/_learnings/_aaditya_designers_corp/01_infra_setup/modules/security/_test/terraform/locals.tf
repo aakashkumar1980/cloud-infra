@@ -14,8 +14,8 @@ locals {
     (local.REGION_N_VIRGINIA) = "us-east-1"
   }
 
-  # Path to shared configs (8 levels up from terraform/ to aws/)
-  config_dir = abspath("${path.module}/../../../../../../../../configs")
+  # Path to shared configs (7 levels up from terraform/ to aws/)
+  config_dir = abspath("${path.module}/../../../../../../../configs")
   env_dir    = abspath("${local.config_dir}/${var.profile}")
   tags_cfg   = yamldecode(file("${local.config_dir}/tags.yaml"))
 
