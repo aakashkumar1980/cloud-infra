@@ -25,10 +25,10 @@ public class OrderService {
    * Processes an order with encrypted PII fields.
    *
    * @param request               The order request as JsonObject with encrypted fields
-   * @param jwtEncryptionMetadata The X-Encryption-Key header value (JWE)
+   * @param jweEncryptionMetadata The X-Encryption-Key header value (JWE)
    * @return Order response as JsonObject with masked sensitive data
    */
-  public JsonObject processOrder(JsonObject request, String jwtEncryptionMetadata) {
+  public JsonObject processOrder(JsonObject request, String jweEncryptionMetadata) {
     String customerName = request.get("name").getAsString();
     log.info("Processing order for: {}", customerName);
 
@@ -40,7 +40,7 @@ public class OrderService {
 
     // Decrypt all PII fields (1 KMS call for all fields)
     HybridDecryptionService.DecryptedFields decrypted = hybridDecryptionService.decryptAll(
-        jwtEncryptionMetadata,
+        jweEncryptionMetadata,
         encryptedDob,
         encryptedCreditCard,
         encryptedSsn

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
   private static final Logger log = LoggerFactory.getLogger(OrderController.class);
-  private static final String JWT_ENCRYPTION_HEADER = "X-Encryption-Key";
+  private static final String JWE_ENCRYPTION_HEADER = "X-Encryption-Key";
 
   private final OrderService orderService;
   private final Gson gson = new Gson();
@@ -33,13 +33,13 @@ public class OrderController {
   /**
    * Submits an order with encrypted PII fields.
    *
-   * @param jwtEncryptionMetadata The JWE-wrapped encryption key (from X-Encryption-Key header)
+   * @param jweEncryptionMetadata The JWE-wrapped encryption key (from X-Encryption-Key header)
    * @param requestBody           The order details as JSON with encrypted fields
    * @return Order confirmation with masked PII data
    */
   @PostMapping("/orders")
   public ResponseEntity<String> submitOrder(
-      @RequestHeader(value = JWT_ENCRYPTION_HEADER, required = false) String jwtEncryptionMetadata,
+      @RequestHeader(value = JWE_ENCRYPTION_HEADER, required = false) String jweEncryptionMetadata,
       @RequestBody String requestBody
   ) {
     // Log received order request (for demo purposes only; avoid logging PII in production)
@@ -54,14 +54,14 @@ public class OrderController {
     );
 
     // Validate presence of encryption header
-    if (jwtEncryptionMetadata == null || jwtEncryptionMetadata.isBlank()) {
+    if (jweEncryptionMetadata == null || jweEncryptionMetadata.isBlank()) {
       log.warn("Missing X-Encryption-Key header");
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Missing X-Encryption-Key header")));
     }
 
     // Process the order
     try {
-      JsonObject response = orderService.processOrder(orderRequest, jwtEncryptionMetadata);
+      JsonObject response = orderService.processOrder(orderRequest, jweEncryptionMetadata);
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);
