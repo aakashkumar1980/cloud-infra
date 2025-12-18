@@ -12,21 +12,19 @@ import java.util.Base64;
 /**
  * Field Encryptor - Encrypts individual fields using AES-256-GCM.
  *
- * <h2>STEP 2 & 4 (CLIENT): Generate DEK and Encrypt PII Fields</h2>
+ * <h2>STEP 4 (CLIENT): Encrypt PII Fields</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  CLIENT ENCRYPTION FLOW                                                │
+ * │  FIELD ENCRYPTION                                                      │
  * │                                                                        │
- * │  STEP 2: generateAESEncryptionKey()                             │
- * │  ► KeyGenerator.getInstance("AES"), keyGen.init(256, SecureRandom)    │
- * │  ► Output: 256-bit AES SecretKey                                      │
+ * │  Input: plainText, dataEncryptionKey (DEK)                            │
  * │                                                                        │
- * │  STEP 4: encrypt(plainText, randomAESEncryptionKey)                   │
- * │  ► For each PII field (DOB, Credit Card, SSN):                        │
- * │    1. Generate random 96-bit IV                                       │
- * │    2. Initialize AES-256-GCM cipher                                   │
- * │    3. Encrypt plainText → encryptedText + authTag                     │
- * │    4. Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"      │
+ * │  Process:                                                              │
+ * │  1. Generate random 96-bit IV                                         │
+ * │  2. Initialize AES-256-GCM cipher with DEK                            │
+ * │  3. Encrypt plainText → encryptedText + authTag                       │
+ * │                                                                        │
+ * │  Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"           │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  */
@@ -40,22 +38,22 @@ public class FieldEncryptor {
   /**
    * Encrypts a plaintext field using AES-256-GCM.
    *
-   * @param plainText              The sensitive data to encrypt
-   * @param randomAESEncryptionKey The AES secret key
+   * @param plainText         The sensitive data to encrypt
+   * @param dataEncryptionKey The DEK (Data Encryption Key)
    * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
    */
-  public String encrypt(String plainText, SecretKey randomAESEncryptionKey) {
+  public String encrypt(String plainText, SecretKey dataEncryptionKey) {
     try {
-      // STEP 1: Generate random IV and encrypt
+      // Generate random IV and encrypt
       byte[] iv = new byte[IV_SIZE_BYTES];
       SECURE_RANDOM.nextBytes(iv);
 
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.ENCRYPT_MODE, randomAESEncryptionKey, gcmSpec);
+      cipher.init(Cipher.ENCRYPT_MODE, dataEncryptionKey, gcmSpec);
       byte[] encryptedTextWithTag = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 
-      // STEP 2: Split encryptedText and authTag, then format output
+      // Split encryptedText and authTag, then format output
       int tagSizeBytes = AUTH_TAG_SIZE_BITS / 8;
       int encryptedTextLength = encryptedTextWithTag.length - tagSizeBytes;
       byte[] encryptedText = new byte[encryptedTextLength];

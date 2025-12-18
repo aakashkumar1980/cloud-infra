@@ -1,7 +1,5 @@
 package server.restapi_data_security.crypto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkBytes;
@@ -16,56 +14,54 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * AES Encryption Key Unwrapper - Unwraps the AES encryption key using AWS KMS.
+ * AWS KMS Decryption Service - Extracts the Data Encryption Key (DEK) from JWE via KMS.
  *
- * <h2>STEP 6 (BACKEND): Two-Step AES Key Unwrapping via AWS KMS</h2>
+ * <h2>STEP 6 (BACKEND): Extract DEK via AWS KMS</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
- * │  AES KEY UNWRAPPING VIA KMS (Two-Step Process)                         │
+ * │  DEK EXTRACTION (Two-Step Process)                                    │
  * │                                                                        │
  * │  STEP 6a: Decrypt CEK via KMS                                         │
  * │  ─────────────────────────────────────────────────────────────────────│
  * │  SERVER                               AWS KMS                          │
  * │    │                                    │                              │
  * │    │ ─── DecryptRequest ──────────────► │                              │
- * │    │     (encryptedCEK, keyArn,         │                              │
+ * │    │     (encryptedCek, keyArn,         │                              │
  * │    │      RSAES_OAEP_SHA_256)           │                              │
  * │    │                                    │  ┌────────────────────────┐  │
  * │    │                                    │  │ RSA Private Key        │  │
  * │    │                                    │  │ (NEVER leaves HSM)     │  │
  * │    │                                    │  └────────────────────────┘  │
  * │    │ ◄── DecryptResponse ────────────── │                              │
- * │    │     (plaintext CEK: 256-bit)       │                              │
+ * │    │     (cek: 256-bit)                 │                              │
  * │                                                                        │
  * │  STEP 6b: Decrypt JWE Payload Locally                                 │
  * │  ─────────────────────────────────────────────────────────────────────│
- * │  Using the decrypted CEK + IV + AuthTag from JWE:                     │
+ * │  Using cek + IV + AuthTag from JWE:                                   │
  * │    ► Decrypt JWE ciphertext using AES-256-GCM                         │
- * │    ► Output: Original AES encryption key (for field decryption)       │
+ * │    ► Output: dataEncryptionKey (DEK for field decryption)             │
  * │                                                                        │
  * │  NOTE: This is the ONLY KMS API call per request!                     │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
  * <h3>Why Two Steps?</h3>
- * <p>JWE uses a two-layer encryption scheme:</p>
+ * <p>JWE uses two-layer encryption:</p>
  * <ol>
- *   <li>A random CEK (Content Encryption Key) is RSA-encrypted</li>
- *   <li>The payload (our AES key) is encrypted with CEK using A256GCM</li>
+ *   <li>CEK (Content Encryption Key) is RSA-encrypted → encryptedCek</li>
+ *   <li>DEK (Data Encryption Key) is encrypted with CEK → ciphertext</li>
  * </ol>
- * <p>We must decrypt both layers to retrieve the original AES key.</p>
  */
 @Component
 public class AwsKmsDecryptionService {
 
-  private static final Logger log = LoggerFactory.getLogger(AwsKmsDecryptionService.class);
   private static final int GCM_TAG_SIZE_BITS = 128;
 
   private final KmsClient kmsClient;
   private final String keyArn;
 
   /**
-   * Creates a new AES Encryption Key Unwrapper.
+   * Creates a new AWS KMS Decryption Service.
    *
    * @param kmsClient The AWS KMS client (injected by Spring)
    * @param keyArn    The ARN of the asymmetric KMS key (from application.yml)
@@ -79,55 +75,46 @@ public class AwsKmsDecryptionService {
   }
 
   /**
-   * Unwraps an AES key from JWE components using AWS KMS.
+   * Extracts the Data Encryption Key (DEK) from JWE components via AWS KMS.
    *
-   * <p>This method performs two-step decryption:</p>
+   * <p>Two-step process:</p>
    * <ol>
-   *   <li>Decrypt the CEK (Content Encryption Key) using KMS</li>
-   *   <li>Use the CEK to decrypt the JWE payload (original AES key)</li>
+   *   <li>Decrypt encryptedCek via KMS → cek</li>
+   *   <li>Decrypt JWE payload using cek → dataEncryptionKey</li>
    * </ol>
    *
    * @param jweComponents The JWE components from JwtParser
-   * @return The unwrapped AES-256 secret key
+   * @return The Data Encryption Key (DEK) for field decryption
    * @throws RuntimeException if decryption fails
    */
-  public SecretKey extractAESEncryptedKeyAndDecryptViaAwsKms(JwtParser.JweComponents jweComponents) {
-    log.info("=== DEBUG: AwsKmsDecryptionService.extractAESEncryptedKeyAndDecryptViaAwsKms ===");
-    log.info("DEBUG: Input - encrypted CEK size: {} bytes", jweComponents.aesEncryptedKey().length);
-
+  public SecretKey extractDataEncryptionKey(JwtParser.JweComponents jweComponents) {
     try {
-      // STEP 6a: Decrypt CEK via KMS
-      log.info("DEBUG: Step 6a - Calling KMS to decrypt CEK...");
-      byte[] cek = decryptAESEncryptedKeyViaKms(jweComponents.aesEncryptedKey());
-      log.info("DEBUG: Step 6a - CEK decrypted successfully:");
-      log.info("DEBUG:   CEK size: {} bytes", cek.length);
-      log.info("DEBUG:   CEK base64: {}", java.util.Base64.getEncoder().encodeToString(cek));
+      // STEP 6a: Decrypt encryptedCek via KMS to get cek
+      byte[] cek = decryptCekViaKms(jweComponents.encryptedCek());
 
-      // STEP 6b: Decrypt JWE payload using CEK to get original AES key
-      log.info("DEBUG: Step 6b - Decrypting JWE payload with CEK...");
-      log.info("DEBUG:   Using IV size: {} bytes", jweComponents.iv().length);
-      log.info("DEBUG:   Using ciphertext size: {} bytes", jweComponents.ciphertext().length);
-      log.info("DEBUG:   Using authTag size: {} bytes", jweComponents.authTag().length);
-      log.info("DEBUG:   Using AAD size: {} bytes", jweComponents.aad().length);
+      // STEP 6b: Decrypt JWE payload using cek to get dataEncryptionKey
+      byte[] dekBytes = decryptJwePayload(
+          cek,
+          jweComponents.iv(),
+          jweComponents.ciphertext(),
+          jweComponents.authTag(),
+          jweComponents.aad()
+      );
 
-      byte[] aesKeyBytes = decryptJwePayload(cek, jweComponents.iv(),
-          jweComponents.ciphertext(), jweComponents.authTag(), jweComponents.aad());
-      log.info("DEBUG: Step 6b - AES key extracted successfully:");
-      log.info("DEBUG:   AES key size: {} bytes", aesKeyBytes.length);
-      log.info("DEBUG:   AES key base64: {}", java.util.Base64.getEncoder().encodeToString(aesKeyBytes));
-
-      return new SecretKeySpec(aesKeyBytes, "AES");
+      return new SecretKeySpec(dekBytes, "AES");
 
     } catch (Exception e) {
-      log.error("DEBUG: FAILED to unwrap AES key: {}", e.getMessage(), e);
-      throw new RuntimeException("AES key unwrap failed: " + e.getMessage(), e);
+      throw new RuntimeException("Failed to extract Data Encryption Key: " + e.getMessage(), e);
     }
   }
 
   /**
-   * Decrypts the CEK using AWS KMS RSA decryption.
+   * Decrypts the encryptedCek using AWS KMS RSA decryption.
+   *
+   * @param encryptedCek The RSA-encrypted Content Encryption Key
+   * @return The plaintext CEK bytes
    */
-  private byte[] decryptAESEncryptedKeyViaKms(byte[] encryptedCek) {
+  private byte[] decryptCekViaKms(byte[] encryptedCek) {
     DecryptRequest request = DecryptRequest.builder()
         .keyId(keyArn)
         .ciphertextBlob(SdkBytes.fromByteArray(encryptedCek))
@@ -139,14 +126,18 @@ public class AwsKmsDecryptionService {
   }
 
   /**
-   * Decrypts the JWE payload using the CEK.
+   * Decrypts the JWE payload using the CEK to extract the DEK.
    *
    * <p>JWE uses AAD (Additional Authenticated Data) which is the ASCII bytes
-   * of the Base64URL-encoded protected header. This must be provided to the
-   * cipher for GCM authentication to succeed.</p>
+   * of the Base64URL-encoded protected header. This must be provided for GCM
+   * authentication to succeed.</p>
    *
-   * <p>Note: A256GCM in JWE places the auth tag at the end of ciphertext
-   * for the Cipher.doFinal() call.</p>
+   * @param cek        The Content Encryption Key (decrypted via KMS)
+   * @param iv         Initialization vector for A256GCM
+   * @param ciphertext Encrypted payload containing the DEK
+   * @param authTag    GCM authentication tag
+   * @param aad        Additional Authenticated Data
+   * @return The DEK bytes (Data Encryption Key)
    */
   private byte[] decryptJwePayload(byte[] cek, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad)
       throws Exception {

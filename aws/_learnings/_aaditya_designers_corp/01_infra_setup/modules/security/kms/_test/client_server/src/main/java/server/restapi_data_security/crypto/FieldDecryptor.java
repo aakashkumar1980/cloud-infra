@@ -1,7 +1,5 @@
 package server.restapi_data_security.crypto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -19,7 +17,7 @@ import java.util.Base64;
  * │  FIELD DECRYPTION                                                      │
  * │                                                                        │
  * │  Input: "iv.ciphertext.authTag" (encrypted field from client)         │
- * │  Key:   randomAESEncryptionKey (unwrapped via KMS in Step 6)          │
+ * │  Key:   dataEncryptionKey (DEK extracted via KMS in Step 6)           │
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Split encrypted string → iv, encryptedText, authTag               │
@@ -39,15 +37,13 @@ import java.util.Base64;
  *
  * <h3>Security Properties:</h3>
  * <ul>
- *   <li><b>Integrity Check:</b> The auth tag verifies data wasn't tampered with</li>
- *   <li><b>No KMS Call:</b> Decryption happens locally using the unwrapped key</li>
+ *   <li><b>Integrity Check:</b> Auth tag verifies data wasn't tampered with</li>
+ *   <li><b>No KMS Call:</b> Decryption happens locally using the DEK</li>
  *   <li><b>Fast:</b> AES decryption is very fast (~GB/sec)</li>
  * </ul>
  */
 @Component
 public class FieldDecryptor {
-
-  private static final Logger log = LoggerFactory.getLogger(FieldDecryptor.class);
 
   /** GCM authentication tag size in bits */
   private static final int AUTH_TAG_SIZE_BITS = 128;
@@ -55,19 +51,13 @@ public class FieldDecryptor {
   /**
    * Decrypts an encrypted field value.
    *
-   * @param encryptedField The encrypted string in format: iv.encryptedText.authTag
-   * @param aesEncryptionKey The AES secret key (unwrapped from JWE via KMS)
+   * @param encryptedField    The encrypted string in format: iv.encryptedText.authTag
+   * @param dataEncryptionKey The DEK (Data Encryption Key) extracted from JWE via KMS
    * @return The decrypted plaintext string
    * @throws IllegalArgumentException if the format is invalid
    * @throws RuntimeException if decryption fails (wrong key or tampered data)
    */
-  public String decrypt(String encryptedField, SecretKey aesEncryptionKey) {
-    log.info("=== DEBUG: FieldDecryptor.decrypt ===");
-    log.info("DEBUG: Input encryptedField: {}", encryptedField);
-    log.info("DEBUG: AES key used for decryption - algorithm: {}, format: {}, size: {} bytes",
-        aesEncryptionKey.getAlgorithm(), aesEncryptionKey.getFormat(), aesEncryptionKey.getEncoded().length);
-    log.info("DEBUG: AES key base64: {}", Base64.getEncoder().encodeToString(aesEncryptionKey.getEncoded()));
-
+  public String decrypt(String encryptedField, SecretKey dataEncryptionKey) {
     // Validate and split the encrypted field
     String[] parts = encryptedField.split("\\.");
     if (parts.length != 3) {
@@ -76,43 +66,26 @@ public class FieldDecryptor {
     }
 
     try {
-      /**
-       * STEP 1: Decode each part from Base64
-       */
+      // Decode each part from Base64
       byte[] iv = Base64.getDecoder().decode(parts[0]);
       byte[] encryptedText = Base64.getDecoder().decode(parts[1]);
       byte[] authTag = Base64.getDecoder().decode(parts[2]);
 
-      log.info("DEBUG: Field components:");
-      log.info("DEBUG:   IV size: {} bytes, base64: {}", iv.length, parts[0]);
-      log.info("DEBUG:   encryptedText size: {} bytes, base64: {}", encryptedText.length, parts[1]);
-      log.info("DEBUG:   authTag size: {} bytes, base64: {}", authTag.length, parts[2]);
-
-      /**
-       * STEP 2: Combine encryptedText and authTag (GCM expects them together)
-       * Then decrypt using the aesEncryptionKey + IV
-       */
+      // Combine encryptedText and authTag (GCM expects them together)
       byte[] encryptedTextWithTag = new byte[encryptedText.length + authTag.length];
       System.arraycopy(encryptedText, 0, encryptedTextWithTag, 0, encryptedText.length);
       System.arraycopy(authTag, 0, encryptedTextWithTag, encryptedText.length, authTag.length);
 
-      log.info("DEBUG: Combined ciphertext+tag size: {} bytes", encryptedTextWithTag.length);
-
       // Initialize cipher for decryption
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, aesEncryptionKey, gcmSpec);
-
-      log.info("DEBUG: Cipher initialized, attempting decryption...");
+      cipher.init(Cipher.DECRYPT_MODE, dataEncryptionKey, gcmSpec);
 
       // Decrypt and return plaintext
       byte[] plainText = cipher.doFinal(encryptedTextWithTag);
-      String result = new String(plainText, StandardCharsets.UTF_8);
-      log.info("DEBUG: Decryption successful! Plaintext length: {}", result.length());
-      return result;
+      return new String(plainText, StandardCharsets.UTF_8);
 
     } catch (Exception e) {
-      log.error("DEBUG: FAILED to decrypt field: {}", e.getMessage(), e);
       throw new RuntimeException("Failed to decrypt field: " + e.getMessage(), e);
     }
   }

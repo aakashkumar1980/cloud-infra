@@ -3,8 +3,6 @@ package client.service;
 import client.crypto.AESEncryptionKeyGenerator;
 import client.crypto.FieldEncryptor;
 import client.crypto.JwtBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +16,9 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * Hybrid Encryption Service - Main utility for encrypting REST API requests.
+ * Hybrid Encryption Service - Orchestrates client-side encryption.
  *
- * <h2>CLIENT STEPS 1-4: Complete Client-Side Encryption Flow</h2>
+ * <h2>CLIENT STEPS 1-4: Client-Side Encryption Flow</h2>
  * <pre>
  * ┌──────────────────────────────────────────────────────────────────────────────┐
  * │                      CLIENT ENCRYPTION ORCHESTRATION                         │
@@ -28,12 +26,12 @@ import java.util.Base64;
  * │  STEP 1: loadRSAPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
- * │  STEP 2+3: generateAESEncryptionKeyAndAddItToJWTMetadata()        │
- * │  ► fieldEncryptor.generateAESEncryptionKey() - Create 256-bit AES DEK  │
- * │  ► jwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey(dek, rsaPublicKey) - Wrap DEK in JWE                   │
+ * │  STEP 2+3: generateDataEncryptionKeyAndWrapInJwe()                           │
+ * │  ► Generate DEK (Data Encryption Key)                                        │
+ * │  ► Wrap DEK in JWE using RSA public key                                      │
  * │                                 ▼                                            │
  * │  STEP 4: encryptField(plaintext)                                             │
- * │  ► fieldEncryptor.encrypt(plaintext, dek)                                    │
+ * │  ► fieldEncryptor.encrypt(plaintext, dataEncryptionKey)                      │
  * │  ► Output: "iv.encryptedText.authTag" (~60 chars per field)                  │
  * │                                 ▼                                            │
  * │  getJwtEncryptionMetadata()                                                  │
@@ -44,22 +42,22 @@ import java.util.Base64;
 @Service
 public class HybridEncryptionService {
 
-  private static final Logger log = LoggerFactory.getLogger(HybridEncryptionService.class);
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
   private final FieldEncryptor fieldEncryptor;
   private final JwtBuilder jwtBuilder;
+  private final AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   private RSAPublicKey rsaPublicKey;
-  private SecretKey aesEncryptionKey;
+  private SecretKey dataEncryptionKey;
   private String jwtEncryptionMetadata;
-  private AESEncryptionKeyGenerator aesEncryptionKeyGenerator;
 
   @Autowired
   public HybridEncryptionService(
       FieldEncryptor fieldEncryptor,
       JwtBuilder jwtBuilder,
-      AESEncryptionKeyGenerator aesEncryptionKeyGenerator) {
+      AESEncryptionKeyGenerator aesEncryptionKeyGenerator
+  ) {
     this.fieldEncryptor = fieldEncryptor;
     this.jwtBuilder = jwtBuilder;
     this.aesEncryptionKeyGenerator = aesEncryptionKeyGenerator;
@@ -102,34 +100,33 @@ public class HybridEncryptionService {
   }
 
   /**
-   * Generates a fresh AES encryption key and wraps it in JWE format.
+   * Generates a Data Encryption Key (DEK) and wraps it in JWE format.
+   *
+   * <p>The DEK is wrapped inside a JWE where:</p>
+   * <ul>
+   *   <li>A random CEK (Content Encryption Key) encrypts the DEK payload</li>
+   *   <li>The CEK is RSA-encrypted with the public key → encryptedCek</li>
+   * </ul>
    */
-  public void generateAESEncryptionKeyAndAddItToJWTMetadata() {
+  public void generateDataEncryptionKeyAndWrapInJwe() {
     if (rsaPublicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
     }
-    this.aesEncryptionKey = aesEncryptionKeyGenerator.generateAESEncryptionKey();
-
-    log.info("=== DEBUG: CLIENT - generateAESEncryptionKeyAndAddItToJWTMetadata ===");
-    log.info("DEBUG: CLIENT - Generated AES key size: {} bytes", aesEncryptionKey.getEncoded().length);
-    log.info("DEBUG: CLIENT - Generated AES key base64: {}", Base64.getEncoder().encodeToString(aesEncryptionKey.getEncoded()));
-
-    this.jwtEncryptionMetadata = jwtBuilder.wrapByEncryptingAESEncryptionKeyByRSAPublicKey(aesEncryptionKey, rsaPublicKey);
-    log.info("DEBUG: CLIENT - JWE metadata (first 100 chars): {}",
-        jwtEncryptionMetadata.length() > 100 ? jwtEncryptionMetadata.substring(0, 100) + "..." : jwtEncryptionMetadata);
+    this.dataEncryptionKey = aesEncryptionKeyGenerator.generateDataEncryptionKey();
+    this.jwtEncryptionMetadata = jwtBuilder.wrapDataEncryptionKeyInJwe(dataEncryptionKey, rsaPublicKey);
   }
 
   /**
-   * Encrypts a sensitive field value.
+   * Encrypts a sensitive field value using the DEK.
    *
    * @param plaintext The sensitive value to encrypt
    * @return Encrypted string in format: iv.encryptedText.authTag
    */
   public String encryptField(String plaintext) {
-    if (aesEncryptionKey == null) {
-      throw new IllegalStateException("Call generateAESEncryptionKeyAndAddItToJWTMetadata() first.");
+    if (dataEncryptionKey == null) {
+      throw new IllegalStateException("Call generateDataEncryptionKeyAndWrapInJwe() first.");
     }
-    return fieldEncryptor.encrypt(plaintext, aesEncryptionKey);
+    return fieldEncryptor.encrypt(plaintext, dataEncryptionKey);
   }
 
   /**
@@ -139,7 +136,7 @@ public class HybridEncryptionService {
    */
   public String getJwtEncryptionMetadata() {
     if (jwtEncryptionMetadata == null) {
-      throw new IllegalStateException("Call generateAESEncryptionKeyAndAddItToJWTMetadata() first.");
+      throw new IllegalStateException("Call generateDataEncryptionKeyAndWrapInJwe() first.");
     }
     return jwtEncryptionMetadata;
   }
@@ -148,7 +145,7 @@ public class HybridEncryptionService {
    * Clears the current request state.
    */
   public void clear() {
-    this.aesEncryptionKey = null;
+    this.dataEncryptionKey = null;
     this.jwtEncryptionMetadata = null;
   }
 }
