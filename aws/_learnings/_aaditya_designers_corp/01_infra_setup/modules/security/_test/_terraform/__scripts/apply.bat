@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 REM Terraform Apply Script for KMS _test module
 REM Uses dev profile with auto-approve
 REM Independent module - no dependencies
-REM NOTE: Always checks AWS for existing KMS key and imports if found
+REM NOTE: Always checks AWS for existing KMS key (for current version) and imports if found
 
 echo ============================================
 echo Running Terraform Apply for KMS _test
@@ -19,24 +19,41 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Always check AWS for existing KMS key (don't rely on Terraform state)
+REM Get the name_suffix dynamically from Terraform (includes version)
+echo.
+echo Getting current version alias name from Terraform...
+echo local.name_suffix | terraform console -var="profile=dev" > "%TEMP%\name_suffix.txt" 2>nul
+set /p NAME_SUFFIX=<"%TEMP%\name_suffix.txt"
+del "%TEMP%\name_suffix.txt" 2>nul
+
+REM Remove quotes from the output
+set "NAME_SUFFIX=!NAME_SUFFIX:"=!"
+
+if not defined NAME_SUFFIX (
+    echo WARNING: Could not get name_suffix from Terraform - will proceed with apply
+    goto :apply
+)
+
+REM Construct the alias name
+set "KMS_ALIAS=alias/test_asymmetric_kms-!NAME_SUFFIX!"
+echo Current version alias: !KMS_ALIAS!
+
+REM Check if alias exists in AWS
 echo.
 echo Checking AWS for existing KMS key...
-set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_v1-terraform"
-
-for /f "tokens=*" %%i in ('aws kms describe-key --key-id %KMS_ALIAS% --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
+for /f "tokens=*" %%i in ('aws kms describe-key --key-id !KMS_ALIAS! --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
 
 if not defined KEY_ID (
-    echo No existing KMS key found in AWS - will create new one
+    echo No existing KMS key found for current version - will create new one
     goto :apply
 )
 
 if "!KEY_ID!"=="None" (
-    echo No existing KMS key found in AWS - will create new one
+    echo No existing KMS key found for current version - will create new one
     goto :apply
 )
 
-echo Found existing KMS key in AWS: !KEY_ID!
+echo Found existing KMS key: !KEY_ID!
 echo Importing into Terraform state...
 
 REM Import KMS key (ignore error if already in state)
@@ -48,7 +65,7 @@ if %errorlevel% equ 0 (
 )
 
 REM Import KMS alias (ignore error if already in state)
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric %KMS_ALIAS% 2>nul
+terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric !KMS_ALIAS! 2>nul
 if %errorlevel% equ 0 (
     echo   - KMS alias imported successfully
 ) else (

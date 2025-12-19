@@ -10,7 +10,7 @@
  */
 
 variable "name_suffix" {
-  description = "Name suffix for resources"
+  description = "Name suffix for resources (includes version)"
   type        = string
 }
 
