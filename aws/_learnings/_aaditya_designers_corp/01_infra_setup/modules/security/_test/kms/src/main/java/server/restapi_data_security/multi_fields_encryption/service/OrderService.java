@@ -13,6 +13,19 @@ import java.util.UUID;
 
 /**
  * Order Service (Multi-Fields) - Processes orders with encrypted PII fields.
+ *
+ * <h2>Server-Side Decryption Flow</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  STEP 5: Unwrap DEK via AWS KMS                                        │
+ * │  ► dekDecryptorAndUnwrapper.unwrapAndDecryptDataEncryptionKeyViaAWSKMS │
+ * │  ► 1 KMS API call to decrypt the RSA-encrypted DEK                     │
+ * │                                 ▼                                      │
+ * │  STEP 6: Decrypt each PII field locally                                │
+ * │  ► fieldDecryptor.decrypt(encryptedField, dek)                         │
+ * │  ► Fast local AES-256-GCM decryption (no KMS calls)                    │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  */
 @Service("multiFieldsOrderService")
 public class OrderService {
@@ -56,7 +69,8 @@ public class OrderService {
     String dob = fieldDecryptor.decrypt(encryptedDob, dataEncryptionKey);
     String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, dataEncryptionKey);
     String ssn = fieldDecryptor.decrypt(encryptedSsn, dataEncryptionKey);
-    log.info("Decrypted PII - DOB: {} | Card: {} | SSN: {}", dob, creditCard, ssn);
+    log.info("Decrypted PII - DOB: {} | Card: {} | SSN: {}",
+        dob, utils.maskCard(creditCard), utils.maskSsn(ssn));
 
     // Build response with decrypted/masked data
     JsonObject response = new JsonObject();

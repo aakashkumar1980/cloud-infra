@@ -12,6 +12,17 @@ import java.util.UUID;
 
 /**
  * Order Service (All-Fields) - Processes orders with JWE-encrypted payload.
+ *
+ * <h2>Server-Side Decryption Flow</h2>
+ * <pre>
+ * ┌────────────────────────────────────────────────────────────────────────┐
+ * │  STEP 3: Decrypt JWE via PayloadDecryptor                              │
+ * │  ► payloadDecryptor.decrypt(jweString)                                 │
+ * │    ├── Parse JWE to extract encryptedCek, iv, ciphertext, authTag      │
+ * │    ├── KMS API call: Decrypt encryptedCek → CEK (1 call)               │
+ * │    └── Local AES: Decrypt ciphertext with CEK → JSON payload           │
+ * └────────────────────────────────────────────────────────────────────────┘
+ * </pre>
  */
 @Service("allFieldsOrderService")
 public class OrderService {

@@ -7,7 +7,7 @@ REM Destroys all AWS infrastructure in dependency order (reverse of creation).
 REM KMS keys are PRESERVED to avoid accidental deletion of encryption keys.
 REM
 REM Destroy Sequence:
-REM   1. security/_test/terraform    - IAM user (KMS preserved)
+REM   1. security/_test/_terraform   - IAM user (KMS preserved)
 REM   2. 01_infra_setup         - Secrets Manager (KMS preserved)
 REM   3. vpc_peering/02_different_region - Cross-region peering
 REM   4. vpc_peering/01_same_region      - Same-region peering
@@ -29,7 +29,7 @@ echo.
 echo This script will destroy all infrastructure (KMS keys preserved).
 echo.
 echo Destroy sequence:
-echo   1. security/_test/terraform     (IAM only)
+echo   1. security/_test/_terraform    (IAM only)
 echo   2. 01_infra_setup          (Secrets Manager only)
 echo   3. vpc_peering/02_different_region
 echo   4. vpc_peering/01_same_region
@@ -41,10 +41,10 @@ echo.
 REM ============================================================================
 REM Step 1: Destroy security/_test (IAM module only)
 REM ============================================================================
-echo [1/5] Destroying security/_test/terraform (IAM module)...
+echo [1/5] Destroying security/_test/_terraform (IAM module)...
 echo ----------------------------------------------------------------------------
 
-set "STEP1_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\terraform"
+set "STEP1_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform"
 if not exist "%STEP1_DIR%" (
     echo WARNING: Directory not found: %STEP1_DIR%
     goto step2
@@ -199,7 +199,7 @@ if %ERROR_COUNT% equ 0 (
 )
 echo.
 echo Preserved resources (not destroyed):
-echo   - KMS keys in security/_test/terraform
+echo   - KMS keys in security/_test/_terraform
 echo   - KMS keys in 01_infra_setup
 echo.
 echo To destroy KMS keys manually, run:

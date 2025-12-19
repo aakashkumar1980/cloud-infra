@@ -10,7 +10,7 @@ REM   1. base_network           - VPCs (N. Virginia + London)
 REM   2. vpc_peering/01_same_region      - Same-region peering
 REM   3. vpc_peering/02_different_region - Cross-region peering
 REM   4. 01_infra_setup         - KMS + Secrets Manager
-REM   5. security/_test/terraform    - IAM user for testing
+REM   5. security/_test/_terraform   - IAM user for testing
 REM
 REM ============================================================================
 
@@ -32,7 +32,7 @@ echo   1. base_network
 echo   2. vpc_peering/01_same_region
 echo   3. vpc_peering/02_different_region
 echo   4. 01_infra_setup
-echo   5. security/_test/terraform
+echo   5. security/_test/_terraform
 echo.
 echo ============================================================================
 echo.
@@ -128,10 +128,10 @@ echo.
 REM ============================================================================
 REM Step 5: Apply security/_test (IAM module)
 REM ============================================================================
-echo [5/5] Applying security/_test/terraform (IAM module)...
+echo [5/5] Applying security/_test/_terraform (IAM module)...
 echo ----------------------------------------------------------------------------
 
-set "STEP5_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\terraform"
+set "STEP5_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform"
 if not exist "%STEP5_DIR%" (
     echo WARNING: Directory not found: %STEP5_DIR%
     goto summary
