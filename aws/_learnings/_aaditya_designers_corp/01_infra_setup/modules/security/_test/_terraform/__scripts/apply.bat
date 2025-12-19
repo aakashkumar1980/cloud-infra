@@ -22,21 +22,32 @@ if %errorlevel% neq 0 (
 REM Always check AWS for existing KMS key (don't rely on Terraform state)
 echo.
 echo Checking AWS for existing KMS key...
-set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_v1-terraform"
 
-for /f "tokens=*" %%i in ('aws kms describe-key --key-id %KMS_ALIAS% --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
+REM Search for alias matching pattern (no hardcoded version)
+set "ALIAS_PREFIX=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_"
+for /f "tokens=*" %%i in ('aws kms list-aliases --region us-east-1 --profile dev --query "Aliases[?starts_with(AliasName,'%ALIAS_PREFIX%')].AliasName" --output text 2^>nul') do set "KMS_ALIAS=%%i"
+
+if not defined KMS_ALIAS (
+    echo No existing KMS key found in AWS - will create new one
+    goto :apply
+)
+
+if "!KMS_ALIAS!"=="None" (
+    echo No existing KMS key found in AWS - will create new one
+    goto :apply
+)
+
+echo Found existing KMS alias: !KMS_ALIAS!
+
+REM Get the Key ID from the alias
+for /f "tokens=*" %%i in ('aws kms describe-key --key-id !KMS_ALIAS! --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
 
 if not defined KEY_ID (
-    echo No existing KMS key found in AWS - will create new one
+    echo WARNING: Could not get Key ID from alias
     goto :apply
 )
 
-if "!KEY_ID!"=="None" (
-    echo No existing KMS key found in AWS - will create new one
-    goto :apply
-)
-
-echo Found existing KMS key in AWS: !KEY_ID!
+echo Found existing KMS key: !KEY_ID!
 echo Importing into Terraform state...
 
 REM Import KMS key (ignore error if already in state)
@@ -48,7 +59,7 @@ if %errorlevel% equ 0 (
 )
 
 REM Import KMS alias (ignore error if already in state)
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric %KMS_ALIAS% 2>nul
+terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric !KMS_ALIAS! 2>nul
 if %errorlevel% equ 0 (
     echo   - KMS alias imported successfully
 ) else (
