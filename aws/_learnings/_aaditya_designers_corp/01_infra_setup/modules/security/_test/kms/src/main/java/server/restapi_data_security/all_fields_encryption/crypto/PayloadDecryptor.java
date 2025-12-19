@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 /**
- * JWE Decryptor - Decrypts JWE payload using AWS KMS.
+ * Payload Decryptor - Decrypts JWE-encrypted payload using AWS KMS.
  *
  * <h2>SERVER STEPS 3-4: Decrypt JWE Payload</h2>
  * <pre>
@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
  * │                                                                        │
  * │  Process:                                                              │
  * │  1. Parse JWE to extract components                                    │
- * │  2. Decrypt encryptedCek via KMS → aesContentEncryptionKey (CEK)       │
+ * │  2. Decrypt encryptedCek via KMS → contentEncryptionKey (CEK)          │
  * │  3. Decrypt ciphertext with CEK → jsonPayload                          │
  * │                                                                        │
  * │  Output: Original JSON payload string                                  │
@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets;
  *   <li>Local AES decryption of payload (fast)</li>
  * </ul>
  */
-@Component("allFieldsJweDecryptor")
+@Component("allFieldsPayloadDecryptor")
 public class PayloadDecryptor {
 
   private static final int GCM_TAG_SIZE_BITS = 128;

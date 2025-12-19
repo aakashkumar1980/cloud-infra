@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * JWE Encryptor - Encrypts entire JSON payload using JWE (RFC 7516).
+ * Payload Encryptor - Encrypts entire JSON payload using JWE (RFC 7516).
  *
  * <h2>STEP 2 (CLIENT): Encrypt Entire Payload with JWE</h2>
  * <pre>

@@ -13,21 +13,21 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
 /**
- * RSA Key Unwrapper - Unwraps AES DEK using AWS KMS RSA decryption.
+ * DEK Decryptor and Unwrapper - Decrypts and unwraps AES DEK using AWS KMS RSA decryption.
  *
  * <h2>STEP 5 (SERVER): Unwrap DEK via AWS KMS</h2>
  * <pre>
  * ┌────────────────────────────────────────────────────────────────────────┐
  * │  DIRECT RSA DECRYPTION (NO JWE/CEK)                                    │
  * │                                                                        │
- * │  Input: BASE64(encryptedDek) from X-Encryption-Key header              │
+ * │  Input: BASE64(encryptedDataEncryptionKey) from X-Encryption-Key header│
  * │                                                                        │
  * │  Process:                                                              │
- * │  1. Decode Base64 → encryptedDek bytes                                 │
+ * │  1. Decode Base64 → encryptedDataEncryptionKey bytes                   │
  * │  2. Send to KMS for RSA-OAEP-256 decryption                            │
  * │  3. KMS decrypts using private key (never leaves HSM)                  │
  * │                                                                        │
- * │  Output: aesDataEncryptionKey (DEK) - 32 bytes                         │
+ * │  Output: dataEncryptionKey (DEK) - 32 bytes                            │
  * └────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
@@ -38,7 +38,7 @@ import java.util.Base64;
  *   <li>Simpler than JWE: No CEK, no AES decryption of DEK</li>
  * </ul>
  */
-@Component("multiFieldsRsaKeyUnwrapper")
+@Component("multiFieldsDEKDecryptorAndUnwrapper")
 public class DEKDecryptorAndUnwrapper {
 
   private final KmsClient kmsClient;
@@ -57,15 +57,15 @@ public class DEKDecryptorAndUnwrapper {
    *
    * <h3>DECRYPT-RSA (RSA-OAEP-256 via AWS KMS):</h3>
    * <pre>
-   * ┌───────────────────────┐              ┌─────────────────────────────────────┐
-   * │    encryptedDek       │              │                                     │
-   * │ (~512 bytes)          │─────────────►│           AWS KMS                   │
-   * └───────────────────────┘              │                                     │
+   * ┌─────────────────────────────────┐    ┌─────────────────────────────────────┐
+   * │ encryptedDataEncryptionKey      │    │                                     │
+   * │ (~512 bytes)                    │───►│           AWS KMS                   │
+   * └─────────────────────────────────┘    │                                     │
    *                                        │  DecryptRequest:                    │
-   * ┌───────────────────────┐              │    keyId = keyArn                   │
-   * │      keyArn           │─────────────►│    ciphertextBlob = encryptedDek    │
-   * │ (KMS key reference)   │              │    algorithm = RSAES_OAEP_SHA_256   │
-   * └───────────────────────┘              │                                     │
+   * ┌─────────────────────────────────┐    │    keyId = keyArn                   │
+   * │      keyArn                     │───►│    ciphertextBlob = encrypted DEK   │
+   * │ (KMS key reference)             │    │    algorithm = RSAES_OAEP_SHA_256   │
+   * └─────────────────────────────────┘    │                                     │
    *                                        │  ┌─────────────────────────────┐    │
    *                                        │  │ RSA Private Key (in HSM)   │    │
    *                                        │  │ NEVER leaves hardware!     │    │
@@ -75,19 +75,19 @@ public class DEKDecryptorAndUnwrapper {
    *                                                           │
    *                                                           ▼
    *                                        ┌─────────────────────────────────────┐
-   *                                        │ aesDataEncryptionKey (DEK)          │
+   *                                        │ dataEncryptionKey (DEK)             │
    *                                        │ = 32 bytes (256-bit AES key)        │
    *                                        └─────────────────────────────────────┘
    * </pre>
    *
    * <h3>Summary:</h3>
    * <pre>
-   * ┌────────────────┬─────────────────┬─────────────────────────────┬──────────────────────────────┐
-   * │ Operation      │ Algorithm       │ Input                       │ Output                       │
-   * ├────────────────┼─────────────────┼─────────────────────────────┼──────────────────────────────┤
-   * │ DECRYPT-RSA    │ RSA-OAEP-256    │ encryptedDek, keyArn        │ aesDataEncryptionKey (DEK)   │
-   * │                │ (via AWS KMS)   │                             │ (32 bytes)                   │
-   * └────────────────┴─────────────────┴─────────────────────────────┴──────────────────────────────┘
+   * ┌────────────────┬─────────────────┬─────────────────────────────────────┬──────────────────────────┐
+   * │ Operation      │ Algorithm       │ Input                               │ Output                   │
+   * ├────────────────┼─────────────────┼─────────────────────────────────────┼──────────────────────────┤
+   * │ DECRYPT-RSA    │ RSA-OAEP-256    │ encryptedDataEncryptionKey, keyArn  │ dataEncryptionKey (DEK)  │
+   * │                │ (via AWS KMS)   │                                     │ (32 bytes)               │
+   * └────────────────┴─────────────────┴─────────────────────────────────────┴──────────────────────────┘
    * </pre>
    *
    * <p><b>NOTE:</b> This is the ONLY KMS API call per request!</p>
