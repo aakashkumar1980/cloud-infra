@@ -6,17 +6,14 @@
  *   - Private Key: Never leaves KMS, used for decryption
  *
  * NOTE: If a KMS key with the same alias already exists in AWS:
- *   - The existing key will be reused (not recreated)
+ *   - The apply.bat script will import it into Terraform state
  *   - The key is protected from accidental deletion via lifecycle prevent_destroy
  */
 
 # -----------------------------------------------------------------------------
 # Asymmetric KMS Key (RSA-4096) for 3rd Party Encryption
-# Only created if the key doesn't already exist in AWS
 # -----------------------------------------------------------------------------
 resource "aws_kms_key" "asymmetric" {
-  count = local.kms_key_exists ? 0 : 1
-
   description              = "Test Asymmetric RSA key for 3rd party encryption (Use-Case 1)"
   deletion_window_in_days  = var.key_deletion_window
   key_usage                = "ENCRYPT_DECRYPT"
@@ -65,21 +62,9 @@ resource "aws_kms_key" "asymmetric" {
 }
 
 # -----------------------------------------------------------------------------
-# KMS Alias - Only created if the key doesn't already exist
+# KMS Alias
 # -----------------------------------------------------------------------------
 resource "aws_kms_alias" "asymmetric" {
-  count = local.kms_key_exists ? 0 : 1
-
   name          = "alias/test_asymmetric_kms-${var.name_suffix}"
-  target_key_id = aws_kms_key.asymmetric[0].key_id
-}
-
-# -----------------------------------------------------------------------------
-# Local values for output references
-# -----------------------------------------------------------------------------
-locals {
-  # Use existing key if found, otherwise use newly created key
-  effective_key_id    = local.kms_key_exists ? local.existing_key_id : aws_kms_key.asymmetric[0].key_id
-  effective_key_arn   = local.kms_key_exists ? data.aws_kms_key.existing[0].arn : aws_kms_key.asymmetric[0].arn
-  effective_key_alias = "alias/test_asymmetric_kms-${var.name_suffix}"
+  target_key_id = aws_kms_key.asymmetric.key_id
 }
