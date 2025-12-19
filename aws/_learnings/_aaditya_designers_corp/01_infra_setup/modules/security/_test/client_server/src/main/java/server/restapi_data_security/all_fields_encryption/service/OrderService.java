@@ -33,12 +33,12 @@ public class OrderService {
   /**
    * Processes an order from JWE-encrypted request body.
    *
-   * @param jweRequestBody The JWE compact serialization containing the order JSON
+   * @param order The JWE compact serialization containing the order JSON
    * @return Response JSON with decrypted/masked PII
    */
-  public JsonObject processOrder(String jweRequestBody) {
+  public JsonObject processOrder(String order) {
     // Decrypt JWE to get original JSON payload
-    String jsonPayload = hybridDecryptionService.decryptPayload(jweRequestBody);
+    String jsonPayload = hybridDecryptionService.decryptPayload(order);
     JsonObject orderRequest = gson.fromJson(jsonPayload, JsonObject.class);
 
     // Extract fields (all are now in plaintext)

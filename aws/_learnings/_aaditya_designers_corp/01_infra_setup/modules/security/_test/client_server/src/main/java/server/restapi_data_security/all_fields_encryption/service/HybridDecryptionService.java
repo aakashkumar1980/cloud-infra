@@ -49,13 +49,13 @@ public class HybridDecryptionService {
   /**
    * Decrypts a JWE request body and returns the original JSON payload.
    *
-   * @param jweString The JWE compact serialization (entire request body)
+   * @param payload The JWE compact serialization (entire request body)
    * @return The decrypted JSON payload string
    */
-  public String decryptPayload(String jweString) {
+  public String decryptPayload(String payload) {
     log.info("Decrypting JWE payload (1 KMS call for CEK, then local AES)");
 
-    String jsonPayload = payloadDecryptor.decrypt(jweString);
+    String jsonPayload = payloadDecryptor.decrypt(payload);
 
     log.info("Payload decrypted successfully");
     return jsonPayload;

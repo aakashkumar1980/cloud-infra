@@ -65,11 +65,11 @@ public class PayloadDecryptor {
    * <pre>
    * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
    * │  INPUT                                                                                      │
-   * │  └── jweString: Header.EncryptedCek.IV.Ciphertext.AuthTag                                  │
+   * │  └── encryptedPayload: Header.EncryptedCek.IV.Ciphertext.AuthTag                                  │
    * │                                                                                             │
    * │  STEP 1: Parse JWE                                                                         │
    * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
-   * │  jweObject = JWEObject.parse(jweString)                                                    │
+   * │  jweObject = JWEObject.parse(encryptedPayload)                                                    │
    * │  Extract: encryptedCek, iv, ciphertext, authTag, aad                                       │
    * │                                                                                             │
    * ├─────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -135,13 +135,13 @@ public class PayloadDecryptor {
    * └────────────────┴─────────────────┴─────────────────────────────────┴───────────────────────────────┘
    * </pre>
    *
-   * @param jweString The JWE compact serialization string
+   * @param encryptedPayload The JWE compact serialization string
    * @return The decrypted JSON payload
    */
-  public String decrypt(String jweString) {
+  public String decrypt(String encryptedPayload) {
     try {
       // Parse JWE
-      JWEObject jweObject = JWEObject.parse(jweString);
+      JWEObject jweObject = JWEObject.parse(encryptedPayload);
       JWEHeader header = jweObject.getHeader();
 
       // Validate algorithm
@@ -157,7 +157,7 @@ public class PayloadDecryptor {
       byte[] authTag = jweObject.getAuthTag().decode();
 
       // AAD = ASCII(BASE64URL(header))
-      String protectedHeader = jweString.split("\\.")[0];
+      String protectedHeader = encryptedPayload.split("\\.")[0];
       byte[] aad = protectedHeader.getBytes(StandardCharsets.US_ASCII);
 
       // STEP 2: Decrypt CEK via KMS
