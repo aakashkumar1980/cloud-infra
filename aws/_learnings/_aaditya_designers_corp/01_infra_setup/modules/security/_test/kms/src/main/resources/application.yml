@@ -20,11 +20,11 @@ spring:
 aws:
   region: ${AWS_REGION:us-east-1}
   credentials:
-    access-key-id: AKIARYRZGP3TIMWJCBEP
-    secret-access-key: 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
+    access-key-id:
+    secret-access-key:
   kms:
     # Get from terraform output: terraform output asymmetric_key_arn
-    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:arn:aws:kms:us-east-1:121452789478:key/759c9c3f-6f46-46e1-b44a-c0da392ac303}
+    asymmetric-key-arn: ${AWS_KMS_ASYMMETRIC_KEY_ARN:xxx}
 
 logging:
   level:
