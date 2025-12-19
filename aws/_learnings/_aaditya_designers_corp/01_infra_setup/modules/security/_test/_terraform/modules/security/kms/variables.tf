@@ -10,7 +10,12 @@
  */
 
 variable "name_suffix" {
-  description = "Name suffix for resources"
+  description = "Name suffix for resource tags (may include version)"
+  type        = string
+}
+
+variable "key_identifier" {
+  description = "Static identifier for KMS key/alias name (should NOT include version)"
   type        = string
 }
 

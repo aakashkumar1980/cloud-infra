@@ -28,4 +28,7 @@ locals {
   component_version = "v5"
   # Name suffix with test_ prefix to distinguish from production resources
   name_suffix = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}_${local.component_version}-${local.tags_common["managed_by"]}"
+
+  # Static identifier for KMS key/alias (no version - stays constant across version changes)
+  key_identifier = "${local.REGION_N_VIRGINIA}-${var.profile}-${local.tags_common["company"]}-${local.tags_common["managed_by"]}"
 }

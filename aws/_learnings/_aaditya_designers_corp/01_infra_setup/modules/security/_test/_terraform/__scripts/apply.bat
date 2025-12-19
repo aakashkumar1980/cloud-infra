@@ -23,27 +23,19 @@ REM Always check AWS for existing KMS key (don't rely on Terraform state)
 echo.
 echo Checking AWS for existing KMS key...
 
-REM Search for alias matching pattern (no hardcoded version)
-set "ALIAS_PREFIX=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_"
-for /f "tokens=*" %%i in ('aws kms list-aliases --region us-east-1 --profile dev --query "Aliases[?starts_with(AliasName,'%ALIAS_PREFIX%')].AliasName" --output text 2^>nul') do set "KMS_ALIAS=%%i"
+REM Static alias name (no version - stays constant)
+set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp-terraform"
 
-if not defined KMS_ALIAS (
-    echo No existing KMS key found in AWS - will create new one
-    goto :apply
-)
-
-if "!KMS_ALIAS!"=="None" (
-    echo No existing KMS key found in AWS - will create new one
-    goto :apply
-)
-
-echo Found existing KMS alias: !KMS_ALIAS!
-
-REM Get the Key ID from the alias
-for /f "tokens=*" %%i in ('aws kms describe-key --key-id !KMS_ALIAS! --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
+REM Check if alias exists in AWS
+for /f "tokens=*" %%i in ('aws kms describe-key --key-id %KMS_ALIAS% --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
 
 if not defined KEY_ID (
-    echo WARNING: Could not get Key ID from alias
+    echo No existing KMS key found in AWS - will create new one
+    goto :apply
+)
+
+if "!KEY_ID!"=="None" (
+    echo No existing KMS key found in AWS - will create new one
     goto :apply
 )
 
@@ -59,7 +51,7 @@ if %errorlevel% equ 0 (
 )
 
 REM Import KMS alias (ignore error if already in state)
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric !KMS_ALIAS! 2>nul
+terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric %KMS_ALIAS% 2>nul
 if %errorlevel% equ 0 (
     echo   - KMS alias imported successfully
 ) else (

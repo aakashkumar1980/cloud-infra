@@ -23,6 +23,7 @@ module "kms" {
   }
 
   name_suffix          = local.name_suffix
+  key_identifier       = local.key_identifier
   key_deletion_window  = var.key_deletion_window
   account_id           = data.aws_caller_identity.current.account_id
   tags                 = local.tags_common

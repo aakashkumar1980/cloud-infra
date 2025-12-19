@@ -76,9 +76,14 @@ resource "aws_kms_key" "asymmetric" {
 }
 
 # -----------------------------------------------------------------------------
-# KMS Alias
+# KMS Alias (static name - does not change with version)
 # -----------------------------------------------------------------------------
 resource "aws_kms_alias" "asymmetric" {
-  name          = "alias/test_asymmetric_kms-${var.name_suffix}"
+  name          = "alias/test_asymmetric_kms-${var.key_identifier}"
   target_key_id = aws_kms_key.asymmetric.key_id
+
+  # Prevent accidental deletion - alias should persist
+  lifecycle {
+    prevent_destroy = true
+  }
 }
