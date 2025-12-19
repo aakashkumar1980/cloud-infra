@@ -1,4 +1,4 @@
-package server.restapi_data_security.multi_fields_encryption.controller;
+package server.restapi.encryption.multi_fields_in_payload.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import server.restapi_data_security._common_utils.Utils;
-import server.restapi_data_security.multi_fields_encryption.service.OrderService;
+import server._common.Utils;
+import server.restapi.encryption.multi_fields_in_payload.service.OrderService;
 
 /**
  * Order Controller (Multi-Fields) - REST endpoints for orders with field-level encryption.

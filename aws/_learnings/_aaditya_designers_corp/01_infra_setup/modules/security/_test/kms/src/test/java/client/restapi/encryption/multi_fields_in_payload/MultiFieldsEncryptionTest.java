@@ -1,6 +1,6 @@
-package client.multi_fields_encryption;
+package client.restapi.encryption.multi_fields_in_payload;
 
-import client._common_utils.Utils;
+import client._common.Utils;
 import client.multi_fields_encryption.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

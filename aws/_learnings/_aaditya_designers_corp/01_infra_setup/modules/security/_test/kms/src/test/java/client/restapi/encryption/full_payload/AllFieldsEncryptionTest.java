@@ -1,6 +1,6 @@
 package client.restapi.encryption.full_payload;
 
-import client._common_utils.Utils;
+import client._common.Utils;
 import client.restapi.encryption.full_payload.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
