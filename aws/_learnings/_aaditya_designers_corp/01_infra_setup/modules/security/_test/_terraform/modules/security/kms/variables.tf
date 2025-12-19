@@ -25,6 +25,11 @@ variable "account_id" {
   type        = string
 }
 
+variable "region" {
+  description = "AWS region (used for checking existing KMS keys)"
+  type        = string
+}
+
 variable "tags" {
   description = "Additional tags for resources"
   type        = map(string)
