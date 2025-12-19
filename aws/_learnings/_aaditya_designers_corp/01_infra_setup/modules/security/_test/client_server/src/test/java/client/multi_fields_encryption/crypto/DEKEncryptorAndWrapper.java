@@ -37,7 +37,7 @@ import java.util.Base64;
  * </ul>
  */
 @Component
-public class RsaKeyWrapper {
+public class DEKEncryptorAndWrapper {
 
   private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 
@@ -47,13 +47,13 @@ public class RsaKeyWrapper {
    * <h3>ENCRYPT-RSA (RSA-OAEP-256):</h3>
    * <pre>
    * ┌───────────────────────┐              ┌─────────────────────────────────────┐
-   * │ aesDataEncryptionKey  │              │                                     │
+   * │ dataEncryptionKey  │              │                                     │
    * │ (DEK - 32 bytes)      │─────────────►│       RSA-OAEP-256 ENCRYPT          │
    * └───────────────────────┘              │                                     │
    *                                        │  Cipher cipher = Cipher.getInstance │
    *                                        │    ("RSA/ECB/OAEPWithSHA-256...");  │
    * ┌───────────────────────┐              │  cipher.init(ENCRYPT_MODE,          │
-   * │    rsaPublicKey       │─────────────►│    rsaPublicKey);                   │
+   * │    publicKey       │─────────────►│    publicKey);                   │
    * │ (RSA-4096)            │              │  encryptedDek = cipher.doFinal(dek);│
    * └───────────────────────┘              │                                     │
    *                                        └──────────────────┬──────────────────┘
@@ -70,17 +70,17 @@ public class RsaKeyWrapper {
    * ┌────────────────┬─────────────────┬─────────────────────────────┬──────────────────────┐
    * │ Operation      │ Algorithm       │ Input                       │ Output               │
    * ├────────────────┼─────────────────┼─────────────────────────────┼──────────────────────┤
-   * │ ENCRYPT-RSA    │ RSA-OAEP-256    │ rsaPublicKey,               │ encryptedDek         │
-   * │                │                 │ aesDataEncryptionKey (DEK)  │ (~512 bytes)         │
+   * │ ENCRYPT-RSA    │ RSA-OAEP-256    │ publicKey,               │ encryptedDek         │
+   * │                │                 │ dataEncryptionKey (DEK)  │ (~512 bytes)         │
    * └────────────────┴─────────────────┴─────────────────────────────┴──────────────────────┘
    * </pre>
    *
-   * @param aesDataEncryptionKey The AES DEK to wrap (256-bit key)
-   * @param rsaPublicKey         The server's RSA public key
+   * @param dataEncryptionKey The AES DEK to wrap (256-bit key)
+   * @param publicKey         The server's RSA public key
    * @return BASE64-encoded encrypted DEK (for X-Encryption-Key header)
    * @throws RuntimeException if wrapping fails
    */
-  public String wrapKey(SecretKey aesDataEncryptionKey, RSAPublicKey rsaPublicKey) {
+  public String encryptAndWrapDataEncryptionKey(SecretKey dataEncryptionKey, RSAPublicKey publicKey) {
     try {
       // Configure OAEP parameters (SHA-256 for both hash and MGF1)
       OAEPParameterSpec oaepParams = new OAEPParameterSpec(
@@ -92,13 +92,13 @@ public class RsaKeyWrapper {
 
       // Initialize RSA cipher with OAEP padding
       Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-      cipher.init(Cipher.ENCRYPT_MODE, rsaPublicKey, oaepParams);
+      cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
 
       // Encrypt the DEK
-      byte[] encryptedDek = cipher.doFinal(aesDataEncryptionKey.getEncoded());
+      byte[] encryptedDataEncryptionKey = cipher.doFinal(dataEncryptionKey.getEncoded());
 
       // Return as Base64 for HTTP header
-      return Base64.getEncoder().encodeToString(encryptedDek);
+      return Base64.getEncoder().encodeToString(encryptedDataEncryptionKey);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to wrap DEK with RSA: " + e.getMessage(), e);

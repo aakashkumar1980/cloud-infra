@@ -1,5 +1,6 @@
 package client.multi_fields_encryption;
 
+import client._common_utils.Utils;
 import client.multi_fields_encryption.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -13,10 +14,6 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,6 +46,9 @@ class MultiFieldsEncryptionTest {
 
   @LocalServerPort
   private int port;
+  private String baseUrl() {
+    return "http://localhost:" + port + "/api/v1/multi-fields";
+  }
 
   @Autowired
   private TestRestTemplate restTemplate;
@@ -57,65 +57,58 @@ class MultiFieldsEncryptionTest {
   @Qualifier("multiFieldsHybridEncryptionService")
   private HybridEncryptionService hybridEncryptionService;
 
+  @Autowired
+  private Utils utils;
   private final Gson gson = new Gson();
-
-  private String baseUrl() {
-    return "http://localhost:" + port + "/api/v1/multi-fields";
-  }
 
   @Test
   @Order(1)
   @DisplayName("Multi-Fields: Submit order with direct RSA encryption (no JWE/CEK)")
   void testSubmitOrderWithDirectRsaEncryption() {
-    EncryptedOrder encryptedOrder = prepareEncryptedOrder();
+    Utils.EncryptedOrder encryptedOrder = prepareEncryptedOrder();
     submitAndVerifyOrder(encryptedOrder);
   }
 
-  private JsonObject loadSampleOrder() {
-    try (var reader = new InputStreamReader(
-        Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("sample-order.json")),
-        StandardCharsets.UTF_8)) {
-      return gson.fromJson(reader, JsonObject.class);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to load sample-order.json", e);
-    }
-  }
-
-  private EncryptedOrder prepareEncryptedOrder() {
+  /**
+   * Prepares an encrypted order by performing the following steps:
+   * 1. Loads the RSA public key.
+   * 2. Generates an AES DEK and wraps it with RSA (no CEK).
+   * 3. Loads order data from a JSON file.
+   * 4. Encrypts PII fields using the DEK.
+   * 5. Retrieves the encrypted DEK for the request header.
+   *
+   * @return An EncryptedOrder containing the encrypted DEK and payload.
+   */
+  private Utils.EncryptedOrder prepareEncryptedOrder() {
     hybridEncryptionService.clear();
 
     // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
-    hybridEncryptionService.loadRSAPublicKey();
+    hybridEncryptionService.loadPublicKey();
     log.info("Loaded RSA-4096 public key");
 
     // Step 2: Generate AES DEK and wrap with RSA (NO CEK!)
     log.info("\n=== Step 2: Generate DEK & Wrap with RSA (Direct, No CEK) ===");
-    hybridEncryptionService.generateAndWrapDek();
+    hybridEncryptionService.generateEncryptAndWrapDataEncryptionKey();
     log.info("Generated 256-bit AES DEK, RSA-encrypted directly (no intermediate CEK)");
 
-    // Step 3: Load order data from JSON
+    // Step 3: Load order data from JSON file
     log.info("\n=== Step 3: Order Data (from sample-order.json) ===");
-    JsonObject order = loadSampleOrder();
+    JsonObject order = utils.loadSampleOrder();
     JsonObject cardDetails = order.getAsJsonObject("cardDetails");
-    log.info("OrderData: Name={} | DOB={} | Card={} | SSN={}",
-        order.get("name").getAsString(),
-        order.get("dateOfBirth").getAsString(),
-        cardDetails.get("creditCardNumber").getAsString(),
-        cardDetails.get("ssn").getAsString());
 
-    // Step 4: Encrypt PII fields
+    // Step 4: Encrypt PII fields with DEK
     log.info("\n=== Step 4: Encrypt PII Fields with DEK ===");
     String encryptedDob = hybridEncryptionService.encryptField(order.get("dateOfBirth").getAsString());
     String encryptedCreditCard = hybridEncryptionService.encryptField(cardDetails.get("creditCardNumber").getAsString());
     String encryptedSsn = hybridEncryptionService.encryptField(cardDetails.get("ssn").getAsString());
     log.info("Encrypted DOB={} | Card={} | SSN={}",
-        truncate(encryptedDob, 25), truncate(encryptedCreditCard, 25), truncate(encryptedSsn, 25));
+        utils.truncate(encryptedDob, 25), utils.truncate(encryptedCreditCard, 25), utils.truncate(encryptedSsn, 25));
 
     // Step 5: Get encrypted DEK for header
     log.info("\n=== Step 5: Get Encrypted DEK for Header ===");
-    String encryptedDek = hybridEncryptionService.getEncryptedDek();
-    log.info("X-Encryption-Key: {} (BASE64 RSA-encrypted DEK)", truncate(encryptedDek, 40));
+    String encryptedDataEncryptionKey = hybridEncryptionService.getEncryptedDataEncryptionKey();
+    log.info("X-Encryption-Key: {} (BASE64 RSA-encrypted DEK)", utils.truncate(encryptedDataEncryptionKey, 40));
 
     // Build JSON payload with encrypted fields
     JsonObject encryptedCardDetails = new JsonObject();
@@ -128,10 +121,16 @@ class MultiFieldsEncryptionTest {
     orderRequestJson.addProperty("orderAmount", order.get("orderAmount").getAsDouble());
     orderRequestJson.add("cardDetails", encryptedCardDetails);
 
-    return new EncryptedOrder(encryptedDek, orderRequestJson);
+    return new Utils.EncryptedOrder(encryptedDataEncryptionKey, orderRequestJson);
   }
 
-  private void submitAndVerifyOrder(EncryptedOrder encryptedOrder) {
+
+  /**
+   * Submits the encrypted order to the API and verifies the response.
+   *
+   * @param encryptedOrder The encrypted order containing the header and payload.
+   */
+  private void submitAndVerifyOrder(Utils.EncryptedOrder encryptedOrder) {
     log.info("\n=== Step 6: Submit Order to API ===");
 
     HttpHeaders headers = new HttpHeaders();
@@ -164,9 +163,5 @@ class MultiFieldsEncryptionTest {
     log.info("\n=== SUCCESS === (1 KMS call - direct RSA decrypt, no CEK overhead!)");
   }
 
-  private String truncate(String str, int maxLen) {
-    return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
-  }
 
-  private record EncryptedOrder(String header, JsonObject payload) {}
 }

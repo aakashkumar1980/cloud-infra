@@ -1,6 +1,6 @@
 package client.all_fields_encryption.service;
 
-import client.all_fields_encryption.crypto.JweEncryptor;
+import client.all_fields_encryption.crypto.JWEEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +20,11 @@ import java.util.Base64;
  * ┌──────────────────────────────────────────────────────────────────────────────┐
  * │                ALL-FIELDS ENCRYPTION (PROPER JWE/CEK)                        │
  * │                                                                              │
- * │  STEP 1: loadRSAPublicKey()                                                  │
+ * │  STEP 1: loadPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
  * │  STEP 2: encryptPayload(jsonPayload)                                         │
- * │  ► jweEncryptor.encrypt(jsonPayload, rsaPublicKey)                           │
+ * │  ► jweEncryptor.encrypt(jsonPayload, publicKey)                           │
  * │  ► JWE library generates CEK (aesContentEncryptionKey) internally            │
  * │  ► Encrypts entire JSON with CEK                                             │
  * │  ► Encrypts CEK with RSA public key                                          │
@@ -45,24 +45,24 @@ public class HybridEncryptionService {
 
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
-  private final JweEncryptor jweEncryptor;
-  private RSAPublicKey rsaPublicKey;
+  private final JWEEncryptor jweEncryptor;
+  private RSAPublicKey publicKey;
 
   @Autowired
-  public HybridEncryptionService(JweEncryptor jweEncryptor) {
+  public HybridEncryptionService(JWEEncryptor jweEncryptor) {
     this.jweEncryptor = jweEncryptor;
   }
 
   /**
    * Loads the RSA public key from the default resource location.
    */
-  public void loadRSAPublicKey() {
+  public void loadPublicKey() {
     try (InputStream is = getClass().getResourceAsStream(PUBLIC_KEY_RESOURCE)) {
       if (is == null) {
         throw new IOException("Public key not found at: " + PUBLIC_KEY_RESOURCE);
       }
       String pemContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-      loadRSAPublicKey(pemContent);
+      loadPublicKey(pemContent);
     } catch (IOException e) {
       throw new RuntimeException("Failed to load public key from resources", e);
     }
@@ -71,7 +71,7 @@ public class HybridEncryptionService {
   /**
    * Loads the RSA public key from a PEM-formatted string.
    */
-  public void loadRSAPublicKey(String pemContent) {
+  public void loadPublicKey(String pemContent) {
     try {
       String base64Key = pemContent
           .replace("-----BEGIN PUBLIC KEY-----", "")
@@ -81,7 +81,7 @@ public class HybridEncryptionService {
       byte[] keyBytes = Base64.getDecoder().decode(base64Key);
       X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
       KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-      this.rsaPublicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
+      this.publicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse public key", e);
@@ -102,9 +102,9 @@ public class HybridEncryptionService {
    * @return JWE compact serialization string
    */
   public String encryptPayload(String jsonPayload) {
-    if (rsaPublicKey == null) {
-      throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
+    if (publicKey == null) {
+      throw new IllegalStateException("Public key not loaded. Call loadPublicKey() first.");
     }
-    return jweEncryptor.encrypt(jsonPayload, rsaPublicKey);
+    return jweEncryptor.encrypt(jsonPayload, publicKey);
   }
 }

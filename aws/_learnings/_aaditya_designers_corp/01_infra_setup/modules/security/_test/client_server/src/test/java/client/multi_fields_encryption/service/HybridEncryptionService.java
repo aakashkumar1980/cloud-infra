@@ -1,8 +1,8 @@
 package client.multi_fields_encryption.service;
 
-import client.multi_fields_encryption.crypto.AESKeyGenerator;
-import client.multi_fields_encryption.crypto.FieldEncryptor;
-import client.multi_fields_encryption.crypto.RsaKeyWrapper;
+import client.multi_fields_encryption.crypto.DEKGenerator;
+import client.multi_fields_encryption.crypto.DataEncryptor;
+import client.multi_fields_encryption.crypto.DEKEncryptorAndWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,20 +23,20 @@ import java.util.Base64;
  * ┌──────────────────────────────────────────────────────────────────────────────┐
  * │               MULTI-FIELD ENCRYPTION (NO JWE/CEK)                            │
  * │                                                                              │
- * │  STEP 1: loadRSAPublicKey()                                                  │
+ * │  STEP 1: loadPublicKey()                                                  │
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
- * │  STEP 2: generateAndWrapDek()                                                │
+ * │  STEP 2: generateEncryptAndWrapDataEncryptionKey()                                                │
  * │  ► Generate AES DEK (256-bit Data Encryption Key)                            │
  * │  ► RSA-encrypt DEK directly (NO CEK, NO JWE)                                 │
- * │  ► Output: BASE64(encryptedDek)                                              │
+ * │  ► Output: BASE64(encryptedDataEncryptionKey)                                              │
  * │                                 ▼                                            │
  * │  STEP 3: encryptField(plaintext)                                             │
- * │  ► fieldEncryptor.encrypt(plaintext, aesDataEncryptionKey)                   │
+ * │  ► dataEncryptor.encrypt(plaintext, dataEncryptionKey)                   │
  * │  ► Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"                │
  * │                                 ▼                                            │
- * │  STEP 4: getEncryptedDek()                                                   │
- * │  ► Returns BASE64(encryptedDek) for X-Encryption-Key header                  │
+ * │  STEP 4: getEncryptedDataEncryptionKey()                                                   │
+ * │  ► Returns BASE64(encryptedDataEncryptionKey) for X-Encryption-Key header                  │
  * └──────────────────────────────────────────────────────────────────────────────┘
  * </pre>
  *
@@ -52,35 +52,35 @@ public class HybridEncryptionService {
 
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
-  private final FieldEncryptor fieldEncryptor;
-  private final RsaKeyWrapper rsaKeyWrapper;
-  private final AESKeyGenerator aesKeyGenerator;
+  private final DataEncryptor dataEncryptor;
+  private final DEKEncryptorAndWrapper dekEncryptorAndWrapper;
+  private final DEKGenerator dekGenerator;
 
-  private RSAPublicKey rsaPublicKey;
-  private SecretKey aesDataEncryptionKey;
-  private String encryptedDek;
+  private RSAPublicKey publicKey;
+  private SecretKey dataEncryptionKey;
+  private String encryptedDataEncryptionKey;
 
   @Autowired
   public HybridEncryptionService(
-      FieldEncryptor fieldEncryptor,
-      RsaKeyWrapper rsaKeyWrapper,
-      AESKeyGenerator aesKeyGenerator
+      DataEncryptor dataEncryptor,
+      DEKEncryptorAndWrapper dekEncryptorAndWrapper,
+      DEKGenerator dekGenerator
   ) {
-    this.fieldEncryptor = fieldEncryptor;
-    this.rsaKeyWrapper = rsaKeyWrapper;
-    this.aesKeyGenerator = aesKeyGenerator;
+    this.dataEncryptor = dataEncryptor;
+    this.dekEncryptorAndWrapper = dekEncryptorAndWrapper;
+    this.dekGenerator = dekGenerator;
   }
 
   /**
    * Loads the RSA public key from the default resource location.
    */
-  public void loadRSAPublicKey() {
+  public void loadPublicKey() {
     try (InputStream is = getClass().getResourceAsStream(PUBLIC_KEY_RESOURCE)) {
       if (is == null) {
         throw new IOException("Public key not found at: " + PUBLIC_KEY_RESOURCE);
       }
       String pemContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-      loadRSAPublicKey(pemContent);
+      loadPublicKey(pemContent);
     } catch (IOException e) {
       throw new RuntimeException("Failed to load public key from resources", e);
     }
@@ -89,7 +89,7 @@ public class HybridEncryptionService {
   /**
    * Loads the RSA public key from a PEM-formatted string.
    */
-  public void loadRSAPublicKey(String pemContent) {
+  public void loadPublicKey(String pemContent) {
     try {
       String base64Key = pemContent
           .replace("-----BEGIN PUBLIC KEY-----", "")
@@ -99,7 +99,7 @@ public class HybridEncryptionService {
       byte[] keyBytes = Base64.getDecoder().decode(base64Key);
       X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
       KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-      this.rsaPublicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
+      this.publicKey = (RSAPublicKey) keyFactory.generatePublic(keySpec);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse public key", e);
@@ -111,17 +111,17 @@ public class HybridEncryptionService {
    *
    * <p>Unlike JWE approach, this directly RSA-encrypts the DEK:</p>
    * <pre>
-   * DEK ──(RSA-OAEP-256)──► encryptedDek
+   * DEK ──(RSA-OAEP-256)──► encryptedDataEncryptionKey
    * </pre>
    *
    * <p>No intermediate CEK is used.</p>
    */
-  public void generateAndWrapDek() {
-    if (rsaPublicKey == null) {
-      throw new IllegalStateException("Public key not loaded. Call loadRSAPublicKey() first.");
+  public void generateEncryptAndWrapDataEncryptionKey() {
+    if (publicKey == null) {
+      throw new IllegalStateException("Public key not loaded. Call loadPublicKey() first.");
     }
-    this.aesDataEncryptionKey = aesKeyGenerator.generateAesDataEncryptionKey();
-    this.encryptedDek = rsaKeyWrapper.wrapKey(aesDataEncryptionKey, rsaPublicKey);
+    this.dataEncryptionKey = dekGenerator.generateDataEncryptionKey();
+    this.encryptedDataEncryptionKey = dekEncryptorAndWrapper.encryptAndWrapDataEncryptionKey(dataEncryptionKey, publicKey);
   }
 
   /**
@@ -131,10 +131,10 @@ public class HybridEncryptionService {
    * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
    */
   public String encryptField(String plaintext) {
-    if (aesDataEncryptionKey == null) {
-      throw new IllegalStateException("Call generateAndWrapDek() first.");
+    if (dataEncryptionKey == null) {
+      throw new IllegalStateException("Call generateEncryptAndWrapDataEncryptionKey() first.");
     }
-    return fieldEncryptor.encrypt(plaintext, aesDataEncryptionKey);
+    return dataEncryptor.encrypt(plaintext, dataEncryptionKey);
   }
 
   /**
@@ -142,18 +142,18 @@ public class HybridEncryptionService {
    *
    * @return BASE64-encoded RSA-encrypted DEK
    */
-  public String getEncryptedDek() {
-    if (encryptedDek == null) {
-      throw new IllegalStateException("Call generateAndWrapDek() first.");
+  public String getEncryptedDataEncryptionKey() {
+    if (encryptedDataEncryptionKey == null) {
+      throw new IllegalStateException("Call generateEncryptAndWrapDataEncryptionKey() first.");
     }
-    return encryptedDek;
+    return encryptedDataEncryptionKey;
   }
 
   /**
    * Clears the current request state.
    */
   public void clear() {
-    this.aesDataEncryptionKey = null;
-    this.encryptedDek = null;
+    this.dataEncryptionKey = null;
+    this.encryptedDataEncryptionKey = null;
   }
 }

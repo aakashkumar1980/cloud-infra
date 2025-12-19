@@ -24,9 +24,9 @@ import java.security.NoSuchAlgorithmException;
  * </pre>
  */
 @Component
-public class AESKeyGenerator {
+public class DEKGenerator {
 
-  private static final String ALGORITHM = "AES";
+  private static final String AES_ALGORITHM = "AES";
   private static final int KEY_SIZE_BITS = 256;
 
   /**
@@ -34,9 +34,9 @@ public class AESKeyGenerator {
    *
    * @return A new 256-bit AES SecretKey
    */
-  public SecretKey generateAesDataEncryptionKey() {
+  public SecretKey generateDataEncryptionKey() {
     try {
-      KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM);
+      KeyGenerator keyGen = KeyGenerator.getInstance(AES_ALGORITHM);
       keyGen.init(KEY_SIZE_BITS);
       return keyGen.generateKey();
     } catch (NoSuchAlgorithmException e) {

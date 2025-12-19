@@ -1,5 +1,6 @@
 package client.all_fields_encryption;
 
+import client._common_utils.Utils;
 import client.all_fields_encryption.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -13,10 +14,6 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,6 +47,9 @@ class AllFieldsEncryptionTest {
 
   @LocalServerPort
   private int port;
+  private String baseUrl() {
+    return "http://localhost:" + port + "/api/v1/all-fields";
+  }
 
   @Autowired
   private TestRestTemplate restTemplate;
@@ -58,11 +58,9 @@ class AllFieldsEncryptionTest {
   @Qualifier("allFieldsHybridEncryptionService")
   private HybridEncryptionService hybridEncryptionService;
 
+  @Autowired
+  private Utils utils;
   private final Gson gson = new Gson();
-
-  private String baseUrl() {
-    return "http://localhost:" + port + "/api/v1/all-fields";
-  }
 
   @Test
   @Order(1)
@@ -72,37 +70,37 @@ class AllFieldsEncryptionTest {
     submitAndVerifyOrder(jwePayload);
   }
 
-  private JsonObject loadSampleOrder() {
-    try (var reader = new InputStreamReader(
-        Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("sample-order.json")),
-        StandardCharsets.UTF_8)) {
-      return gson.fromJson(reader, JsonObject.class);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to load sample-order.json", e);
-    }
-  }
-
+  /**
+   * Prepares a JWE-encrypted payload for submission.
+   * Here the whole JSON payload is encrypted.
+   *
+   * @return JWE string
+   */
   private String prepareJwePayload() {
     // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
-    hybridEncryptionService.loadRSAPublicKey();
+    hybridEncryptionService.loadPublicKey();
     log.info("Loaded RSA-4096 public key");
 
     // Step 2: Load JSON payload from file (plaintext PII)
     log.info("\n=== Step 2: Load JSON Payload (from sample-order.json) ===");
-    JsonObject orderRequest = loadSampleOrder();
+    JsonObject orderRequest = utils.loadSampleOrder();
     String jsonPayload = gson.toJson(orderRequest);
-    log.info("JSON payload: {}", truncate(jsonPayload, 60));
 
     // Step 3: Encrypt entire payload as JWE
     log.info("\n=== Step 3: Encrypt Entire Payload as JWE ===");
-    String jweString = hybridEncryptionService.encryptPayload(jsonPayload);
-    log.info("JWE created (length={}): {}", jweString.length(), truncate(jweString, 60));
+    String encryptedPayload = hybridEncryptionService.encryptPayload(jsonPayload);
+    log.info("JWE created (length={}): {}", encryptedPayload.length(), utils.truncate(encryptedPayload, 60));
     log.info("JWE internally uses CEK (aesContentEncryptionKey) to encrypt entire payload");
 
-    return jweString;
+    return encryptedPayload;
   }
 
+  /**
+   * Submits the JWE payload to the API and verifies the response.
+   *
+   * @param jwePayload JWE string to submit
+   */
   private void submitAndVerifyOrder(String jwePayload) {
     log.info("\n=== Step 4: Submit JWE to API ===");
 
@@ -135,7 +133,4 @@ class AllFieldsEncryptionTest {
     log.info("\n=== SUCCESS === (1 KMS call to decrypt CEK, then local AES for payload)");
   }
 
-  private String truncate(String str, int maxLen) {
-    return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
-  }
 }

@@ -30,7 +30,7 @@ import java.util.Base64;
  * </pre>
  */
 @Component
-public class FieldEncryptor {
+public class DataEncryptor {
 
   private static final int IV_SIZE_BYTES = 12;
   private static final int AUTH_TAG_SIZE_BITS = 128;
@@ -48,7 +48,7 @@ public class FieldEncryptor {
    * └───────────────────────┘    │        ┌─────────────────────────────────────┐
    *                              │        │                                     │
    * ┌───────────────────────┐    │        │        AES-256-GCM ENCRYPT          │
-   * │ aesDataEncryptionKey  │────┼───────►│                                     │
+   * │ dataEncryptionKey  │────┼───────►│                                     │
    * │ (DEK - 32 bytes)      │    │        │  Output: encryptedText + authTag    │
    * └───────────────────────┘    │        │                                     │
    *                              │        └─────────────────────────────────────┘
@@ -59,10 +59,10 @@ public class FieldEncryptor {
    * </pre>
    *
    * @param plainText            The sensitive data to encrypt
-   * @param aesDataEncryptionKey The AES DEK (Data Encryption Key) - 256-bit key
+   * @param dataEncryptionKey The AES DEK (Data Encryption Key) - 256-bit key
    * @return Encrypted string in format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
    */
-  public String encrypt(String plainText, SecretKey aesDataEncryptionKey) {
+  public String encrypt(String plainText, SecretKey dataEncryptionKey) {
     try {
       // Generate random IV
       byte[] iv = new byte[IV_SIZE_BYTES];
@@ -71,7 +71,7 @@ public class FieldEncryptor {
       // Initialize cipher
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.ENCRYPT_MODE, aesDataEncryptionKey, gcmSpec);
+      cipher.init(Cipher.ENCRYPT_MODE, dataEncryptionKey, gcmSpec);
 
       // Encrypt
       byte[] encryptedWithTag = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
