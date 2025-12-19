@@ -13,6 +13,7 @@
 
 # -----------------------------------------------------------------------------
 # KMS Module - Asymmetric Key
+# NOTE: Reuses existing KMS key if found (detected via aws_kms_aliases data source)
 # -----------------------------------------------------------------------------
 module "kms" {
   source = "./modules/security/kms"

@@ -4,6 +4,9 @@
  * Creates an RSA-4096 asymmetric key pair:
  *   - Public Key:  Exported and shared with 3rd party clients
  *   - Private Key: Never leaves KMS, used for decryption
+ *
+ * NOTE: If the KMS key already exists in AWS, it will be reused (not recreated).
+ *       Uses aws_kms_aliases data source to detect existing keys.
  */
 
 variable "name_suffix" {
