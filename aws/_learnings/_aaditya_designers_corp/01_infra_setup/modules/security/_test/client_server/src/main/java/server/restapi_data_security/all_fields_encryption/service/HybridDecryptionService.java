@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import server.restapi_data_security.all_fields_encryption.crypto.JWEDecryptor;
+import server.restapi_data_security.all_fields_encryption.crypto.PayloadDecryptor;
 
 /**
  * Hybrid Decryption Service (All-Fields) - Server-side JWE decryption.
@@ -38,12 +38,12 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final JWEDecryptor jweDecryptor;
+  private final PayloadDecryptor payloadDecryptor;
 
   public HybridDecryptionService(
-      @Qualifier("allFieldsJweDecryptor") JWEDecryptor jweDecryptor
+      @Qualifier("allFieldsJweDecryptor") PayloadDecryptor payloadDecryptor
   ) {
-    this.jweDecryptor = jweDecryptor;
+    this.payloadDecryptor = payloadDecryptor;
   }
 
   /**
@@ -55,7 +55,7 @@ public class HybridDecryptionService {
   public String decryptPayload(String jweString) {
     log.info("Decrypting JWE payload (1 KMS call for CEK, then local AES)");
 
-    String jsonPayload = jweDecryptor.decrypt(jweString);
+    String jsonPayload = payloadDecryptor.decrypt(jweString);
 
     log.info("Payload decrypted successfully");
     return jsonPayload;

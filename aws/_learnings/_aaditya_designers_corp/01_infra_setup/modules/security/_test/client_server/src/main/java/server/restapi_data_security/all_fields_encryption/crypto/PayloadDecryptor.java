@@ -43,14 +43,14 @@ import java.nio.charset.StandardCharsets;
  * </ul>
  */
 @Component("allFieldsJweDecryptor")
-public class JWEDecryptor {
+public class PayloadDecryptor {
 
   private static final int GCM_TAG_SIZE_BITS = 128;
 
   private final KmsClient kmsClient;
   private final String keyArn;
 
-  public JWEDecryptor(
+  public PayloadDecryptor(
       KmsClient kmsClient,
       @Value("${aws.kms.asymmetric-key-arn}") String keyArn
   ) {

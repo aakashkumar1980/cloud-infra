@@ -89,11 +89,11 @@ class AllFieldsEncryptionTest {
 
     // Step 3: Encrypt entire payload as JWE
     log.info("\n=== Step 3: Encrypt Entire Payload as JWE ===");
-    String encryptedPayload = hybridEncryptionService.encryptPayload(orderJson);
-    log.info("JWE created (length={}): {}", encryptedPayload.length(), utils.truncate(encryptedPayload, 60));
+    String payload = hybridEncryptionService.encryptPayload(orderJson);
+    log.info("JWE created (length={}): {}", payload.length(), utils.truncate(payload, 60));
     log.info("JWE internally uses CEK (aesContentEncryptionKey) to encrypt entire payload");
 
-    return new Order(encryptedPayload);
+    return new Order(payload);
   }
 
   /**
