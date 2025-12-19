@@ -25,6 +25,7 @@ module "kms" {
   key_deletion_window  = var.key_deletion_window
   account_id           = data.aws_caller_identity.current.account_id
   tags                 = local.tags_common
+  create_resources     = var.create_resources
 }
 
 # -----------------------------------------------------------------------------

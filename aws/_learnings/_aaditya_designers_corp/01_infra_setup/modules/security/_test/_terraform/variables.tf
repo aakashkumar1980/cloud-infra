@@ -12,3 +12,9 @@ variable "key_deletion_window" {
   type        = number
   default     = 7 # Minimum allowed by AWS for KMS keys
 }
+
+variable "create_resources" {
+  description = "Whether to create new KMS resources or use existing ones. Set to false if resources already exist in AWS."
+  type        = bool
+  default     = true
+}

@@ -4,12 +4,23 @@
  * Creates an RSA-4096 asymmetric key pair:
  *   - Public Key:  Exported and shared with 3rd party clients
  *   - Private Key: Never leaves KMS, used for decryption
+ *
+ * Set var.create_resources = false to skip creation and use existing key via data source.
  */
+
+# -----------------------------------------------------------------------------
+# Data source to lookup existing alias (only when not creating)
+# -----------------------------------------------------------------------------
+data "aws_kms_alias" "existing" {
+  count = var.create_resources ? 0 : 1
+  name  = "alias/test_asymmetric_kms-${var.name_suffix}"
+}
 
 # -----------------------------------------------------------------------------
 # Asymmetric KMS Key (RSA-4096) for 3rd Party Encryption
 # -----------------------------------------------------------------------------
 resource "aws_kms_key" "asymmetric" {
+  count                    = var.create_resources ? 1 : 0
   description              = "Test Asymmetric RSA key for 3rd party encryption (Use-Case 1)"
   deletion_window_in_days  = var.key_deletion_window
   key_usage                = "ENCRYPT_DECRYPT"
@@ -45,14 +56,18 @@ resource "aws_kms_key" "asymmetric" {
   })
 
   tags = merge(var.tags, {
-    Name     = "test_asymmetric_kms-${var.name_suffix}"
-    UseCase  = "third-party-no-aws"
-    KeyType  = "RSA_4096"
-    Purpose  = "3rd party encryption without AWS account"
+    Name    = "test_asymmetric_kms-${var.name_suffix}"
+    UseCase = "third-party-no-aws"
+    KeyType = "RSA_4096"
+    Purpose = "3rd party encryption without AWS account"
   })
 }
 
+# -----------------------------------------------------------------------------
+# KMS Alias
+# -----------------------------------------------------------------------------
 resource "aws_kms_alias" "asymmetric" {
+  count         = var.create_resources ? 1 : 0
   name          = "alias/test_asymmetric_kms-${var.name_suffix}"
-  target_key_id = aws_kms_key.asymmetric.key_id
+  target_key_id = aws_kms_key.asymmetric[0].key_id
 }
