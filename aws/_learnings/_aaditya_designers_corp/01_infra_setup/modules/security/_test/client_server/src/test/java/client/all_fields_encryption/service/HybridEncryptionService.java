@@ -1,6 +1,6 @@
 package client.all_fields_encryption.service;
 
-import client.all_fields_encryption.crypto.JWEEncryptor;
+import client.all_fields_encryption.crypto.PayloadEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ import java.util.Base64;
  * │  ► Load RSA-4096 public key from PEM file                                    │
  * │                                 ▼                                            │
  * │  STEP 2: encryptPayload(jsonPayload)                                         │
- * │  ► jweEncryptor.encrypt(jsonPayload, publicKey)                           │
+ * │  ► payloadEncryptor.encrypt(jsonPayload, publicKey)                           │
  * │  ► JWE library generates CEK (aesContentEncryptionKey) internally            │
  * │  ► Encrypts entire JSON with CEK                                             │
  * │  ► Encrypts CEK with RSA public key                                          │
@@ -45,12 +45,12 @@ public class HybridEncryptionService {
 
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
-  private final JWEEncryptor jweEncryptor;
+  private final PayloadEncryptor payloadEncryptor;
   private RSAPublicKey publicKey;
 
   @Autowired
-  public HybridEncryptionService(JWEEncryptor jweEncryptor) {
-    this.jweEncryptor = jweEncryptor;
+  public HybridEncryptionService(PayloadEncryptor payloadEncryptor) {
+    this.payloadEncryptor = payloadEncryptor;
   }
 
   /**
@@ -98,13 +98,13 @@ public class HybridEncryptionService {
    *   <li>Encrypts CEK with RSA public key</li>
    * </ol>
    *
-   * @param jsonPayload The entire JSON payload to encrypt
+   * @param payload The entire JSON payload to encrypt
    * @return JWE compact serialization string
    */
-  public String encryptPayload(String jsonPayload) {
+  public String encryptPayload(String payload) {
     if (publicKey == null) {
       throw new IllegalStateException("Public key not loaded. Call loadPublicKey() first.");
     }
-    return jweEncryptor.encrypt(jsonPayload, publicKey);
+    return payloadEncryptor.encrypt(payload, publicKey);
   }
 }

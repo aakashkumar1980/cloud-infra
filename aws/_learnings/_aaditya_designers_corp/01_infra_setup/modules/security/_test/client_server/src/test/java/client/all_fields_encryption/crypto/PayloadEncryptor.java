@@ -42,7 +42,7 @@ import java.security.interfaces.RSAPublicKey;
  * also think of it as <b>aesContentEncryptionKey</b>.</p>
  */
 @Component
-public class JWEEncryptor {
+public class PayloadEncryptor {
 
   /**
    * Encrypts entire JSON payload into JWE format.
@@ -51,7 +51,7 @@ public class JWEEncryptor {
    * <pre>
    * ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
    * │  INPUT                                                                                      │
-   * │  ├── jsonPayload: {"name":"...", "dob":"1990-05-15", "card":"4111..."}                     │
+   * │  ├── payload: {"name":"...", "dob":"1990-05-15", "card":"4111..."}                     │
    * │  └── publicKey: RSA-4096 public key                                                     │
    * │                                                                                             │
    * │  STEP 1: Generate CEK (Content Encryption Key)                                             │
@@ -67,7 +67,7 @@ public class JWEEncryptor {
    * │  ─────────────────────────────────────────────────────────────────────────────────────────  │
    * │                                                                                             │
    * │      ┌───────────────────────┐                                                              │
-   * │      │     jsonPayload       │────┐                                                         │
+   * │      │     payload       │────┐                                                         │
    * │      │ (entire JSON)         │    │                                                         │
    * │      └───────────────────────┘    │        ┌─────────────────────────────────────────────┐  │
    * │                                   │        │                                             │  │
@@ -116,18 +116,18 @@ public class JWEEncryptor {
    * │ Operation      │ Algorithm       │ Input                           │ Output                        │
    * ├────────────────┼─────────────────┼─────────────────────────────────┼───────────────────────────────┤
    * │ ENCRYPT-AES    │ AES-256-GCM     │ aesContentEncryptionKey (CEK),  │ ciphertext + authTag          │
-   * │                │                 │ iv, jsonPayload                 │                               │
+   * │                │                 │ iv, payload                 │                               │
    * ├────────────────┼─────────────────┼─────────────────────────────────┼───────────────────────────────┤
    * │ ENCRYPT-RSA    │ RSA-OAEP-256    │ publicKey,                   │ encryptedCek                  │
    * │                │                 │ aesContentEncryptionKey (CEK)   │                               │
    * └────────────────┴─────────────────┴─────────────────────────────────┴───────────────────────────────┘
    * </pre>
    *
-   * @param jsonPayload  The entire JSON payload to encrypt
+   * @param payload  The entire payload to encrypt
    * @param publicKey The server's RSA public key
    * @return JWE compact serialization string
    */
-  public String encrypt(String jsonPayload, RSAPublicKey publicKey) {
+  public String encrypt(String payload, RSAPublicKey publicKey) {
     try {
       // Create JWE header with RSA-OAEP-256 for key encryption and A256GCM for content encryption
       JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A256GCM)
@@ -135,7 +135,7 @@ public class JWEEncryptor {
           .build();
 
       // Create JWE object with payload
-      JWEObject jweObject = new JWEObject(header, new Payload(jsonPayload));
+      JWEObject jweObject = new JWEObject(header, new Payload(payload));
 
       // Encrypt with RSA public key
       // Nimbus library internally:

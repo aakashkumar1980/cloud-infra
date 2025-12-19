@@ -63,12 +63,12 @@ class AllFieldsEncryptionTest {
   private final Gson gson = new Gson();
 
   @Test
-  @Order(1)
   @DisplayName("All-Fields: Submit order with JWE-encrypted payload (proper CEK usage)")
-  void testSubmitOrderWithJweEncryption() {
-    String jwePayload = prepareJwePayload();
-    submitAndVerifyOrder(jwePayload);
+  void testSubmitOrder() {
+    Order orderString = prepareOrder();
+    submitAndVerifyOrder(orderString);
   }
+  public record Order(String payload) {}
 
   /**
    * Prepares a JWE-encrypted payload for submission.
@@ -76,7 +76,7 @@ class AllFieldsEncryptionTest {
    *
    * @return JWE string
    */
-  private String prepareJwePayload() {
+  private Order prepareOrder() {
     // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadPublicKey();
@@ -84,29 +84,29 @@ class AllFieldsEncryptionTest {
 
     // Step 2: Load JSON payload from file (plaintext PII)
     log.info("\n=== Step 2: Load JSON Payload (from sample-order.json) ===");
-    JsonObject orderRequest = utils.loadSampleOrder();
-    String jsonPayload = gson.toJson(orderRequest);
+    JsonObject order = utils.loadSampleOrder();
+    String orderJson = gson.toJson(order);
 
     // Step 3: Encrypt entire payload as JWE
     log.info("\n=== Step 3: Encrypt Entire Payload as JWE ===");
-    String encryptedPayload = hybridEncryptionService.encryptPayload(jsonPayload);
+    String encryptedPayload = hybridEncryptionService.encryptPayload(orderJson);
     log.info("JWE created (length={}): {}", encryptedPayload.length(), utils.truncate(encryptedPayload, 60));
     log.info("JWE internally uses CEK (aesContentEncryptionKey) to encrypt entire payload");
 
-    return encryptedPayload;
+    return new Order(encryptedPayload);
   }
 
   /**
    * Submits the JWE payload to the API and verifies the response.
    *
-   * @param jwePayload JWE string to submit
+   * @param order JWE string to submit
    */
-  private void submitAndVerifyOrder(String jwePayload) {
+  private void submitAndVerifyOrder(Order order) {
     log.info("\n=== Step 4: Submit JWE to API ===");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.TEXT_PLAIN);
-    HttpEntity<String> request = new HttpEntity<>(jwePayload, headers);
+    HttpEntity<String> request = new HttpEntity<>(order.payload(), headers);
     log.info("POST /api/v1/all-fields/orders (body=JWE)");
 
     ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", request, String.class);
