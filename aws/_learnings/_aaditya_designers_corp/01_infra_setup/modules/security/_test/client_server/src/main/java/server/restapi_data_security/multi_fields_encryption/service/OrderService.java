@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import server.restapi_data_security._common_utils.Utils;
 
 import java.util.UUID;
 
@@ -16,25 +17,28 @@ public class OrderService {
 
   private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
+  private Utils utils;
   private final HybridDecryptionService hybridDecryptionService;
 
   public OrderService(
-      @Qualifier("multiFieldsHybridDecryptionService") HybridDecryptionService hybridDecryptionService
+      @Qualifier("multiFieldsHybridDecryptionService") HybridDecryptionService hybridDecryptionService,
+      Utils utils
   ) {
     this.hybridDecryptionService = hybridDecryptionService;
+    this.utils = utils;
   }
 
   /**
    * Processes an order with encrypted PII fields.
    *
-   * @param orderRequest       The order JSON with encrypted fields
+   * @param order       The order JSON with encrypted fields
    * @param encryptedDataEncryptionKey The encrypted DEK from X-Encryption-Key header
    * @return Response JSON with decrypted/masked PII
    */
-  public JsonObject processOrder(JsonObject orderRequest, String encryptedDataEncryptionKey) {
+  public JsonObject processOrder(JsonObject order, String encryptedDataEncryptionKey) {
     // Extract encrypted fields
-    String encryptedDob = orderRequest.get("dateOfBirth").getAsString();
-    JsonObject cardDetails = orderRequest.getAsJsonObject("cardDetails");
+    String encryptedDob = order.get("dateOfBirth").getAsString();
+    JsonObject cardDetails = order.getAsJsonObject("cardDetails");
     String encryptedCreditCard = cardDetails.get("creditCardNumber").getAsString();
     String encryptedSsn = cardDetails.get("ssn").getAsString();
 
@@ -48,31 +52,22 @@ public class OrderService {
 
     log.info("Decrypted PII - DOB: {} | Card: {} | SSN: {}",
         decrypted.dateOfBirth(),
-        maskCard(decrypted.creditCard()),
-        maskSsn(decrypted.ssn()));
+        utils.maskCard(decrypted.creditCard()),
+        utils.maskSsn(decrypted.ssn()));
 
     // Build response with decrypted/masked data
     JsonObject response = new JsonObject();
     response.addProperty("success", true);
     response.addProperty("orderId", UUID.randomUUID().toString());
-    response.addProperty("name", orderRequest.get("name").getAsString());
+    response.addProperty("name", order.get("name").getAsString());
     response.addProperty("dateOfBirth", decrypted.dateOfBirth());
 
     JsonObject responseCardDetails = new JsonObject();
-    responseCardDetails.addProperty("creditCardNumber", maskCard(decrypted.creditCard()));
-    responseCardDetails.addProperty("ssn", maskSsn(decrypted.ssn()));
+    responseCardDetails.addProperty("creditCardNumber", utils.maskCard(decrypted.creditCard()));
+    responseCardDetails.addProperty("ssn", utils.maskSsn(decrypted.ssn()));
     response.add("cardDetails", responseCardDetails);
 
     return response;
   }
 
-  private String maskCard(String card) {
-    if (card == null || card.length() < 4) return "****";
-    return "****-****-****-" + card.substring(card.length() - 4);
-  }
-
-  private String maskSsn(String ssn) {
-    if (ssn == null || ssn.length() < 4) return "***-**-****";
-    return "***-**-" + ssn.substring(ssn.length() - 4);
-  }
 }

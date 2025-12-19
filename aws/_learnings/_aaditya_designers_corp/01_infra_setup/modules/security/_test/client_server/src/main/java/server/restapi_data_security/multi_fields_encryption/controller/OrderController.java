@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import server.restapi_data_security._common_utils.Utils;
 import server.restapi_data_security.multi_fields_encryption.service.OrderService;
 
 /**
@@ -33,11 +34,14 @@ public class OrderController {
 
   private final OrderService orderService;
   private final Gson gson = new Gson();
+  private Utils utils;
 
   public OrderController(
-      @Qualifier("multiFieldsOrderService") OrderService orderService
+      @Qualifier("multiFieldsOrderService") OrderService orderService,
+      Utils utils
   ) {
     this.orderService = orderService;
+    this.utils = utils;
   }
 
   @GetMapping("/health")
@@ -71,7 +75,7 @@ public class OrderController {
     // Validate presence of encryption header
     if (encryptedDataEncryptionKey == null || encryptedDataEncryptionKey.isBlank()) {
       log.warn("Missing X-Encryption-Key header");
-      return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Missing X-Encryption-Key header")));
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Missing X-Encryption-Key header")));
     }
 
     try {
@@ -79,14 +83,8 @@ public class OrderController {
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);
-      return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Order processing failed: " + e.getMessage())));
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Order processing failed: " + e.getMessage())));
     }
   }
 
-  private JsonObject errorResponse(String message) {
-    JsonObject response = new JsonObject();
-    response.addProperty("success", false);
-    response.addProperty("message", message);
-    return response;
-  }
 }

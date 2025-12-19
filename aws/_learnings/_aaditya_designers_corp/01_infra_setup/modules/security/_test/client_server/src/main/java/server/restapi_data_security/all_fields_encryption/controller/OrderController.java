@@ -55,24 +55,26 @@ public class OrderController {
    * <p>Request body is the JWE compact serialization containing the entire
    * encrypted JSON payload.</p>
    *
-   * @param jweRequestBody The JWE string (Header.EncryptedCek.IV.Ciphertext.AuthTag)
+   * @param requestBody The JWE string (Header.EncryptedCek.IV.Ciphertext.AuthTag)
    * @return Order confirmation with decrypted/masked PII
    */
   @PostMapping(value = "/orders", consumes = "text/plain")
-  public ResponseEntity<String> submitOrder(@RequestBody String jweRequestBody) {
-    log.info("[All-Fields] JWE request received (length={})", jweRequestBody.length());
+  public ResponseEntity<String> submitOrder(
+      @RequestBody String requestBody
+  ) {
+    log.info("[All-Fields] JWE request received (length={})", requestBody.length());
 
-    if (jweRequestBody == null || jweRequestBody.isBlank()) {
+    if (requestBody == null || requestBody.isBlank()) {
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Empty request body")));
     }
 
     // Validate JWE format (5 dot-separated parts)
-    if (jweRequestBody.split("\\.").length != 5) {
+    if (requestBody.split("\\.").length != 5) {
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Invalid JWE format")));
     }
 
     try {
-      JsonObject response = orderService.processOrder(jweRequestBody);
+      JsonObject response = orderService.processOrder(requestBody);
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);
