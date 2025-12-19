@@ -62,12 +62,12 @@ class MultiFieldsEncryptionTest {
   private final Gson gson = new Gson();
 
   @Test
-  @Order(1)
   @DisplayName("Multi-Fields: Submit order with direct RSA encryption (no JWE/CEK)")
-  void testSubmitOrderWithDirectRsaEncryption() {
-    Utils.EncryptedOrder encryptedOrder = prepareEncryptedOrder();
-    submitAndVerifyOrder(encryptedOrder);
+  void testSubmitOrder() {
+    Order order = prepareOrder();
+    submitAndVerifyOrder(order);
   }
+  public record Order(String header, JsonObject jsonPayload) {}
 
   /**
    * Prepares an encrypted order by performing the following steps:
@@ -79,7 +79,7 @@ class MultiFieldsEncryptionTest {
    *
    * @return An EncryptedOrder containing the encrypted DEK and payload.
    */
-  private Utils.EncryptedOrder prepareEncryptedOrder() {
+  private Order prepareOrder() {
     hybridEncryptionService.clear();
 
     // Step 1: Load RSA public key
@@ -114,52 +114,48 @@ class MultiFieldsEncryptionTest {
     JsonObject encryptedCardDetails = new JsonObject();
     encryptedCardDetails.addProperty("creditCardNumber", encryptedCreditCard);
     encryptedCardDetails.addProperty("ssn", encryptedSsn);
-    JsonObject orderRequestJson = new JsonObject();
-    orderRequestJson.addProperty("name", order.get("name").getAsString());
-    orderRequestJson.addProperty("address", order.get("address").getAsString());
-    orderRequestJson.addProperty("dateOfBirth", encryptedDob);
-    orderRequestJson.addProperty("orderAmount", order.get("orderAmount").getAsDouble());
-    orderRequestJson.add("cardDetails", encryptedCardDetails);
+    JsonObject jsonPayload = new JsonObject();
+    jsonPayload.addProperty("name", order.get("name").getAsString());
+    jsonPayload.addProperty("address", order.get("address").getAsString());
+    jsonPayload.addProperty("dateOfBirth", encryptedDob);
+    jsonPayload.addProperty("orderAmount", order.get("orderAmount").getAsDouble());
+    jsonPayload.add("cardDetails", encryptedCardDetails);
 
-    return new Utils.EncryptedOrder(encryptedDataEncryptionKey, orderRequestJson);
+    return new Order(encryptedDataEncryptionKey, jsonPayload);
   }
 
 
   /**
    * Submits the encrypted order to the API and verifies the response.
    *
-   * @param encryptedOrder The encrypted order containing the header and payload.
+   * @param order The encrypted order containing the header and payload.
    */
-  private void submitAndVerifyOrder(Utils.EncryptedOrder encryptedOrder) {
+  private void submitAndVerifyOrder(Order order) {
     log.info("\n=== Step 6: Submit Order to API ===");
-
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("X-Encryption-Key", encryptedOrder.header());
-    HttpEntity<String> request = new HttpEntity<>(gson.toJson(encryptedOrder.payload()), headers);
+    headers.set("X-Encryption-Key", order.header());
+    HttpEntity<String> jsonPayload = new HttpEntity<>(gson.toJson(order.jsonPayload()), headers);
     log.info("POST /api/v1/multi-fields/orders");
 
-    ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", request, String.class);
-
+    ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", jsonPayload, String.class);
     // Verify response
     log.info("\n=== Step 7: Verify Response ===");
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Expected 200 OK");
 
-    JsonObject result = gson.fromJson(response.getBody(), JsonObject.class);
-    assertTrue(result.get("success").getAsBoolean(), "Expected success=true");
+    JsonObject jsonPayloadWithPlainFields = gson.fromJson(response.getBody(), JsonObject.class);
+    assertTrue(jsonPayloadWithPlainFields.get("success").getAsBoolean(), "Expected success=true");
 
-    String dob = result.get("dateOfBirth").getAsString();
-    JsonObject cardDetails = result.getAsJsonObject("cardDetails");
+    String dob = jsonPayloadWithPlainFields.get("dateOfBirth").getAsString();
+    JsonObject cardDetails = jsonPayloadWithPlainFields.getAsJsonObject("cardDetails");
     String maskedCard = cardDetails.get("creditCardNumber").getAsString();
     String maskedSsn = cardDetails.get("ssn").getAsString();
-
     log.info("Response - DOB={} | Card={} | SSN={}", dob, maskedCard, maskedSsn);
 
     // Verify decryption worked
     assertEquals("1990-05-15", dob, "DOB should be decrypted");
     assertTrue(maskedCard.endsWith("1234"), "Card should show last 4 digits");
     assertTrue(maskedSsn.endsWith("6789"), "SSN should show last 4 digits");
-
     log.info("\n=== SUCCESS === (1 KMS call - direct RSA decrypt, no CEK overhead!)");
   }
 

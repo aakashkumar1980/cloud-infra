@@ -60,9 +60,13 @@ public class OrderController {
       @RequestHeader(value = ENCRYPTION_KEY_HEADER, required = false) String encryptedDataEncryptionKey,
       @RequestBody String requestBody
   ) {
-    JsonObject orderRequest = gson.fromJson(requestBody, JsonObject.class);
-    log.info("[Multi-Fields] Order received - Name: {} | Encrypted fields in body",
-        orderRequest.get("name").getAsString());
+    JsonObject jsonPayload = gson.fromJson(requestBody, JsonObject.class);
+    log.info("[Multi-Fields] Order received - Name: {} | DOB: {} | Card: {} | SSN: {}",
+        jsonPayload.get("name").getAsString(),
+        jsonPayload.get("dateOfBirth").getAsString(),
+        jsonPayload.getAsJsonObject("cardDetails").get("creditCardNumber").getAsString(),
+        jsonPayload.getAsJsonObject("cardDetails").get("ssn").getAsString()
+    );
 
     // Validate presence of encryption header
     if (encryptedDataEncryptionKey == null || encryptedDataEncryptionKey.isBlank()) {
@@ -71,7 +75,7 @@ public class OrderController {
     }
 
     try {
-      JsonObject response = orderService.processOrder(orderRequest, encryptedDataEncryptionKey);
+      JsonObject response = orderService.processOrder(jsonPayload, encryptedDataEncryptionKey);
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);

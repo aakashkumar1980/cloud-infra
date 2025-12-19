@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import server.restapi_data_security.all_fields_encryption.crypto.JweDecryptor;
+import server.restapi_data_security.all_fields_encryption.crypto.JWEDecryptor;
 
 /**
  * Hybrid Decryption Service (All-Fields) - Server-side JWE decryption.
@@ -38,10 +38,10 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final JweDecryptor jweDecryptor;
+  private final JWEDecryptor jweDecryptor;
 
   public HybridDecryptionService(
-      @Qualifier("allFieldsJweDecryptor") JweDecryptor jweDecryptor
+      @Qualifier("allFieldsJweDecryptor") JWEDecryptor jweDecryptor
   ) {
     this.jweDecryptor = jweDecryptor;
   }

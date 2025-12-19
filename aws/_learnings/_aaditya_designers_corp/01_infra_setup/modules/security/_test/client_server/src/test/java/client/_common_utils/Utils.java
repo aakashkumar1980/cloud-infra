@@ -49,6 +49,4 @@ public class Utils {
   public String truncate(String str, int maxLen) {
     return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
   }
-
-  public static record EncryptedOrder(String header, JsonObject payload) {}
 }
