@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import server.restapi_data_security._common_utils.Utils;
+import server.restapi_data_security.all_fields_encryption.crypto.PayloadDecryptor;
 
 import java.util.UUID;
 
@@ -19,14 +19,14 @@ public class OrderService {
   private static final Logger log = LoggerFactory.getLogger(OrderService.class);
   private final Gson gson = new Gson();
 
-  private final HybridDecryptionService hybridDecryptionService;
+  private final PayloadDecryptor payloadDecryptor;
   private final Utils utils;
 
   public OrderService(
-      @Qualifier("allFieldsHybridDecryptionService") HybridDecryptionService hybridDecryptionService,
+      PayloadDecryptor payloadDecryptor,
       Utils utils
   ) {
-    this.hybridDecryptionService = hybridDecryptionService;
+    this.payloadDecryptor = payloadDecryptor;
     this.utils = utils;
   }
 
@@ -38,13 +38,15 @@ public class OrderService {
    */
   public JsonObject processOrder(String order) {
     // Decrypt JWE to get original JSON payload
-    String jsonPayload = hybridDecryptionService.decryptPayload(order);
-    JsonObject orderRequest = gson.fromJson(jsonPayload, JsonObject.class);
+    log.info("Decrypting JWE payload (1 KMS call for CEK, then local AES)");
+    String decryptedOrder = payloadDecryptor.decrypt(order);
+    log.info("Payload decrypted successfully");
 
+    JsonObject orderJson = gson.fromJson(decryptedOrder, JsonObject.class);
     // Extract fields (all are now in plaintext)
-    String name = orderRequest.get("name").getAsString();
-    String dob = orderRequest.get("dateOfBirth").getAsString();
-    JsonObject cardDetails = orderRequest.getAsJsonObject("cardDetails");
+    String name = orderJson.get("name").getAsString();
+    String dob = orderJson.get("dateOfBirth").getAsString();
+    JsonObject cardDetails = orderJson.getAsJsonObject("cardDetails");
     String creditCard = cardDetails.get("creditCardNumber").getAsString();
     String ssn = cardDetails.get("ssn").getAsString();
 

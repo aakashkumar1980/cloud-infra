@@ -151,9 +151,9 @@ public class PayloadDecryptor {
       }
 
       // Extract components
-      byte[] encryptedCek = jweObject.getEncryptedKey().decode();
+      byte[] encryptedContentEncryptionKey = jweObject.getEncryptedKey().decode();
       byte[] iv = jweObject.getIV().decode();
-      byte[] ciphertext = jweObject.getCipherText().decode();
+      byte[] encryptedText = jweObject.getCipherText().decode();
       byte[] authTag = jweObject.getAuthTag().decode();
 
       // AAD = ASCII(BASE64URL(header))
@@ -161,19 +161,23 @@ public class PayloadDecryptor {
       byte[] aad = protectedHeader.getBytes(StandardCharsets.US_ASCII);
 
       // STEP 2: Decrypt CEK via KMS
-      byte[] cekBytes = decryptCekViaKms(encryptedCek);
-      SecretKey aesContentEncryptionKey = new SecretKeySpec(cekBytes, "AES");
+      byte[] contentEncryptedKeyBytes = decryptCekViaKms(encryptedContentEncryptionKey);
+      SecretKey contentEncryptionKey = new SecretKeySpec(contentEncryptedKeyBytes, "AES");
 
-      // STEP 3: Decrypt payload with CEK
-      byte[] payload = decryptPayload(aesContentEncryptionKey, iv, ciphertext, authTag, aad);
-
-      return new String(payload, StandardCharsets.UTF_8);
+      // STEP 3: Decrypt plainText with CEK
+      byte[] plainText = decryptText(contentEncryptionKey, encryptedText, iv, authTag, aad);
+      return new String(plainText, StandardCharsets.UTF_8);
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to decrypt JWE: " + e.getMessage(), e);
     }
   }
 
+  /** Decrypts the encrypted CEK using AWS KMS RSA decryption.
+   *
+   * @param encryptedCek The encrypted Content Encryption Key
+   * @return The decrypted Content Encryption Key bytes
+   */
   private byte[] decryptCekViaKms(byte[] encryptedCek) {
     DecryptRequest request = DecryptRequest.builder()
         .keyId(keyArn)
@@ -185,17 +189,27 @@ public class PayloadDecryptor {
     return response.plaintext().asByteArray();
   }
 
-  private byte[] decryptPayload(SecretKey aesContentEncryptionKey, byte[] iv, byte[] ciphertext, byte[] authTag, byte[] aad)
+  /** Decrypts the ciphertext using AES-GCM with the provided CEK.
+   *
+   * @param contentEncryptionKey The AES Content Encryption Key
+   * @param encryptedText The encrypted payload
+   * @param iv The initialization vector
+   * @param authTag The authentication tag
+   * @param aad The additional authenticated data
+   * @return The decrypted plaintext bytes
+   * @throws Exception If decryption fails
+   */
+  private byte[] decryptText(SecretKey contentEncryptionKey, byte[] encryptedText, byte[] iv, byte[] authTag, byte[] aad)
       throws Exception {
-    // Combine ciphertext and authTag
-    byte[] ciphertextWithTag = new byte[ciphertext.length + authTag.length];
-    System.arraycopy(ciphertext, 0, ciphertextWithTag, 0, ciphertext.length);
-    System.arraycopy(authTag, 0, ciphertextWithTag, ciphertext.length, authTag.length);
+    // Combine encryptedText and authTag
+    byte[] ciphertextWithTag = new byte[encryptedText.length + authTag.length];
+    System.arraycopy(encryptedText, 0, ciphertextWithTag, 0, encryptedText.length);
+    System.arraycopy(authTag, 0, ciphertextWithTag, encryptedText.length, authTag.length);
 
     // Decrypt
     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
     GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_SIZE_BITS, iv);
-    cipher.init(Cipher.DECRYPT_MODE, aesContentEncryptionKey, gcmSpec);
+    cipher.init(Cipher.DECRYPT_MODE, contentEncryptionKey, gcmSpec);
     cipher.updateAAD(aad);
 
     return cipher.doFinal(ciphertextWithTag);
