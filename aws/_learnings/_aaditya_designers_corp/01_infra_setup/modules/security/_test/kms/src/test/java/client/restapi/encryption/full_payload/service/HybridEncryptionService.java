@@ -1,6 +1,6 @@
-package client.all_fields_encryption.service;
+package client.restapi.encryption.full_payload.service;
 
-import client.all_fields_encryption.crypto.PayloadEncryptor;
+import client.restapi.encryption.full_payload.crypto.PayloadEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

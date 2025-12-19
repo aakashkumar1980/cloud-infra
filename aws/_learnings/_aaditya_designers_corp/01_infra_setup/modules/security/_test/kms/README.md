@@ -166,12 +166,12 @@ src/
 
 ### Multi-Fields Test (Direct RSA, No CEK)
 ```bash
-./gradlew test --tests "client.multi_fields_encryption.MultiFieldsEncryptionTest"
+./gradlew test --tests "client.restapi.multi_fields_in_payload.MultiFieldsEncryptionTest"
 ```
 
 ### All-Fields Test (JWE with CEK)
 ```bash
-./gradlew test --tests "client.all_fields_encryption.AllFieldsEncryptionTest"
+./gradlew test --tests "client.restapi.full_payload.AllFieldsEncryptionTest"
 ```
 
 ### Run All Tests

@@ -1,12 +1,12 @@
-package server.restapi_data_security.all_fields_encryption.service;
+package server.restapi.encryption.full_payload.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import server.restapi_data_security._common_utils.Utils;
-import server.restapi_data_security.all_fields_encryption.crypto.PayloadDecryptor;
+import server._common.Utils;
+import server.restapi.encryption.full_payload.crypto.PayloadDecryptor;
 
 import java.util.UUID;
 

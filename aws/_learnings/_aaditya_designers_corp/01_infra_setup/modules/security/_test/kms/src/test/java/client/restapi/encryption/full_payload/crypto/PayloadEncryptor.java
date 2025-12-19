@@ -1,4 +1,4 @@
-package client.all_fields_encryption.crypto;
+package client.restapi.encryption.full_payload.crypto;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSAEncrypter;

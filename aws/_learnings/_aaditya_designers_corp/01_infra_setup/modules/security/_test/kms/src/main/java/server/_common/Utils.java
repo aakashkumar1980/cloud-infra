@@ -1,4 +1,4 @@
-package server.restapi_data_security._common_utils;
+package server._common;
 
 import com.google.gson.JsonObject;
 import org.springframework.stereotype.Component;

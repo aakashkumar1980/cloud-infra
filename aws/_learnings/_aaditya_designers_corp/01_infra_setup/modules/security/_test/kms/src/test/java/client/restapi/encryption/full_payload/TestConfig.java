@@ -1,4 +1,4 @@
-package client.all_fields_encryption;
+package client.restapi.encryption.full_payload;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.ComponentScan;

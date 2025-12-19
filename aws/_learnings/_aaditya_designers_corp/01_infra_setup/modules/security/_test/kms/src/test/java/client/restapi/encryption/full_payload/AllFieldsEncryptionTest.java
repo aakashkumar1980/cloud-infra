@@ -1,7 +1,7 @@
-package client.all_fields_encryption;
+package client.restapi.encryption.full_payload;
 
 import client._common_utils.Utils;
-import client.all_fields_encryption.service.HybridEncryptionService;
+import client.restapi.encryption.full_payload.service.HybridEncryptionService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * </ol>
  */
 @SpringBootTest(
-    classes = {server.ServerApplication.class, client.all_fields_encryption.TestConfig.class},
+    classes = {server.ServerApplication.class, TestConfig.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @ActiveProfiles("test")

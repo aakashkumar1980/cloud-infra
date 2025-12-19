@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * <h2>Packages:</h2>
  * <ul>
- *   <li><b>restapi_data_security</b> - PII data protection for REST API payloads</li>
+ *   <li><b>restapi</b> - PII data protection for REST API payloads</li>
  *   <li><b>file_security</b> - File encryption/decryption (coming soon)</li>
  * </ul>
  *

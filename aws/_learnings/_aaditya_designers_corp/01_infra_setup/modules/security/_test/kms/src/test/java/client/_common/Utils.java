@@ -1,4 +1,4 @@
-package client._common_utils;
+package client._common;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

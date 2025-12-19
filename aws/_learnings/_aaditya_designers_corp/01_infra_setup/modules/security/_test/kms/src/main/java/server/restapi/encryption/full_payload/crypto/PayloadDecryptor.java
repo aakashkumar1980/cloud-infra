@@ -1,4 +1,4 @@
-package server.restapi_data_security.all_fields_encryption.crypto;
+package server.restapi.encryption.full_payload.crypto;
 
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
