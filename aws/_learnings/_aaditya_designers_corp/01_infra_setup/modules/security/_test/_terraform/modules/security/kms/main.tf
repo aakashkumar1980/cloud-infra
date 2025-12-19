@@ -11,6 +11,20 @@
  */
 
 # -----------------------------------------------------------------------------
+# State migration: Move from count-based to non-count resources
+# (Can be removed after first successful apply)
+# -----------------------------------------------------------------------------
+moved {
+  from = aws_kms_key.asymmetric[0]
+  to   = aws_kms_key.asymmetric
+}
+
+moved {
+  from = aws_kms_alias.asymmetric[0]
+  to   = aws_kms_alias.asymmetric
+}
+
+# -----------------------------------------------------------------------------
 # Asymmetric KMS Key (RSA-4096) for 3rd Party Encryption
 # -----------------------------------------------------------------------------
 resource "aws_kms_key" "asymmetric" {
