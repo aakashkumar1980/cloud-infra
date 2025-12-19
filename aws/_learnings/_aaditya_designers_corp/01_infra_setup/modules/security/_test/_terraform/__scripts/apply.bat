@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 REM Terraform Apply Script for KMS _test module
 REM Uses dev profile with auto-approve
 REM Independent module - no dependencies
-REM NOTE: Imports existing KMS key if found in AWS but not in Terraform state
+REM NOTE: Always checks AWS for existing KMS key and imports if found
 
 echo ============================================
 echo Running Terraform Apply for KMS _test
@@ -19,20 +19,11 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Check if KMS key needs to be imported
+REM Always check AWS for existing KMS key (don't rely on Terraform state)
 echo.
-echo Checking for existing KMS key...
+echo Checking AWS for existing KMS key...
 set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_v1-terraform"
 
-REM Check if key is already in Terraform state
-terraform state show module.kms.aws_kms_key.asymmetric >nul 2>&1
-if %errorlevel% equ 0 (
-    echo KMS key already in Terraform state - no import needed
-    goto :apply
-)
-
-REM Key not in state, check if it exists in AWS
-echo KMS key not in Terraform state. Checking AWS...
 for /f "tokens=*" %%i in ('aws kms describe-key --key-id %KMS_ALIAS% --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
 
 if not defined KEY_ID (
@@ -45,18 +36,23 @@ if "!KEY_ID!"=="None" (
     goto :apply
 )
 
-echo Found existing KMS key: !KEY_ID!
+echo Found existing KMS key in AWS: !KEY_ID!
 echo Importing into Terraform state...
-terraform import -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID!
-if %errorlevel% neq 0 (
-    echo WARNING: Import of KMS key failed - will try to create new one
+
+REM Import KMS key (ignore error if already in state)
+terraform import -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID! 2>nul
+if %errorlevel% equ 0 (
+    echo   - KMS key imported successfully
+) else (
+    echo   - KMS key already in state or import skipped
 )
 
-REM Also import the alias
-echo Importing KMS alias...
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric %KMS_ALIAS%
-if %errorlevel% neq 0 (
-    echo WARNING: Import of KMS alias failed
+REM Import KMS alias (ignore error if already in state)
+terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric %KMS_ALIAS% 2>nul
+if %errorlevel% equ 0 (
+    echo   - KMS alias imported successfully
+) else (
+    echo   - KMS alias already in state or import skipped
 )
 
 :apply
