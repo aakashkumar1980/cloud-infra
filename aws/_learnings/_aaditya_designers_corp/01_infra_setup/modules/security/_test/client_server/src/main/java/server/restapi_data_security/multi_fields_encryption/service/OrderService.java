@@ -28,10 +28,10 @@ public class OrderService {
    * Processes an order with encrypted PII fields.
    *
    * @param orderRequest       The order JSON with encrypted fields
-   * @param encryptedDekBase64 The encrypted DEK from X-Encryption-Key header
+   * @param encryptedDataEncryptionKey The encrypted DEK from X-Encryption-Key header
    * @return Response JSON with decrypted/masked PII
    */
-  public JsonObject processOrder(JsonObject orderRequest, String encryptedDekBase64) {
+  public JsonObject processOrder(JsonObject orderRequest, String encryptedDataEncryptionKey) {
     // Extract encrypted fields
     String encryptedDob = orderRequest.get("dateOfBirth").getAsString();
     JsonObject cardDetails = orderRequest.getAsJsonObject("cardDetails");
@@ -40,7 +40,7 @@ public class OrderService {
 
     // Decrypt all fields (1 KMS call)
     HybridDecryptionService.DecryptedFields decrypted = hybridDecryptionService.decryptAll(
-        encryptedDekBase64,
+        encryptedDataEncryptionKey,
         encryptedDob,
         encryptedCreditCard,
         encryptedSsn

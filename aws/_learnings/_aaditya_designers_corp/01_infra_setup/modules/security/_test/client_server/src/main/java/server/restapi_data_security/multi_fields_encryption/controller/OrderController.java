@@ -51,13 +51,13 @@ public class OrderController {
    * <p>Header contains: BASE64(RSA-OAEP-256(aesDataEncryptionKey))</p>
    * <p>Body contains: JSON with individually encrypted fields</p>
    *
-   * @param encryptedDekBase64 The RSA-encrypted DEK (from X-Encryption-Key header)
+   * @param encryptedDataEncryptionKey The RSA-encrypted DEK (from X-Encryption-Key header)
    * @param requestBody        The order details as JSON with encrypted fields
    * @return Order confirmation with masked PII data
    */
   @PostMapping("/orders")
   public ResponseEntity<String> submitOrder(
-      @RequestHeader(value = ENCRYPTION_KEY_HEADER, required = false) String encryptedDekBase64,
+      @RequestHeader(value = ENCRYPTION_KEY_HEADER, required = false) String encryptedDataEncryptionKey,
       @RequestBody String requestBody
   ) {
     JsonObject orderRequest = gson.fromJson(requestBody, JsonObject.class);
@@ -65,13 +65,13 @@ public class OrderController {
         orderRequest.get("name").getAsString());
 
     // Validate presence of encryption header
-    if (encryptedDekBase64 == null || encryptedDekBase64.isBlank()) {
+    if (encryptedDataEncryptionKey == null || encryptedDataEncryptionKey.isBlank()) {
       log.warn("Missing X-Encryption-Key header");
       return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Missing X-Encryption-Key header")));
     }
 
     try {
-      JsonObject response = orderService.processOrder(orderRequest, encryptedDekBase64);
+      JsonObject response = orderService.processOrder(orderRequest, encryptedDataEncryptionKey);
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);

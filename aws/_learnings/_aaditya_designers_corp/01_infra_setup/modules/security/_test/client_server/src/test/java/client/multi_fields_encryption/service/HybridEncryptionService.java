@@ -1,7 +1,7 @@
 package client.multi_fields_encryption.service;
 
 import client.multi_fields_encryption.crypto.DEKGenerator;
-import client.multi_fields_encryption.crypto.DataEncryptor;
+import client.multi_fields_encryption.crypto.FieldEncryptor;
 import client.multi_fields_encryption.crypto.DEKEncryptorAndWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ import java.util.Base64;
  * │  ► Output: BASE64(encryptedDataEncryptionKey)                                              │
  * │                                 ▼                                            │
  * │  STEP 3: encryptField(plaintext)                                             │
- * │  ► dataEncryptor.encrypt(plaintext, dataEncryptionKey)                   │
+ * │  ► fieldEncryptor.encrypt(plaintext, dataEncryptionKey)                   │
  * │  ► Output: "BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)"                │
  * │                                 ▼                                            │
  * │  STEP 4: getEncryptedDataEncryptionKey()                                                   │
@@ -52,7 +52,7 @@ public class HybridEncryptionService {
 
   private static final String PUBLIC_KEY_RESOURCE = "/public-key.pem";
 
-  private final DataEncryptor dataEncryptor;
+  private final FieldEncryptor fieldEncryptor;
   private final DEKEncryptorAndWrapper dekEncryptorAndWrapper;
   private final DEKGenerator dekGenerator;
 
@@ -62,11 +62,11 @@ public class HybridEncryptionService {
 
   @Autowired
   public HybridEncryptionService(
-      DataEncryptor dataEncryptor,
+      FieldEncryptor fieldEncryptor,
       DEKEncryptorAndWrapper dekEncryptorAndWrapper,
       DEKGenerator dekGenerator
   ) {
-    this.dataEncryptor = dataEncryptor;
+    this.fieldEncryptor = fieldEncryptor;
     this.dekEncryptorAndWrapper = dekEncryptorAndWrapper;
     this.dekGenerator = dekGenerator;
   }
@@ -134,7 +134,7 @@ public class HybridEncryptionService {
     if (dataEncryptionKey == null) {
       throw new IllegalStateException("Call generateEncryptAndWrapDataEncryptionKey() first.");
     }
-    return dataEncryptor.encrypt(plaintext, dataEncryptionKey);
+    return fieldEncryptor.encrypt(plaintext, dataEncryptionKey);
   }
 
   /**

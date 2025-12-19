@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import server.restapi_data_security.multi_fields_encryption.crypto.DEKDecryptorAndUnwrapper;
 import server.restapi_data_security.multi_fields_encryption.crypto.FieldDecryptor;
-import server.restapi_data_security.multi_fields_encryption.crypto.RsaKeyUnwrapper;
 
 import javax.crypto.SecretKey;
 
@@ -19,7 +19,7 @@ import javax.crypto.SecretKey;
  * │                                                                        │
  * │  ┌──────────────────────────────────────────────────────────────────┐ │
  * │  │ STEP 5: Unwrap DEK via KMS (1 API call)                          │ │
- * │  │ ► rsaKeyUnwrapper.unwrapKey(encryptedDekBase64)                  │ │
+ * │  │ ► dekDecryptorAndUnwrapper.unwrapAndDecryptDataEncryptionKeyViaAWSKMS(encryptedDekBase64)                  │ │
  * │  │ ► KMS decrypts encryptedDek directly → aesDataEncryptionKey      │ │
  * │  │ ► NO CEK, NO JWE parsing!                                        │ │
  * │  └──────────────────────────────────────────────────────────────────┘ │
@@ -43,28 +43,28 @@ public class HybridDecryptionService {
 
   private static final Logger log = LoggerFactory.getLogger(HybridDecryptionService.class);
 
-  private final RsaKeyUnwrapper rsaKeyUnwrapper;
+  private final DEKDecryptorAndUnwrapper dekDecryptorAndUnwrapper;
   private final FieldDecryptor fieldDecryptor;
 
   public HybridDecryptionService(
-      @Qualifier("multiFieldsRsaKeyUnwrapper") RsaKeyUnwrapper rsaKeyUnwrapper,
+      @Qualifier("multiFieldsRsaKeyUnwrapper") DEKDecryptorAndUnwrapper dekDecryptorAndUnwrapper,
       @Qualifier("multiFieldsFieldDecryptor") FieldDecryptor fieldDecryptor
   ) {
-    this.rsaKeyUnwrapper = rsaKeyUnwrapper;
+    this.dekDecryptorAndUnwrapper = dekDecryptorAndUnwrapper;
     this.fieldDecryptor = fieldDecryptor;
   }
 
   /**
    * Decrypts multiple fields using a single KMS call.
    *
-   * @param encryptedDekBase64  The X-Encryption-Key header value (BASE64 RSA-encrypted DEK)
+   * @param encryptedDataEncryptionKey  The X-Encryption-Key header value (BASE64 RSA-encrypted DEK)
    * @param encryptedDob        Encrypted date of birth
    * @param encryptedCreditCard Encrypted credit card number
    * @param encryptedSsn        Encrypted SSN
    * @return A record containing all decrypted values
    */
   public DecryptedFields decryptAll(
-      String encryptedDekBase64,
+      String encryptedDataEncryptionKey,
       String encryptedDob,
       String encryptedCreditCard,
       String encryptedSsn
@@ -72,12 +72,12 @@ public class HybridDecryptionService {
     log.info("Decrypting all PII fields (1 KMS call - direct RSA, no CEK)");
 
     // STEP 5: Unwrap DEK via KMS (direct RSA decryption)
-    SecretKey aesDataEncryptionKey = rsaKeyUnwrapper.unwrapKey(encryptedDekBase64);
+    SecretKey dataEncryptionKey = dekDecryptorAndUnwrapper.unwrapAndDecryptDataEncryptionKeyViaAWSKMS(encryptedDataEncryptionKey);
 
     // STEP 6: Decrypt each field locally using DEK
-    String dob = fieldDecryptor.decrypt(encryptedDob, aesDataEncryptionKey);
-    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, aesDataEncryptionKey);
-    String ssn = fieldDecryptor.decrypt(encryptedSsn, aesDataEncryptionKey);
+    String dob = fieldDecryptor.decrypt(encryptedDob, dataEncryptionKey);
+    String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, dataEncryptionKey);
+    String ssn = fieldDecryptor.decrypt(encryptedSsn, dataEncryptionKey);
 
     log.info("All fields decrypted successfully");
     return new DecryptedFields(dob, creditCard, ssn);
@@ -86,12 +86,12 @@ public class HybridDecryptionService {
   /**
    * Decrypts a single encrypted field.
    *
-   * @param encryptedDekBase64 The X-Encryption-Key header value
+   * @param encryptedDataEncryptionKey The X-Encryption-Key header value
    * @param encryptedField     The encrypted field
    * @return The decrypted plaintext value
    */
-  public String decryptField(String encryptedDekBase64, String encryptedField) {
-    SecretKey aesDataEncryptionKey = rsaKeyUnwrapper.unwrapKey(encryptedDekBase64);
+  public String decryptField(String encryptedDataEncryptionKey, String encryptedField) {
+    SecretKey aesDataEncryptionKey = dekDecryptorAndUnwrapper.unwrapAndDecryptDataEncryptionKeyViaAWSKMS(encryptedDataEncryptionKey);
     return fieldDecryptor.decrypt(encryptedField, aesDataEncryptionKey);
   }
 

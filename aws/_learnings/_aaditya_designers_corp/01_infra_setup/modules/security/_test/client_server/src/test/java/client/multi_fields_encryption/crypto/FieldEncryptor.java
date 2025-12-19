@@ -30,7 +30,7 @@ import java.util.Base64;
  * </pre>
  */
 @Component
-public class DataEncryptor {
+public class FieldEncryptor {
 
   private static final int IV_SIZE_BYTES = 12;
   private static final int AUTH_TAG_SIZE_BITS = 128;

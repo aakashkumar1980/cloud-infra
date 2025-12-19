@@ -50,7 +50,7 @@ public class FieldDecryptor {
    * └───────────────────────┘    │        ┌─────────────────────────────────────┐
    *                              │        │                                     │
    * ┌───────────────────────┐    │        │        AES-256-GCM DECRYPT          │
-   * │ aesDataEncryptionKey  │────┼───────►│                                     │
+   * │ dataEncryptionKey  │────┼───────►│                                     │
    * │ (DEK - 32 bytes)      │    │        │  // authTag validates integrity     │
    * └───────────────────────┘    │        │  // Throws if tampered!             │
    *                              │        │                                     │
@@ -66,10 +66,10 @@ public class FieldDecryptor {
    * </pre>
    *
    * @param encryptedField       Format: BASE64(IV).BASE64(EncryptedText).BASE64(AuthTag)
-   * @param aesDataEncryptionKey The AES DEK from KMS decryption
+   * @param dataEncryptionKey The AES DEK from KMS decryption
    * @return The decrypted plaintext string
    */
-  public String decrypt(String encryptedField, SecretKey aesDataEncryptionKey) {
+  public String decrypt(String encryptedField, SecretKey dataEncryptionKey) {
     String[] parts = encryptedField.split("\\.");
     if (parts.length != 3) {
       throw new IllegalArgumentException(
@@ -89,7 +89,7 @@ public class FieldDecryptor {
       // Decrypt
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       GCMParameterSpec gcmSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
-      cipher.init(Cipher.DECRYPT_MODE, aesDataEncryptionKey, gcmSpec);
+      cipher.init(Cipher.DECRYPT_MODE, dataEncryptionKey, gcmSpec);
 
       byte[] plainText = cipher.doFinal(encryptedWithTag);
       return new String(plainText, StandardCharsets.UTF_8);

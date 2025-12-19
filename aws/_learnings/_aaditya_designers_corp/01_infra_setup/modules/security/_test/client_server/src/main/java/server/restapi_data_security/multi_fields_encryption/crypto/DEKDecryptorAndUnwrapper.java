@@ -39,12 +39,12 @@ import java.util.Base64;
  * </ul>
  */
 @Component("multiFieldsRsaKeyUnwrapper")
-public class RsaKeyUnwrapper {
+public class DEKDecryptorAndUnwrapper {
 
   private final KmsClient kmsClient;
   private final String keyArn;
 
-  public RsaKeyUnwrapper(
+  public DEKDecryptorAndUnwrapper(
       KmsClient kmsClient,
       @Value("${aws.kms.asymmetric-key-arn}") String keyArn
   ) {
@@ -92,19 +92,19 @@ public class RsaKeyUnwrapper {
    *
    * <p><b>NOTE:</b> This is the ONLY KMS API call per request!</p>
    *
-   * @param encryptedDekBase64 BASE64-encoded RSA-encrypted DEK from header
+   * @param encryptedDataEncryptionKey BASE64-encoded RSA-encrypted DEK from header
    * @return The AES Data Encryption Key (DEK) for field decryption
    * @throws RuntimeException if decryption fails
    */
-  public SecretKey unwrapKey(String encryptedDekBase64) {
+  public SecretKey unwrapAndDecryptDataEncryptionKeyViaAWSKMS(String encryptedDataEncryptionKey) {
     try {
       // Decode Base64 to get encrypted DEK bytes
-      byte[] encryptedDek = Base64.getDecoder().decode(encryptedDekBase64);
+      byte[] encryptedDataEncryptionKeyBytes = Base64.getDecoder().decode(encryptedDataEncryptionKey);
 
       // Build KMS decrypt request
       DecryptRequest request = DecryptRequest.builder()
           .keyId(keyArn)
-          .ciphertextBlob(SdkBytes.fromByteArray(encryptedDek))
+          .ciphertextBlob(SdkBytes.fromByteArray(encryptedDataEncryptionKeyBytes))
           .encryptionAlgorithm(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256)
           .build();
 
