@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import server.restapi_data_security._common_utils.Utils;
 import server.restapi_data_security.all_fields_encryption.service.OrderService;
 
 /**
@@ -37,11 +38,14 @@ public class OrderController {
 
   private final OrderService orderService;
   private final Gson gson = new Gson();
+  private Utils utils;
 
   public OrderController(
-      @Qualifier("allFieldsOrderService") OrderService orderService
+      @Qualifier("allFieldsOrderService") OrderService orderService,
+      Utils utils
   ) {
     this.orderService = orderService;
+    this.utils = utils;
   }
 
   @GetMapping("/health")
@@ -65,12 +69,12 @@ public class OrderController {
     log.info("[All-Fields] JWE request received (length={})", requestBody.length());
 
     if (requestBody == null || requestBody.isBlank()) {
-      return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Empty request body")));
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Empty request body")));
     }
 
     // Validate JWE format (5 dot-separated parts)
     if (requestBody.split("\\.").length != 5) {
-      return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Invalid JWE format")));
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Invalid JWE format")));
     }
 
     try {
@@ -78,14 +82,8 @@ public class OrderController {
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);
-      return ResponseEntity.badRequest().body(gson.toJson(errorResponse("Order processing failed: " + e.getMessage())));
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Order processing failed: " + e.getMessage())));
     }
   }
 
-  private JsonObject errorResponse(String message) {
-    JsonObject response = new JsonObject();
-    response.addProperty("success", false);
-    response.addProperty("message", message);
-    return response;
-  }
 }

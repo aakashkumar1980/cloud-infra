@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import server.restapi_data_security._common_utils.Utils;
 
 import java.util.UUID;
 
@@ -19,11 +20,14 @@ public class OrderService {
   private final Gson gson = new Gson();
 
   private final HybridDecryptionService hybridDecryptionService;
+  private final Utils utils;
 
   public OrderService(
-      @Qualifier("allFieldsHybridDecryptionService") HybridDecryptionService hybridDecryptionService
+      @Qualifier("allFieldsHybridDecryptionService") HybridDecryptionService hybridDecryptionService,
+      Utils utils
   ) {
     this.hybridDecryptionService = hybridDecryptionService;
+    this.utils = utils;
   }
 
   /**
@@ -45,7 +49,7 @@ public class OrderService {
     String ssn = cardDetails.get("ssn").getAsString();
 
     log.info("Decrypted order - Name: {} | DOB: {} | Card: {} | SSN: {}",
-        name, dob, maskCard(creditCard), maskSsn(ssn));
+        name, dob, utils.maskCard(creditCard), utils.maskSsn(ssn));
 
     // Build response
     JsonObject response = new JsonObject();
@@ -55,20 +59,11 @@ public class OrderService {
     response.addProperty("dateOfBirth", dob);
 
     JsonObject responseCardDetails = new JsonObject();
-    responseCardDetails.addProperty("creditCardNumber", maskCard(creditCard));
-    responseCardDetails.addProperty("ssn", maskSsn(ssn));
+    responseCardDetails.addProperty("creditCardNumber", utils.maskCard(creditCard));
+    responseCardDetails.addProperty("ssn", utils.maskSsn(ssn));
     response.add("cardDetails", responseCardDetails);
 
     return response;
   }
 
-  private String maskCard(String card) {
-    if (card == null || card.length() < 4) return "****";
-    return "****-****-****-" + card.substring(card.length() - 4);
-  }
-
-  private String maskSsn(String ssn) {
-    if (ssn == null || ssn.length() < 4) return "***-**-****";
-    return "***-**-" + ssn.substring(ssn.length() - 4);
-  }
 }
