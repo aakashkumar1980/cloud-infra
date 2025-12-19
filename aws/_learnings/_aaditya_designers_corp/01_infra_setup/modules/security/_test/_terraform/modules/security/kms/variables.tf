@@ -6,6 +6,7 @@
  *   - Private Key: Never leaves KMS, used for decryption
  *
  * NOTE: If the KMS key already exists in AWS, it will be reused (not recreated).
+ *       Uses aws_kms_aliases data source to detect existing keys.
  */
 
 variable "name_suffix" {
@@ -21,16 +22,6 @@ variable "key_deletion_window" {
 
 variable "account_id" {
   description = "AWS Account ID"
-  type        = string
-}
-
-variable "profile" {
-  description = "AWS CLI profile name for checking existing resources"
-  type        = string
-}
-
-variable "region" {
-  description = "AWS region for checking existing resources"
   type        = string
 }
 
