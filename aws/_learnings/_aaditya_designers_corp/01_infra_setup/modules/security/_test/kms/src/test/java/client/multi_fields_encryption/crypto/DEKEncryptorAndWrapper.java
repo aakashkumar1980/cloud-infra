@@ -11,7 +11,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 
 /**
- * RSA Key Wrapper - Wraps AES DEK using RSA-OAEP-256 encryption.
+ * DEK Encryptor and Wrapper - Wraps AES DEK using RSA-OAEP-256 encryption.
  *
  * <h2>STEP 3 (CLIENT): Wrap DEK with RSA Public Key</h2>
  * <pre>
