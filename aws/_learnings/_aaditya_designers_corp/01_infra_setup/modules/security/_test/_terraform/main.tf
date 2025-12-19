@@ -13,6 +13,7 @@
 
 # -----------------------------------------------------------------------------
 # KMS Module - Asymmetric Key
+# NOTE: Reuses existing KMS key if found (detected via data sources)
 # -----------------------------------------------------------------------------
 module "kms" {
   source = "./modules/security/kms"
@@ -24,6 +25,8 @@ module "kms" {
   name_suffix          = local.name_suffix
   key_deletion_window  = var.key_deletion_window
   account_id           = data.aws_caller_identity.current.account_id
+  profile              = var.profile
+  region               = local.regions_cfg[local.REGION_N_VIRGINIA]
   tags                 = local.tags_common
 }
 

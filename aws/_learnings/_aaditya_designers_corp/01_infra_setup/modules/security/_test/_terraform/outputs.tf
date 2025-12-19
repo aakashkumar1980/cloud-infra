@@ -24,6 +24,11 @@ output "asymmetric_key_alias" {
   value       = module.kms.key_alias
 }
 
+output "asymmetric_key_reused" {
+  description = "Whether an existing KMS key was reused (true) or new key created (false)"
+  value       = module.kms.key_reused
+}
+
 # -----------------------------------------------------------------------------
 # IAM Outputs - For Backend Application
 # -----------------------------------------------------------------------------
