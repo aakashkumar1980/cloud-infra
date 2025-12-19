@@ -27,3 +27,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "create_resources" {
+  description = "Whether to create new resources or use existing ones"
+  type        = bool
+  default     = true
+}
