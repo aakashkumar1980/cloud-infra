@@ -70,7 +70,7 @@ echo   Importing into Terraform state...
 REM Import KMS key
 echo.
 echo   Importing KMS key...
-terraform import -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID!
+terraform import -backup=- -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID!
 if %errorlevel% equ 0 (
     echo     - KMS key imported successfully
 ) else (
@@ -79,7 +79,7 @@ if %errorlevel% equ 0 (
 
 REM Import KMS alias
 echo   Importing KMS alias...
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric "!KMS_ALIAS!"
+terraform import -backup=- -var="profile=dev" module.kms.aws_kms_alias.asymmetric "!KMS_ALIAS!"
 if %errorlevel% equ 0 (
     echo     - KMS alias imported successfully
 ) else (
