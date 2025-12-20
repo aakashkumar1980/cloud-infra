@@ -19,10 +19,10 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Extract component_version from locals.tf using PowerShell
+REM Extract component_version from locals.tf using PowerShell helper script
 echo.
 echo Checking for existing KMS key in AWS...
-for /f "tokens=*" %%v in ('powershell -Command "(Get-Content 'locals.tf' ^| Select-String 'component_version\s*=\s*\"([^\"]+)\"' ^| ForEach-Object { $_.Matches.Groups[1].Value })"') do set "VERSION=%%v"
+for /f "tokens=*" %%v in ('powershell -ExecutionPolicy Bypass -File "%~dp0get_version.ps1"') do set "VERSION=%%v"
 
 if not defined VERSION (
     echo WARNING: Could not extract version from locals.tf - proceeding with apply
