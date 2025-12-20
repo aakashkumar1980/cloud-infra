@@ -19,20 +19,29 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Extract component_version from locals.tf using PowerShell helper script
+REM Extract component_version and company from config files using PowerShell helper script
 echo.
 echo Checking for existing KMS key in AWS...
-for /f "tokens=*" %%v in ('powershell -ExecutionPolicy Bypass -File "%~dp0get_version.ps1"') do set "VERSION=%%v"
+for /f "tokens=1,2 delims=|" %%a in ('powershell -ExecutionPolicy Bypass -File "%~dp0get_version.ps1"') do (
+    set "VERSION=%%a"
+    set "COMPANY=%%b"
+)
 
 if not defined VERSION (
     echo WARNING: Could not extract version from locals.tf - proceeding with apply
     goto :apply
 )
 
-echo   Current version: !VERSION!
+if not defined COMPANY (
+    echo WARNING: Could not extract company from tags.yaml - proceeding with apply
+    goto :apply
+)
 
-REM Construct the alias name pattern
-set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-aaditya_designers_corp_!VERSION!-terraform"
+echo   Current version: !VERSION!
+echo   Company: !COMPANY!
+
+REM Construct the alias name pattern (matches name_suffix_version in locals.tf)
+set "KMS_ALIAS=alias/test_asymmetric_kms-nvirginia-dev-!COMPANY!_!VERSION!-terraform"
 echo   Expected alias: !KMS_ALIAS!
 
 REM Check if alias exists in AWS
@@ -51,20 +60,23 @@ if "!KEY_ID!"=="None" (
 echo   Found existing KMS key: !KEY_ID!
 echo   Importing into Terraform state...
 
-REM Import KMS key (ignore error if already in state)
-terraform import -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID! 2>nul
+REM Import KMS key
+echo.
+echo   Importing KMS key...
+terraform import -var="profile=dev" module.kms.aws_kms_key.asymmetric !KEY_ID!
 if %errorlevel% equ 0 (
     echo     - KMS key imported successfully
 ) else (
-    echo     - KMS key already in state or import skipped
+    echo     - KMS key import failed or already in state
 )
 
-REM Import KMS alias (ignore error if already in state)
-terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric "!KMS_ALIAS!" 2>nul
+REM Import KMS alias
+echo   Importing KMS alias...
+terraform import -var="profile=dev" module.kms.aws_kms_alias.asymmetric "!KMS_ALIAS!"
 if %errorlevel% equ 0 (
     echo     - KMS alias imported successfully
 ) else (
-    echo     - KMS alias already in state or import skipped
+    echo     - KMS alias import failed or already in state
 )
 
 :apply
