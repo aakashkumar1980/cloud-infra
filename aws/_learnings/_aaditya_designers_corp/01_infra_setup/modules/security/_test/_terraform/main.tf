@@ -22,7 +22,7 @@ module "kms" {
     aws = aws.nvirginia
   }
 
-  name_suffix          = local.name_suffix
+  name_suffix          = local.name_suffix_version
   key_deletion_window  = var.key_deletion_window
   account_id           = data.aws_caller_identity.current.account_id
   tags                 = local.tags_common
