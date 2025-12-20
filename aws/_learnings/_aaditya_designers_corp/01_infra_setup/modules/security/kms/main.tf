@@ -84,6 +84,11 @@ resource "aws_kms_key" "kms_nvirginia" {
   tags = {
     Name = "symmetric_kms-${var.name_suffix_nvirginia}"
   }
+
+  # Prevent accidental deletion - KMS keys are critical infrastructure
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_kms_alias" "kms_nvirginia" {
@@ -91,6 +96,11 @@ resource "aws_kms_alias" "kms_nvirginia" {
 
   name          = "alias/symmetric_kms-${var.name_suffix_nvirginia}"
   target_key_id = aws_kms_key.kms_nvirginia.key_id
+
+  # Prevent accidental deletion
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -157,6 +167,11 @@ resource "aws_kms_replica_key" "kms_london" {
   tags = {
     Name = "replica_symmetric_kms-${var.name_suffix_london}"
   }
+
+  # Prevent accidental deletion - KMS keys are critical infrastructure
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_kms_alias" "kms_london" {
@@ -164,4 +179,9 @@ resource "aws_kms_alias" "kms_london" {
 
   name          = "alias/replica_symmetric_kms-${var.name_suffix_london}"
   target_key_id = aws_kms_replica_key.kms_london.key_id
+
+  # Prevent accidental deletion
+  lifecycle {
+    prevent_destroy = true
+  }
 }
