@@ -87,9 +87,9 @@ if defined KEY_ID_NV (
     if not "!KEY_ID_NV!"=="None" (
         echo     Found existing KMS key: !KEY_ID_NV!
         echo     Importing N. Virginia KMS key...
-        terraform import -var="profile=dev" module.kms.aws_kms_key.kms_nvirginia !KEY_ID_NV!
+        terraform import -backup=- -var="profile=dev" module.kms.aws_kms_key.kms_nvirginia !KEY_ID_NV!
         echo     Importing N. Virginia KMS alias...
-        terraform import -var="profile=dev" module.kms.aws_kms_alias.kms_nvirginia "!KMS_ALIAS_NVIRGINIA!"
+        terraform import -backup=- -var="profile=dev" module.kms.aws_kms_alias.kms_nvirginia "!KMS_ALIAS_NVIRGINIA!"
     ) else (
         echo     No existing KMS key found - will create new one
     )
@@ -106,9 +106,9 @@ if defined KEY_ID_LN (
     if not "!KEY_ID_LN!"=="None" (
         echo     Found existing KMS replica key: !KEY_ID_LN!
         echo     Importing London KMS replica key...
-        terraform import -var="profile=dev" module.kms.aws_kms_replica_key.kms_london !KEY_ID_LN!
+        terraform import -backup=- -var="profile=dev" module.kms.aws_kms_replica_key.kms_london !KEY_ID_LN!
         echo     Importing London KMS alias...
-        terraform import -var="profile=dev" module.kms.aws_kms_alias.kms_london "!KMS_ALIAS_LONDON!"
+        terraform import -backup=- -var="profile=dev" module.kms.aws_kms_alias.kms_london "!KMS_ALIAS_LONDON!"
     ) else (
         echo     No existing KMS replica key found - will create new one
     )
