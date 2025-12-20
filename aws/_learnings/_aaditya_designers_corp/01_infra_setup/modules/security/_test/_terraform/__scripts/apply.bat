@@ -48,8 +48,8 @@ REM Remove old KMS resources from state to handle version changes
 REM This doesn't delete from AWS, just removes from Terraform tracking
 echo.
 echo   Clearing old KMS resources from state (if any)...
-terraform state rm module.kms.aws_kms_key.asymmetric 2>nul
-terraform state rm module.kms.aws_kms_alias.asymmetric 2>nul
+terraform state rm -backup=- module.kms.aws_kms_key.asymmetric 2>nul
+terraform state rm -backup=- module.kms.aws_kms_alias.asymmetric 2>nul
 
 REM Check if alias exists in AWS
 for /f "tokens=*" %%i in ('aws kms describe-key --key-id "!KMS_ALIAS!" --region us-east-1 --profile dev --query "KeyMetadata.KeyId" --output text 2^>nul') do set "KEY_ID=%%i"
