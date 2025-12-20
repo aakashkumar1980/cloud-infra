@@ -3,7 +3,8 @@ REM ============================================================================
 REM Terraform Apply All - Complete Infrastructure Deployment
 REM ============================================================================
 REM
-REM Deploys all AWS infrastructure in dependency order.
+REM Deploys all AWS infrastructure by calling each module's apply.bat script.
+REM Each module's apply.bat handles its own dependencies.
 REM
 REM Apply Sequence:
 REM   1. base_network           - VPCs (N. Virginia + London)
@@ -17,7 +18,6 @@ REM ============================================================================
 setlocal EnableDelayedExpansion
 
 set "AWS_ROOT=%~dp0.."
-set "PROFILE=dev"
 set "ERROR_COUNT=0"
 
 echo.
@@ -43,15 +43,15 @@ REM ============================================================================
 echo [1/5] Applying base_network (VPCs)...
 echo ----------------------------------------------------------------------------
 
-set "STEP1_DIR=%AWS_ROOT%\base_network"
-if not exist "%STEP1_DIR%" (
-    echo WARNING: Directory not found: %STEP1_DIR%
+set "STEP1_SCRIPT=%AWS_ROOT%\base_network\__scripts\apply.bat"
+if not exist "%STEP1_SCRIPT%" (
+    echo WARNING: Script not found: %STEP1_SCRIPT%
     goto step2
 )
 
-cd /d "%STEP1_DIR%"
-call :run_terraform
+call "%STEP1_SCRIPT%"
 if !errorlevel! neq 0 (
+    echo ERROR: base_network apply failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Base network applied
@@ -65,15 +65,15 @@ REM ============================================================================
 echo [2/5] Applying vpc_peering/01_same_region...
 echo ----------------------------------------------------------------------------
 
-set "STEP2_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
-if not exist "%STEP2_DIR%" (
-    echo WARNING: Directory not found: %STEP2_DIR%
+set "STEP2_SCRIPT=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\01_same_region\__scripts\apply.bat"
+if not exist "%STEP2_SCRIPT%" (
+    echo WARNING: Script not found: %STEP2_SCRIPT%
     goto step3
 )
 
-cd /d "%STEP2_DIR%"
-call :run_terraform
+call "%STEP2_SCRIPT%"
 if !errorlevel! neq 0 (
+    echo ERROR: vpc_peering/01_same_region apply failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Same-region VPC peering applied
@@ -87,15 +87,15 @@ REM ============================================================================
 echo [3/5] Applying vpc_peering/02_different_region...
 echo ----------------------------------------------------------------------------
 
-set "STEP3_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
-if not exist "%STEP3_DIR%" (
-    echo WARNING: Directory not found: %STEP3_DIR%
+set "STEP3_SCRIPT=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\02_different_region\__scripts\apply.bat"
+if not exist "%STEP3_SCRIPT%" (
+    echo WARNING: Script not found: %STEP3_SCRIPT%
     goto step4
 )
 
-cd /d "%STEP3_DIR%"
-call :run_terraform
+call "%STEP3_SCRIPT%"
 if !errorlevel! neq 0 (
+    echo ERROR: vpc_peering/02_different_region apply failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Cross-region VPC peering applied
@@ -109,15 +109,15 @@ REM ============================================================================
 echo [4/5] Applying 01_infra_setup (KMS + Secrets Manager)...
 echo ----------------------------------------------------------------------------
 
-set "STEP4_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup"
-if not exist "%STEP4_DIR%" (
-    echo WARNING: Directory not found: %STEP4_DIR%
+set "STEP4_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\__scripts\apply.bat"
+if not exist "%STEP4_SCRIPT%" (
+    echo WARNING: Script not found: %STEP4_SCRIPT%
     goto step5
 )
 
-cd /d "%STEP4_DIR%"
-call :run_terraform
+call "%STEP4_SCRIPT%"
 if !errorlevel! neq 0 (
+    echo ERROR: 01_infra_setup apply failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: KMS + Secrets Manager applied
@@ -131,15 +131,15 @@ REM ============================================================================
 echo [5/5] Applying security/_test/_terraform (IAM module)...
 echo ----------------------------------------------------------------------------
 
-set "STEP5_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform"
-if not exist "%STEP5_DIR%" (
-    echo WARNING: Directory not found: %STEP5_DIR%
+set "STEP5_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform\__scripts\apply.bat"
+if not exist "%STEP5_SCRIPT%" (
+    echo WARNING: Script not found: %STEP5_SCRIPT%
     goto summary
 )
 
-cd /d "%STEP5_DIR%"
-call :run_terraform
+call "%STEP5_SCRIPT%"
 if !errorlevel! neq 0 (
+    echo ERROR: security/_test/_terraform apply failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: security/_test applied
@@ -162,19 +162,3 @@ echo ===========================================================================
 cd /d "%AWS_ROOT%\__scripts"
 endlocal
 exit /b %ERROR_COUNT%
-
-REM ============================================================================
-REM Subroutine: Run terraform init and apply
-REM ============================================================================
-:run_terraform
-terraform init -input=false
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed
-    exit /b 1
-)
-terraform apply -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform apply failed
-    exit /b 1
-)
-exit /b 0
