@@ -89,7 +89,7 @@ if %errorlevel% equ 0 (
 :apply
 echo.
 echo Running Terraform Apply with auto-approve...
-terraform apply -var="profile=dev" -auto-approve
+terraform apply -var="profile=dev" -auto-approve -backup=-
 if %errorlevel% neq 0 (
     echo ERROR: Terraform apply failed
     exit /b %errorlevel%

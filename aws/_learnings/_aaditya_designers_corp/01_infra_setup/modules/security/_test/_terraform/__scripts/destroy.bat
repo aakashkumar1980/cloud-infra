@@ -20,7 +20,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Destroying IAM module (user + access keys)...
-terraform destroy -target=module.iam -var="profile=dev" -auto-approve
+terraform destroy -target=module.iam -var="profile=dev" -auto-approve -backup=-
 if %errorlevel% neq 0 (
     echo ERROR: IAM module destroy failed
     exit /b %errorlevel%

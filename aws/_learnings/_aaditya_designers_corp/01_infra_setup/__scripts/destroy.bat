@@ -20,7 +20,7 @@ if %errorlevel% neq 0 (
 echo.
 echo Running Terraform Destroy (excluding KMS module)...
 REM Destroy secrets_manager but preserve KMS for reuse
-terraform destroy -var="profile=dev" -target=module.secrets_manager -auto-approve
+terraform destroy -var="profile=dev" -target=module.secrets_manager -auto-approve -backup=-
 if %errorlevel% neq 0 (
     echo ERROR: Terraform destroy failed
     exit /b %errorlevel%

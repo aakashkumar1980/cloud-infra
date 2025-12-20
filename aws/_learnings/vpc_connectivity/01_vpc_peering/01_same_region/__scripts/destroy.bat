@@ -18,7 +18,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Running Terraform Destroy with auto-approve...
-terraform destroy -var="profile=dev" -auto-approve
+terraform destroy -var="profile=dev" -auto-approve -backup=-
 if %errorlevel% neq 0 (
     echo ERROR: Terraform destroy failed
     exit /b %errorlevel%
