@@ -40,7 +40,7 @@ echo.
 REM ============================================================================
 REM Step 1: Apply Base Network (VPCs)
 REM ============================================================================
-echo [1/5] Applying base_network (VPCs)...
+echo [1/5] Applying base_network - VPCs...
 echo ----------------------------------------------------------------------------
 
 set "STEP1_SCRIPT=%AWS_ROOT%\base_network\__scripts\apply.bat"
@@ -106,7 +106,7 @@ echo.
 REM ============================================================================
 REM Step 4: Apply 01_infra_setup (KMS + Secrets Manager)
 REM ============================================================================
-echo [4/5] Applying 01_infra_setup (KMS + Secrets Manager)...
+echo [4/5] Applying 01_infra_setup - KMS + Secrets Manager...
 echo ----------------------------------------------------------------------------
 
 set "STEP4_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\__scripts\apply.bat"
@@ -128,7 +128,7 @@ echo.
 REM ============================================================================
 REM Step 5: Apply security/_test (IAM module)
 REM ============================================================================
-echo [5/5] Applying security/_test/_terraform (IAM module)...
+echo [5/5] Applying security/_test/_terraform - IAM module...
 echo ----------------------------------------------------------------------------
 
 set "STEP5_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform\__scripts\apply.bat"
@@ -154,7 +154,7 @@ echo.
 if %ERROR_COUNT% equ 0 (
     echo STATUS: All components applied successfully!
 ) else (
-    echo STATUS: Completed with %ERROR_COUNT% error(s)
+    echo STATUS: Completed with %ERROR_COUNT% errors
 )
 echo.
 echo ============================================================================
