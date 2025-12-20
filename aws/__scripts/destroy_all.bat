@@ -3,7 +3,8 @@ REM ============================================================================
 REM Terraform Destroy All - Complete Infrastructure Teardown
 REM ============================================================================
 REM
-REM Destroys all AWS infrastructure in dependency order (reverse of creation).
+REM Destroys all AWS infrastructure by calling each module's destroy.bat script.
+REM Destroys in reverse dependency order.
 REM KMS keys are PRESERVED to avoid accidental deletion of encryption keys.
 REM
 REM Destroy Sequence:
@@ -18,7 +19,6 @@ REM ============================================================================
 setlocal EnableDelayedExpansion
 
 set "AWS_ROOT=%~dp0.."
-set "PROFILE=dev"
 set "ERROR_COUNT=0"
 
 echo.
@@ -44,23 +44,15 @@ REM ============================================================================
 echo [1/5] Destroying security/_test/_terraform (IAM module)...
 echo ----------------------------------------------------------------------------
 
-set "STEP1_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform"
-if not exist "%STEP1_DIR%" (
-    echo WARNING: Directory not found: %STEP1_DIR%
+set "STEP1_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\modules\security\_test\_terraform\__scripts\destroy.bat"
+if not exist "%STEP1_SCRIPT%" (
+    echo WARNING: Script not found: %STEP1_SCRIPT%
     goto step2
 )
 
-cd /d "%STEP1_DIR%"
-terraform init -input=false
+call "%STEP1_SCRIPT%"
 if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed for security/_test
-    set /a ERROR_COUNT+=1
-    goto step2
-)
-
-terraform destroy -target=module.iam -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform destroy failed for security/_test IAM module
+    echo ERROR: security/_test/_terraform destroy failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: security/_test IAM module destroyed (KMS preserved)
@@ -74,23 +66,15 @@ REM ============================================================================
 echo [2/5] Destroying 01_infra_setup (Secrets Manager)...
 echo ----------------------------------------------------------------------------
 
-set "STEP2_DIR=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup"
-if not exist "%STEP2_DIR%" (
-    echo WARNING: Directory not found: %STEP2_DIR%
+set "STEP2_SCRIPT=%AWS_ROOT%\_learnings\_aaditya_designers_corp\01_infra_setup\__scripts\destroy.bat"
+if not exist "%STEP2_SCRIPT%" (
+    echo WARNING: Script not found: %STEP2_SCRIPT%
     goto step3
 )
 
-cd /d "%STEP2_DIR%"
-terraform init -input=false
+call "%STEP2_SCRIPT%"
 if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed for 01_infra_setup
-    set /a ERROR_COUNT+=1
-    goto step3
-)
-
-terraform destroy -target=module.secrets_manager -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform destroy failed for secrets_manager
+    echo ERROR: 01_infra_setup destroy failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Secrets Manager destroyed (KMS preserved)
@@ -104,23 +88,15 @@ REM ============================================================================
 echo [3/5] Destroying vpc_peering/02_different_region...
 echo ----------------------------------------------------------------------------
 
-set "STEP3_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\02_different_region"
-if not exist "%STEP3_DIR%" (
-    echo WARNING: Directory not found: %STEP3_DIR%
+set "STEP3_SCRIPT=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\02_different_region\__scripts\destroy.bat"
+if not exist "%STEP3_SCRIPT%" (
+    echo WARNING: Script not found: %STEP3_SCRIPT%
     goto step4
 )
 
-cd /d "%STEP3_DIR%"
-terraform init -input=false
+call "%STEP3_SCRIPT%"
 if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed for vpc_peering/02_different_region
-    set /a ERROR_COUNT+=1
-    goto step4
-)
-
-terraform destroy -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform destroy failed for vpc_peering/02_different_region
+    echo ERROR: vpc_peering/02_different_region destroy failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Cross-region VPC peering destroyed
@@ -134,23 +110,15 @@ REM ============================================================================
 echo [4/5] Destroying vpc_peering/01_same_region...
 echo ----------------------------------------------------------------------------
 
-set "STEP4_DIR=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\01_same_region"
-if not exist "%STEP4_DIR%" (
-    echo WARNING: Directory not found: %STEP4_DIR%
+set "STEP4_SCRIPT=%AWS_ROOT%\_learnings\vpc_connectivity\01_vpc_peering\01_same_region\__scripts\destroy.bat"
+if not exist "%STEP4_SCRIPT%" (
+    echo WARNING: Script not found: %STEP4_SCRIPT%
     goto step5
 )
 
-cd /d "%STEP4_DIR%"
-terraform init -input=false
+call "%STEP4_SCRIPT%"
 if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed for vpc_peering/01_same_region
-    set /a ERROR_COUNT+=1
-    goto step5
-)
-
-terraform destroy -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform destroy failed for vpc_peering/01_same_region
+    echo ERROR: vpc_peering/01_same_region destroy failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Same-region VPC peering destroyed
@@ -164,23 +132,15 @@ REM ============================================================================
 echo [5/5] Destroying base_network (VPCs)...
 echo ----------------------------------------------------------------------------
 
-set "STEP5_DIR=%AWS_ROOT%\base_network"
-if not exist "%STEP5_DIR%" (
-    echo WARNING: Directory not found: %STEP5_DIR%
+set "STEP5_SCRIPT=%AWS_ROOT%\base_network\__scripts\destroy.bat"
+if not exist "%STEP5_SCRIPT%" (
+    echo WARNING: Script not found: %STEP5_SCRIPT%
     goto summary
 )
 
-cd /d "%STEP5_DIR%"
-terraform init -input=false
+call "%STEP5_SCRIPT%"
 if !errorlevel! neq 0 (
-    echo ERROR: Terraform init failed for base_network
-    set /a ERROR_COUNT+=1
-    goto summary
-)
-
-terraform destroy -var="profile=%PROFILE%" -auto-approve
-if !errorlevel! neq 0 (
-    echo ERROR: Terraform destroy failed for base_network
+    echo ERROR: base_network destroy failed
     set /a ERROR_COUNT+=1
 ) else (
     echo SUCCESS: Base network (VPCs) destroyed
