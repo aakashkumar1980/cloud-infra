@@ -19,12 +19,12 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-REM Get the name_suffix dynamically from Terraform (includes version)
+REM Get the name_suffix_version dynamically from Terraform (includes version)
 echo.
 echo Getting current version alias name from Terraform...
 REM Disable color output to avoid ANSI codes in the result
 set "NO_COLOR=1"
-echo local.name_suffix | terraform console -var="profile=dev" > "%TEMP%\name_suffix.txt" 2>nul
+echo local.name_suffix_version | terraform console -var="profile=dev" > "%TEMP%\name_suffix.txt" 2>nul
 set "NO_COLOR="
 set /p NAME_SUFFIX=<"%TEMP%\name_suffix.txt"
 del "%TEMP%\name_suffix.txt" 2>nul
