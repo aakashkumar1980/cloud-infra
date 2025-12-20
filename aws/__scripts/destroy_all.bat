@@ -26,11 +26,11 @@ echo ===========================================================================
 echo                    TERRAFORM DESTROY ALL
 echo ============================================================================
 echo.
-echo This script will destroy all infrastructure (KMS keys preserved).
+echo This script will destroy all infrastructure. KMS keys are preserved.
 echo.
 echo Destroy sequence:
-echo   1. security/_test/_terraform    (IAM only)
-echo   2. 01_infra_setup          (Secrets Manager only)
+echo   1. security/_test/_terraform    - IAM only
+echo   2. 01_infra_setup          - Secrets Manager only
 echo   3. vpc_peering/02_different_region
 echo   4. vpc_peering/01_same_region
 echo   5. base_network
@@ -55,7 +55,7 @@ if !errorlevel! neq 0 (
     echo ERROR: security/_test/_terraform destroy failed
     set /a ERROR_COUNT+=1
 ) else (
-    echo SUCCESS: security/_test IAM module destroyed (KMS preserved)
+    echo SUCCESS: security/_test IAM module destroyed - KMS preserved
 )
 
 :step2
@@ -77,7 +77,7 @@ if !errorlevel! neq 0 (
     echo ERROR: 01_infra_setup destroy failed
     set /a ERROR_COUNT+=1
 ) else (
-    echo SUCCESS: Secrets Manager destroyed (KMS preserved)
+    echo SUCCESS: Secrets Manager destroyed - KMS preserved
 )
 
 :step3
@@ -143,7 +143,7 @@ if !errorlevel! neq 0 (
     echo ERROR: base_network destroy failed
     set /a ERROR_COUNT+=1
 ) else (
-    echo SUCCESS: Base network (VPCs) destroyed
+    echo SUCCESS: Base network VPCs destroyed
 )
 
 :summary
@@ -155,10 +155,10 @@ echo.
 if %ERROR_COUNT% equ 0 (
     echo STATUS: All components destroyed successfully!
 ) else (
-    echo STATUS: Completed with %ERROR_COUNT% error(s)
+    echo STATUS: Completed with %ERROR_COUNT% errors
 )
 echo.
-echo Preserved resources (not destroyed):
+echo Preserved resources - not destroyed:
 echo   - KMS keys in security/_test/_terraform
 echo   - KMS keys in 01_infra_setup
 echo.
