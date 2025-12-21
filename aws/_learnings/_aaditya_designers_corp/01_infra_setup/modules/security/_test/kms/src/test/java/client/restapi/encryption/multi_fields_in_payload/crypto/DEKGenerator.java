@@ -1,4 +1,4 @@
-package client.multi_fields_encryption.crypto;
+package client.restapi.encryption.multi_fields_in_payload.crypto;
 
 import org.springframework.stereotype.Component;
 

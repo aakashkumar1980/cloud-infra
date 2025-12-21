@@ -1,8 +1,8 @@
-package client.multi_fields_encryption.service;
+package client.restapi.encryption.multi_fields_in_payload.service;
 
-import client.multi_fields_encryption.crypto.DEKGenerator;
-import client.multi_fields_encryption.crypto.FieldEncryptor;
-import client.multi_fields_encryption.crypto.DEKEncryptorAndWrapper;
+import client.restapi.encryption.multi_fields_in_payload.crypto.DEKGenerator;
+import client.restapi.encryption.multi_fields_in_payload.crypto.FieldEncryptor;
+import client.restapi.encryption.multi_fields_in_payload.crypto.DEKEncryptorAndWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
