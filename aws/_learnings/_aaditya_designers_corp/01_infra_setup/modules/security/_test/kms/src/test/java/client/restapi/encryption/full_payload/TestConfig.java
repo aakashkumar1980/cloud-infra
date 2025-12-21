@@ -5,9 +5,9 @@ import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Test configuration for All-Fields JWE encryption tests.
- * Scans client.all_fields package for test components.
+ * Scans client packages for test components.
  */
 @TestConfiguration
-@ComponentScan(basePackages = {"client.all_fields"})
+@ComponentScan(basePackages = {"client.restapi.encryption.full_payload", "client._common"})
 public class TestConfig {
 }

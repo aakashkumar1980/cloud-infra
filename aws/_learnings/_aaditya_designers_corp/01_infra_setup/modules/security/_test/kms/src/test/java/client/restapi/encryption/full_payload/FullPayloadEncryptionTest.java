@@ -59,6 +59,7 @@ class FullPayloadEncryptionTest {
   private HybridEncryptionService hybridEncryptionService;
 
   @Autowired
+  @Qualifier("clientUtils")
   private Utils utils;
   private final Gson gson = new Gson();
 
