@@ -85,7 +85,6 @@ class MultiFieldsEncryptionTest {
 
     log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadPublicKey();
-
     log.info("\n=== Step 2: Generate DEK & Wrap with RSA (Direct, No CEK) ===");
     hybridEncryptionService.generateEncryptAndWrapDataEncryptionKey();
 
