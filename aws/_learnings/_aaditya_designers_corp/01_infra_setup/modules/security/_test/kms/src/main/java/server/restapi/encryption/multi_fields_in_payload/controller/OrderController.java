@@ -80,6 +80,7 @@ public class OrderController {
 
     try {
       JsonObject response = orderService.processOrder(jsonPayload, encryptedDataEncryptionKey);
+      log.info("Response Body: {}", gson.toJson(response));
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);

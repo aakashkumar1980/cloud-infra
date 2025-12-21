@@ -60,17 +60,14 @@ public class OrderService {
     String encryptedCreditCard = cardDetails.get("creditCardNumber").getAsString();
     String encryptedSsn = cardDetails.get("ssn").getAsString();
 
-    // Decrypt all fields (1 KMS call)
-    // STEP 5: Unwrap DEK via KMS (direct RSA decryption)
+    log.info("\n=== Step 6: Unwrapping and decrypting DEK via AWS KMS (1 KMS call) ===");
     SecretKey dataEncryptionKey =
         dekDecryptorAndUnwrapper.unwrapAndDecryptDataEncryptionKeyViaAWSKMS(encryptedDataEncryptionKey);
 
-    // STEP 6: Decrypt each field locally using DEK
+    log.info("\n=== Step 7: Decrypting PII fields locally using DEK ===");
     String dob = fieldDecryptor.decrypt(encryptedDob, dataEncryptionKey);
     String creditCard = fieldDecryptor.decrypt(encryptedCreditCard, dataEncryptionKey);
     String ssn = fieldDecryptor.decrypt(encryptedSsn, dataEncryptionKey);
-    log.info("Decrypted PII - DOB: {} | Card: {} | SSN: {}",
-        dob, utils.maskCard(creditCard), utils.maskSsn(ssn));
 
     // Build response with decrypted/masked data
     JsonObject response = new JsonObject();
