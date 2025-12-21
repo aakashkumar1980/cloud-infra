@@ -58,3 +58,13 @@
 /build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/MultiFieldsEncryptionTest$Order.class
 /build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/MultiFieldsEncryptionTest.class
 /build/resources/test/sample-order.json
+/build/classes/java/test/client/restapi/encryption/full_payload/FullPayloadEncryptionTest$Order.class
+/build/classes/java/test/client/restapi/encryption/full_payload/FullPayloadEncryptionTest.class
+/build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/crypto/DEKEncryptorAndWrapper.class
+/build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/crypto/DEKGenerator.class
+/build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/crypto/FieldEncryptor.class
+/build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/service/HybridEncryptionService.class
+/build/classes/java/test/client/restapi/encryption/multi_fields_in_payload/TestConfig.class
+/build/reports/tests/test/classes/client.restapi.encryption.multi_fields_in_payload.MultiFieldsEncryptionTest.html
+/build/reports/tests/test/packages/client.restapi.encryption.multi_fields_in_payload.html
+/build/test-results/test/TEST-client.restapi.encryption.multi_fields_in_payload.MultiFieldsEncryptionTest.xml

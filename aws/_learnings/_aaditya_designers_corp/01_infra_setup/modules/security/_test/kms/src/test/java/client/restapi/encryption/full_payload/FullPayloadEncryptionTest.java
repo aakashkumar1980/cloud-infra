@@ -41,9 +41,9 @@ import static org.junit.jupiter.api.Assertions.*;
 )
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class AllFieldsEncryptionTest {
+class FullPayloadEncryptionTest {
 
-  private static final Logger log = LoggerFactory.getLogger(AllFieldsEncryptionTest.class);
+  private static final Logger log = LoggerFactory.getLogger(FullPayloadEncryptionTest.class);
 
   @LocalServerPort
   private int port;
