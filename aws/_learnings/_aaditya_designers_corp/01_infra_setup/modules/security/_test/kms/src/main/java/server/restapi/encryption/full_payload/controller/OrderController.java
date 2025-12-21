@@ -66,12 +66,10 @@ public class OrderController {
   public ResponseEntity<String> submitOrder(
       @RequestBody String requestBody
   ) {
-    log.info("[All-Fields] JWE request received (length={})", requestBody.length());
-
+    log.info("Request Body: {}", utils.truncate(requestBody, 60));
     if (requestBody == null || requestBody.isBlank()) {
       return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Empty request body")));
     }
-
     // Validate JWE format (5 dot-separated parts)
     if (requestBody.split("\\.").length != 5) {
       return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Invalid JWE format")));
@@ -79,6 +77,7 @@ public class OrderController {
 
     try {
       JsonObject response = orderService.processOrder(requestBody);
+      log.info("Response Body: {}", gson.toJson(response));
       return ResponseEntity.ok(gson.toJson(response));
     } catch (Exception e) {
       log.error("Order processing failed: {}", e.getMessage(), e);

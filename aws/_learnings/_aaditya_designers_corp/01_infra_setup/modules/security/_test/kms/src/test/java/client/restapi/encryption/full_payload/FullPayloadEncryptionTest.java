@@ -85,7 +85,6 @@ class FullPayloadEncryptionTest {
     JsonObject order = utils.loadSampleOrder();
     String orderJson = gson.toJson(order);
     String payload = hybridEncryptionService.encryptPayload(orderJson);
-    log.info("JWE created (length={}): {}", payload.length(), utils.truncate(payload, 60));
 
     return new Order(payload);
   }
@@ -96,17 +95,15 @@ class FullPayloadEncryptionTest {
    * @param order JWE string to submit
    */
   private void submitAndVerifyOrder(Order order) {
-    log.info("\n=== Step 4: Submit JWE to API ===");
-
+    log.info("\n=== Step 3: Submit Order to API ===");
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.TEXT_PLAIN);
     HttpEntity<String> request = new HttpEntity<>(order.payload(), headers);
-    log.info("POST /api/v1/all-fields/orders (body=JWE)");
+    log.info("POST /api/v1/all-fields/orders");
+    log.info("Request Body: {}", utils.truncate(order.payload(), 60));
 
     ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", request, String.class);
-
-    // Verify response
-    log.info("\n=== Step 5: Verify Response ===");
+    log.info("\n=== Verify Response ===");
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Expected 200 OK");
 
     JsonObject result = gson.fromJson(response.getBody(), JsonObject.class);

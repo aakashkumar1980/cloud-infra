@@ -128,7 +128,6 @@ class MultiFieldsEncryptionTest {
     log.info("Request Body: {}", gson.toJson(order.jsonPayload()));
 
     ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", jsonPayload, String.class);
-    // Verify response
     log.info("\n=== Verify Response ===");
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Expected 200 OK");
 

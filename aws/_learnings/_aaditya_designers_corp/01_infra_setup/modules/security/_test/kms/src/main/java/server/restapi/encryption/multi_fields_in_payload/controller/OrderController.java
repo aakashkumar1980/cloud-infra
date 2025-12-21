@@ -68,6 +68,10 @@ public class OrderController {
     log.info("Request Header [X-Encryption-Key]: {}", utils.truncate(encryptedDataEncryptionKey, 40));
     log.info("Request Body: {}", gson.toJson(jsonPayload));
 
+    // Validate request body
+    if (jsonPayload == null) {
+      return ResponseEntity.badRequest().body(gson.toJson(utils.errorResponse("Empty request body")));
+    }
     // Validate presence of encryption header
     if (encryptedDataEncryptionKey == null || encryptedDataEncryptionKey.isBlank()) {
       log.warn("Missing X-Encryption-Key header");

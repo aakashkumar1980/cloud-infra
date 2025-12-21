@@ -49,9 +49,8 @@ public class OrderService {
    */
   public JsonObject processOrder(String order) {
     // Decrypt JWE to get original JSON payload
-    log.info("Decrypting JWE payload (1 KMS call for CEK, then local AES)");
+    log.info("\n=== Step 4: Decrypting JWE payload (1 KMS call for CEK, then local AES decryption)");
     String decryptedOrder = payloadDecryptor.decrypt(order);
-    log.info("Payload decrypted successfully");
 
     JsonObject orderJson = gson.fromJson(decryptedOrder, JsonObject.class);
     // Extract fields (all are now in plaintext)
@@ -60,9 +59,6 @@ public class OrderService {
     JsonObject cardDetails = orderJson.getAsJsonObject("cardDetails");
     String creditCard = cardDetails.get("creditCardNumber").getAsString();
     String ssn = cardDetails.get("ssn").getAsString();
-
-    log.info("Decrypted order - Name: {} | DOB: {} | Card: {} | SSN: {}",
-        name, dob, utils.maskCard(creditCard), utils.maskSsn(ssn));
 
     // Build response
     JsonObject response = new JsonObject();
@@ -75,7 +71,6 @@ public class OrderService {
     responseCardDetails.addProperty("creditCardNumber", utils.maskCard(creditCard));
     responseCardDetails.addProperty("ssn", utils.maskSsn(ssn));
     response.add("cardDetails", responseCardDetails);
-
     return response;
   }
 
