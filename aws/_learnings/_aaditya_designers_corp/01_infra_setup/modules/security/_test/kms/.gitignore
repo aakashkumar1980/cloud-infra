@@ -68,3 +68,6 @@
 /build/reports/tests/test/classes/client.restapi.encryption.multi_fields_in_payload.MultiFieldsEncryptionTest.html
 /build/reports/tests/test/packages/client.restapi.encryption.multi_fields_in_payload.html
 /build/test-results/test/TEST-client.restapi.encryption.multi_fields_in_payload.MultiFieldsEncryptionTest.xml
+/build/reports/tests/test/classes/client.restapi.encryption.full_payload.FullPayloadEncryptionTest.html
+/build/reports/tests/test/packages/client.restapi.encryption.full_payload.html
+/build/test-results/test/TEST-client.restapi.encryption.full_payload.FullPayloadEncryptionTest.xml
