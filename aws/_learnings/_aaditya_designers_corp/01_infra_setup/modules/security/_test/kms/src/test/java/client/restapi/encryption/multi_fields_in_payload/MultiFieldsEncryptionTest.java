@@ -94,12 +94,9 @@ class MultiFieldsEncryptionTest {
     String encryptedDob = hybridEncryptionService.encryptField(order.get("dateOfBirth").getAsString());
     String encryptedCreditCard = hybridEncryptionService.encryptField(cardDetails.get("creditCardNumber").getAsString());
     String encryptedSsn = hybridEncryptionService.encryptField(cardDetails.get("ssn").getAsString());
-    log.info("Encrypted DOB={} | Card={} | SSN={}",
-        utils.truncate(encryptedDob, 25), utils.truncate(encryptedCreditCard, 25), utils.truncate(encryptedSsn, 25));
 
     log.info("\n=== Step 4: Get Encrypted DEK for Header ===");
     String encryptedDataEncryptionKey = hybridEncryptionService.getEncryptedDataEncryptionKey();
-    log.info("X-Encryption-Key: {} (BASE64 RSA-encrypted DEK)", utils.truncate(encryptedDataEncryptionKey, 40));
 
     // Build JSON payload with encrypted fields
     JsonObject encryptedCardDetails = new JsonObject();
@@ -127,8 +124,8 @@ class MultiFieldsEncryptionTest {
     headers.set("X-Encryption-Key", order.header());
     HttpEntity<String> jsonPayload = new HttpEntity<>(gson.toJson(order.jsonPayload()), headers);
     log.info("POST /api/v1/multi-fields/orders");
-    log.info("Request Header - X-Encryption-Key: {}",order.header());
-    log.info("Request Body - {}", gson.toJson(order.jsonPayload()));
+    log.info("Request Header [X-Encryption-Key]: {}",utils.truncate(order.header(), 60));
+    log.info("Request Body: {}", gson.toJson(order.jsonPayload()));
 
     ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/orders", jsonPayload, String.class);
     // Verify response

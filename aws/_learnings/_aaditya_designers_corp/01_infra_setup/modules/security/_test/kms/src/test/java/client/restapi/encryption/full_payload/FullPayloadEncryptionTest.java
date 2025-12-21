@@ -78,21 +78,14 @@ class FullPayloadEncryptionTest {
    * @return JWE string
    */
   private Order prepareOrder() {
-    // Step 1: Load RSA public key
     log.info("\n=== Step 1: Load RSA Public Key ===");
     hybridEncryptionService.loadPublicKey();
-    log.info("Loaded RSA-4096 public key");
 
-    // Step 2: Load JSON payload from file (plaintext PII)
-    log.info("\n=== Step 2: Load JSON Payload (from sample-order.json) ===");
+    log.info("\n=== Step 2: Encrypt Entire Payload as JWE ===");
     JsonObject order = utils.loadSampleOrder();
     String orderJson = gson.toJson(order);
-
-    // Step 3: Encrypt entire payload as JWE
-    log.info("\n=== Step 3: Encrypt Entire Payload as JWE ===");
     String payload = hybridEncryptionService.encryptPayload(orderJson);
     log.info("JWE created (length={}): {}", payload.length(), utils.truncate(payload, 60));
-    log.info("JWE internally uses CEK (aesContentEncryptionKey) to encrypt entire payload");
 
     return new Order(payload);
   }

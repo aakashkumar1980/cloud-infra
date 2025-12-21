@@ -25,6 +25,17 @@ public class Utils {
   }
 
   /**
+   * Truncates a string to the specified maximum length, appending "..." if truncated.
+   *
+   * @param str    The input string
+   * @param maxLen The maximum length
+   * @return The truncated string with "..." if it was longer than maxLen
+   */
+  public String truncate(String str, int maxLen) {
+    return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
+  }
+
+  /**
    * Masks a credit card number, showing only the last 4 digits.
    *
    * @param card The credit card number to mask

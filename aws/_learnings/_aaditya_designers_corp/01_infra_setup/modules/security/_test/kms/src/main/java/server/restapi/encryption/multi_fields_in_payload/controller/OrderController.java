@@ -65,12 +65,8 @@ public class OrderController {
       @RequestBody String requestBody
   ) {
     JsonObject jsonPayload = gson.fromJson(requestBody, JsonObject.class);
-    log.info("[Multi-Fields] Order received - Name: {} | DOB: {} | Card: {} | SSN: {}",
-        jsonPayload.get("name").getAsString(),
-        jsonPayload.get("dateOfBirth").getAsString(),
-        jsonPayload.getAsJsonObject("cardDetails").get("creditCardNumber").getAsString(),
-        jsonPayload.getAsJsonObject("cardDetails").get("ssn").getAsString()
-    );
+    log.info("Request Header [X-Encryption-Key]: {}", utils.truncate(encryptedDataEncryptionKey, 40));
+    log.info("Request Body: {}", gson.toJson(jsonPayload));
 
     // Validate presence of encryption header
     if (encryptedDataEncryptionKey == null || encryptedDataEncryptionKey.isBlank()) {
