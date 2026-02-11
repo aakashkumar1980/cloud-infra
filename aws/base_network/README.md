@@ -1,4 +1,5 @@
 # AWS Base Network Module
+![](aws_basenetwork.drawio.svg)
 
 ## Exam Questions
 
