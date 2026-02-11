@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36" version="29.2.3">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0" version="29.3.8">
   <diagram name="vpc_peering :: local" id="el8vug5FUbKrcDRyq1UY">
-    <mxGraphModel dx="417" dy="228" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="kQmJK7eCElyfOajWfepb-0" />
         <mxCell id="kQmJK7eCElyfOajWfepb-1" parent="kQmJK7eCElyfOajWfepb-0" />
@@ -30,7 +29,7 @@
         <mxCell id="kQmJK7eCElyfOajWfepb-8" parent="kQmJK7eCElyfOajWfepb-1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=14;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;shadow=1;" value="Private subnet (zone_b | 172.16.0.16/28)" vertex="1">
           <mxGeometry height="180" width="290" x="867" y="991" as="geometry" />
         </mxCell>
-        <mxCell id="kQmJK7eCElyfOajWfepb-9" edge="1" parent="kQmJK7eCElyfOajWfepb-1" source="kQmJK7eCElyfOajWfepb-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=1 2;strokeColor=#0066CC;" target="kQmJK7eCElyfOajWfepb-5">
+        <mxCell id="kQmJK7eCElyfOajWfepb-9" edge="1" parent="kQmJK7eCElyfOajWfepb-1" source="kQmJK7eCElyfOajWfepb-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=1 2;strokeColor=#D79B00;" target="kQmJK7eCElyfOajWfepb-5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="kQmJK7eCElyfOajWfepb-10" parent="kQmJK7eCElyfOajWfepb-1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=left;html=1;shape=mxgraph.aws3.vpc_nat_gateway;fillColor=#F58534;gradientColor=none;fontColor=#994C00;fontSize=10;spacingLeft=0;spacingBottom=0;spacingRight=0;spacingTop=-22;labelPosition=right;" value="nat gateway&lt;br&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;&lt;i&gt;min: 1 per vpc&lt;br&gt;best: 1 per zone&lt;/i&gt;&lt;/font&gt;" vertex="1">
@@ -75,7 +74,7 @@
         <mxCell id="kQmJK7eCElyfOajWfepb-19" parent="kQmJK7eCElyfOajWfepb-1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=14;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;shadow=1;" value="Private subnet (zone_a | 10.0.0.32/27)" vertex="1">
           <mxGeometry height="180" width="290" x="210" y="991" as="geometry" />
         </mxCell>
-        <mxCell id="kQmJK7eCElyfOajWfepb-20" edge="1" parent="kQmJK7eCElyfOajWfepb-1" source="kQmJK7eCElyfOajWfepb-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=1 2;strokeColor=#0066CC;" target="kQmJK7eCElyfOajWfepb-16">
+        <mxCell id="kQmJK7eCElyfOajWfepb-20" edge="1" parent="kQmJK7eCElyfOajWfepb-1" source="kQmJK7eCElyfOajWfepb-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=1 2;strokeColor=#D79B00;" target="kQmJK7eCElyfOajWfepb-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="kQmJK7eCElyfOajWfepb-21" parent="kQmJK7eCElyfOajWfepb-1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=left;html=1;shape=mxgraph.aws3.vpc_nat_gateway;fillColor=#F58534;gradientColor=none;fontColor=#994C00;fontSize=10;spacingLeft=0;spacingBottom=0;spacingRight=0;spacingTop=-22;labelPosition=right;" value="nat gateway&lt;br&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;&lt;i&gt;min: 1 per vpc&lt;br&gt;best: 1 per zone&lt;/i&gt;&lt;/font&gt;" vertex="1">
