@@ -12,7 +12,7 @@ To allow a subnet to send and receive traffic from the internet, you need to con
 - Next, create your **public subnet** inside the VPC and place it in your chosen Availability Zone.
 - Then create a **route table** for this subnet with a rule that sends all non-local traffic (``0.0.0.0/0``) to the Internet Gateway. Associate this route table with the public subnet.
 
-Any instance launched here with a public IP can now talk to the internet both ways — it can serve incoming requests and make outgoing calls.
+Instances here can now reach the internet inbound/outbound through the chain: **Public Subnet** ↔ **Internet Gateway** ↔ **Internet**.
 
 ### Setting Up Private Subnet Access (Outbound Only)
 To allow a subnet to reach the internet for outgoing calls only (like downloading updates) while blocking all incoming traffic from outside, the setup builds on top of the public subnet:
