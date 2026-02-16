@@ -3,14 +3,14 @@
  *
  * IMPORTANT: This module depends on the following being deployed FIRST:
  *   1. aws/base_network                                    - VPCs, Subnets, NAT, IGW
- *   2. aws/_learnings/vpc_connectivity/01_vpc_peering/01_same_region     - VPC A ↔ B peering
+ *   2. aws/base_network/modules/vpc/vpc_peering/same_region     - VPC A ↔ B peering
  *   3. aws/_learnings/vpc_connectivity/01_vpc_peering/02_different_region - N.Virginia ↔ London peering
  *
  * If any of these are not deployed, Terraform will fail with "resource not found" errors.
  *
  * Execution Order:
  *   cd aws/base_network && terraform apply
- *   cd aws/_learnings/vpc_connectivity/01_vpc_peering/01_same_region && terraform apply
+ *   cd aws/base_network/modules/vpc/vpc_peering/same_region && terraform apply
  *   cd aws/_learnings/vpc_connectivity/01_vpc_peering/02_different_region && terraform apply
  *   cd aws/_learnings/_aaditya_designers_corp/01_infra_setup && terraform apply
  */
